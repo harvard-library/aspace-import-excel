@@ -1,0 +1,4 @@
+en:
+  plugins:
+    aspace-import-csv:
+      import: Import from CSV
