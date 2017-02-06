@@ -2,3 +2,8 @@ en:
   plugins:
     aspace-import-csv:
       import: Import from CSV
+
+  resource:
+    _frontend:
+      action:
+        bulk_ingest: Spreadsheet Load
