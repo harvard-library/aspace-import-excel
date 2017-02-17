@@ -3,7 +3,7 @@ An [ArchivesSpace ](http://archivesspace.org/ "ArchivesSpace") plugin to support
 
 Initial development will support interactive selection of an archival object (or resource) as the starting point of the bulk upload.  
 
-The Excel template will be found in the templates/ folder as **archival_objects_interactive.xsl**.  As we expand this plugin to support background job bulk-ingest, there may be more templates provided.
+The Excel template will be found in the templates/ folder as [**archival_objects_interactive.xslx**] (https://github.com/harvard-library/aspace-import-excel/blob/master/templates/archival_objects_interactive.xlsx).  As we expand this plugin to support background job bulk-ingest, there may be more templates provided.
 
 More details *tbd*.
 
