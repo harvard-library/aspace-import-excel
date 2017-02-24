@@ -1,0 +1,33 @@
+<div id="bulk_ingest_file_template">
+  <div class="bulk_ingest_wrapper">
+<!-- <%= "/resources/#{rid}/ssload" %> -->
+    <%= form_tag('/resources/ssload', method: "post", id: "bulk_ingest_form", multipart: true) do |form| %>
+<!-- <%= "#{rid}  #{ref_id}" %> -->
+    <div class="modal-body">
+      <div class="form-group">
+	<input type='hidden' name='ref_id' id='ref_id' value='<%= ref_id %>'/>
+	<input  type='hidden' name='position' id='position' value='<%= position %>'/>
+	<input  type='hidden' name='type' id='type' value='<%= type %>'/>
+	<input type='hidden' name='rid' id='rid' value='<%= rid %>' />
+	<input type='hidden' name='aoid' id='aoid' value='<%= aoid %>' />
+      </div>
+      <section id="bulk_filename_">
+	<span class="btn btn-success btn-sm fileinput-button bulkbtn">
+	  <span class="glyphicon glyphicon-plus icon-white"></span>
+	  <span><%= I18n.t("plugins.aspace-import-excel.add_file")%></span>
+	  <input name="file" type="file" id="excel_file"/>
+	</span>
+	<span id="excel_filename"></span>
+      </section>
+      <div id="bulk_messages">
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button id="bulkFileButton" class="btn btn-primary bulkbtn"><%= t('plugins.aspace-import-excel.import') %></button>
+      <button class="btn btn-cancel btn-default bulkbtn" data-dismiss="modal"><%= I18n.t "actions.cancel" %></button>
+    </div>
+   <% end %>
+
+  </div>
+</div>
