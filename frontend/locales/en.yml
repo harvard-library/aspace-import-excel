@@ -1,9 +1,7 @@
 en:
   plugins:
-    aspace-import-csv:
-      import: Import from CSV
-
-  resource:
-    _frontend:
-      action:
-        bulk_ingest: Spreadsheet Load
+    aspace-import-excel:
+      import: Import from SpreadSheet
+      add_file: Add File
+      drag_drop: Drag and drop file here
+     
