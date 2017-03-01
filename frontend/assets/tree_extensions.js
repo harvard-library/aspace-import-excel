@@ -106,7 +106,8 @@ $(function () {
 			modalSuccess($file_form_modal);
 		    },
 		error: function(xhr, status, err) {
-			alert("ERROR: " + status + " " + xhr.responseText);
+			alert("ERROR: " + status + "; Error detected");
+			$("#bulk_messages").html(xhr.responseText);
 			console.log(xhr);
 			console.log(err);
 			/* display error */
@@ -115,6 +116,7 @@ $(function () {
 				$modal.hide();
 			    });
 			$(".bulkbtn").removeClass("disabled");
+		        $(".bulkbtn.btn-cancel").text("Close").removeClass("disabled").addClass("close")
 		    }
 		});
 	    $modal.on("hide.bs.modal", function (event){

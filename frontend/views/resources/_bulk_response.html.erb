@@ -1,1 +1,4 @@
 <strong>Hi, <%= rid %>!</strong>
+<% if defined?(error) %>
+<div class="bg-danger"><blockquote><%= error %></blockquote></div>
+<% end %>
