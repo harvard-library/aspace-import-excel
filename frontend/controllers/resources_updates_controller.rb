@@ -1,15 +1,41 @@
 class ResourcesUpdatesController < ApplicationController
 
-  set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file],
-                      "delete_archival_record" => [:delete],
-                      "merge_archival_record" => [:merge],
-                      "suppress_archival_record" => [:suppress, :unsuppress],
-                      "transfer_archival_record" => [:transfer],
-                      "manage_repository" => [:defaults, :update_defaults]
+#  groups of variables
+
+# Identifying the resource: collection_id, ead (if both, they have to match)
+# the archival object : ref_id<-- ignored for the moment, Title(R) unit_id hiearchy(R) level(R) publish(t/f) restrictions_flag
+  #  processing_note n_abstract n_accessrestrict n_acqinfo n_arrangement n_bioghist n_custodhist n_dimensions n_odd n_langmaterial n_physdesc n_physfacet n_physloc n_prefercite n_processinfo n_relatedmaterial n_scopecontent n_separatedmaterial n_userestrict
 
 
+# dates: dates_label(default Creation) begin end date_type(R -- bulk,single inclusive) expression certainty
+
+# extents: portion(default whole) number(R) extent_type(R) container_summary physical_details dimensions
+
+# container: type_1 indicator_1 barcode type_2 indicator_2 type_3 indicator_3
+
+# digital object: digital_object_title digital_object_link thumbnail
+
+# Creator agent: creator_1_primary_name creator_1_rest_of_name creator_1_agent_record_id creator_person_1_authority creator_person_1_auth_id creator_1_relator
+#   creator_2_primary_name creator_2_rest_of_name creator_2_agent_record_id creator_person_2_authority creator_person_2_auth_id creator_2_relator
+#   creator_3_primary_name creator_3_rest_of_name creator_3_agent_record_id creator_person_3_authority creator_person_3_auth_id creator_3_relator
+#  family_agent family_agent_record_id family_agent_authority family_agent_authority_id family_agent_relator
+
+# linked_corporate_entity_agent corporate_agent_record_id corporate_agent_authority corporate_agent_authority_id corporate_entity_relator
+
+  # subject: subject_1_term subject_1_type subject_2_term subject_2_type
+
+
+
+#       
+
+
+START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
+
+  set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file]
+
+  require 'pry'
+  require 'rubyXL'
   include ExportHelper
-
 
   def get_file
     rid = params[:rid]
@@ -23,7 +49,54 @@ class ResourcesUpdatesController < ApplicationController
 
   # load in a spreadsheet
   def load_ss
-#    @parent = Resource.find(params[:rid])
+    @parent = Resource.find(params[:rid])
+#    Pry::ColorPrinter.pp ['resource', @parent]
+    aoid = params[:aoid] 
+    if aoid && aoid != ''
+      @ao = JSONModel(:archival_object).find(aoid, find_opts )
+      @parent = @ao.parent
+      Pry::ColorPrinter.pp ['archival object','position', @ao.position]
+      Pry::ColorPrinter.pp ['ref_id', @ao.ref_id, 'level', @ao.level]
+    end
+    begin
+      dispatched_file = params[:file]
+      @input_file = dispatched_file.tempfile
+      Pry::ColorPrinter.pp @input_file
+      workbook = RubyXL::Parser.parse(@input_file)
+      sheet = workbook[0]
+      rows = sheet.enum_for(:each)
+      counter = 0
+ #     Pry::ColorPrinter.pp sheet.sheet_data.size
+      while @headers.nil? && (row = rows.next)
+        counter += 1
+       if row[0] && row[0].value =~ START_MARKER
+          @headers = row_values(row)
+        # Skip the human readable header too
+          rows.next
+         counter += 1 # for the skipping
+        end
+      end
+      raise Exception.new("No header row found!") if @headers.nil?
+      @rows_processed = 0
+      begin
+        while (row = rows.next)
+          counter += 1 
+          values = row_values(row)
+          next if values.compact.empty?
+          @rows_processed += 1
+          Pry::ColorPrinter.pp @headers.zip(values)
+        end
+      rescue StopIteration
+        begin
+          Pry::ColorPrinter.pp ["stop iteration at counter", counter]
+        end
+      end
+    raise Exception.new("No data rows found!") if @rows_processed == 0
+    rescue Exception => e
+      Pry::ColorPrinter.pp e
+      return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :error => "Error parsing Excel File: #{e.message}"}
+    end
+
 #    @archival_object =  JSONModel(:archival_object).new
 #    @archival_object.resource = {'ref' => JSONModel(:resource).uri_for(params[:rid]) }
 #    @archival_object.title = 'Created by load_ss take 4'
@@ -211,5 +284,12 @@ class ResourcesUpdatesController < ApplicationController
     return render_aspace_partial :partial => "resources/new_inline" if params[:inline]
     
   end
+  private
+
+  def row_values(row)
+#    Pry::ColorPrinter.pp "ROW!"
+    (1...row.size).map {|i| (row[i] && row[i].value) ? row[i].value.to_s.strip : nil}
+  end
+
  
 end
