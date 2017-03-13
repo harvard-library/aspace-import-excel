@@ -35,7 +35,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   require 'pry'
   require 'rubyXL'
-  include ExportHelper
+#  include ExportHelper
 
   def get_file
     rid = params[:rid]
@@ -49,13 +49,15 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   # load in a spreadsheet
   def load_ss
+    @position
     @parent = Resource.find(params[:rid])
-#    Pry::ColorPrinter.pp ['resource', @parent]
+    Pry::ColorPrinter.pp ['resource', @parent]
     aoid = params[:aoid] 
     if aoid && aoid != ''
       @ao = JSONModel(:archival_object).find(aoid, find_opts )
-      @parent = @ao.parent
-      Pry::ColorPrinter.pp ['archival object','position', @ao.position]
+      @position = @ao.position
+      @ao_parent = @ao.parent
+      Pry::ColorPrinter.pp ['archival object','position', @position]
       Pry::ColorPrinter.pp ['ref_id', @ao.ref_id, 'level', @ao.level]
     end
     begin
@@ -65,38 +67,53 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       workbook = RubyXL::Parser.parse(@input_file)
       sheet = workbook[0]
       rows = sheet.enum_for(:each)
-      counter = 0
+      @counter = 0
  #     Pry::ColorPrinter.pp sheet.sheet_data.size
       while @headers.nil? && (row = rows.next)
-        counter += 1
-       if row[0] && row[0].value =~ START_MARKER
+        @counter += 1
+        if row[0] && row[0].value =~ START_MARKER
           @headers = row_values(row)
         # Skip the human readable header too
           rows.next
-         counter += 1 # for the skipping
+          @counter += 1 # for the skipping
         end
       end
       raise Exception.new("No header row found!") if @headers.nil?
       @rows_processed = 0
+      @report_out = []
       begin
         while (row = rows.next)
-          counter += 1 
+          @counter += 1 
           values = row_values(row)
-          next if values.compact.empty?
-          @rows_processed += 1
+          if values.compact.empty?
+            @counter += 1
+            next 
+          end
           Pry::ColorPrinter.pp @headers.zip(values)
+          @row_hash = Hash[@headers.zip(values)]
+          @rows_processed += 1
+          begin
+            process_row
+          rescue Exception => e
+            @report_out.push e.message
+            Pry::ColorPrinter.pp e.message
+          end
         end
       rescue StopIteration
         begin
-          Pry::ColorPrinter.pp ["stop iteration at counter", counter]
+        Pry::ColorPrinter.pp ["stop iteration at counter", @counter]
         end
       end
-    raise Exception.new("No data rows found!") if @rows_processed == 0
+#      raise Exception.new("No data rows found!") if @rows_processed == 0
     rescue Exception => e
-      Pry::ColorPrinter.pp e
+      Pry::ColorPrinter.pp "EXCEPTION!" 
+      Pry::ColorPrinter.pp e.backtrace
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :error => "Error parsing Excel File: #{e.message}"}
     end
+    return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid]}
+  end
 
+  private
 #    @archival_object =  JSONModel(:archival_object).new
 #    @archival_object.resource = {'ref' => JSONModel(:resource).uri_for(params[:rid]) }
 #    @archival_object.title = 'Created by load_ss take 4'
@@ -124,172 +141,44 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 #    rescue Exception => e
 #      Pry::ColorPrinter.pp ["EXCEPTION", @archival_object._exceptions, e.backtrace]
 #    end
-    return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid]}
+
+  def process_row
+    @report_out.push "Processing Row #{@counter}"
+    resource_match
+    archival_object =  JSONModel(:archival_object).new
   end
 
-
-  def setup
-    
-  end
-
-
-  def defaults
-    defaults = DefaultValues.get 'resource'
-
-    values = defaults ? defaults.form_values : {:title => I18n.t("resource.title_default", :default => "")}
-
-    @resource = Resource.new(values)._always_valid!
-
-    @form_title = I18n.t("default_values.form_title.resource")
-
-
-    render "defaults"
-  end
-
-
-  def update_defaults
-
-    begin
-      DefaultValues.from_hash({
-                                "record_type" => "resource",
-                                "lock_version" => params[:resource].delete('lock_version'),
-                                "defaults" => cleanup_params_for_schema(
-                                                                        params[:resource], 
-                                                                        JSONModel(:resource).schema
-                                                                        )
-                              }).save
-
-      flash[:success] = "Defaults updated"
-
-      redirect_to :controller => :resources, :action => :defaults
-    rescue Exception => e
-      flash[:error] = e.message
-      redirect_to :controller => :resources, :action => :defaults
+  # make sure that the resource ead id from the form matches that in the spreadsheet
+  # throws an exception if the designated resource ead doesn't match the spreadsheet row ead
+  def resource_match
+    ret_str = ''
+    ret_str = "This form's Resource is missing an EAD ID" if @parent['ead_id'].blank?
+    ret_str += ' This row is missing an EAD ID' if @row_hash['ead'].strip.blank?
+    if ret_str.blank?
+      ret_str = "Form's EAD ID [#{@parent['ead_id']}] does not match row's EAD ID [#{@row_hash['ead']}]" if  @parent['ead_id'] != @row_hash['ead'].strip
     end
-
+    raise Exception.new("Row #{@counter}: #{ret_str}") if !ret_str.blank?
   end
 
-  private
-
-  def fetch_tree
-    flash.keep # keep the flash... just in case this fires before the form is loaded
-
-    tree = []
-
-    limit_to = if  params[:node_uri] && !params[:node_uri].include?("/resources/") 
-                 params[:node_uri]
-               else
-                 "root"
-               end
-
-    if !params[:hash].blank?
-      node_id = params[:hash].sub("tree::", "").sub("#", "")
-      if node_id.starts_with?("resource")
-        limit_to = "root"
-      elsif node_id.starts_with?("archival_object")
-        limit_to = JSONModel(:archival_object).uri_for(node_id.sub("archival_object_", "").to_i)
-      end
-    end
-
-    tree = JSONModel(:resource_tree).find(nil, :resource_id => params[:id], :limit_to => limit_to).to_hash(:validated)
-
-    prepare_tree_nodes(tree) do |node|
-
-      node['text'] = node['title']
-      node['level'] = I18n.t("enumerations.archival_record_level.#{node['level']}", :default => node['level'])
-      node['instance_types'] = node['instance_types'].map{|instance_type| I18n.t("enumerations.instance_instance_type.#{instance_type}", :default => instance_type)}
-      node['containers'].each{|container|
-        container["type_1"] = I18n.t("enumerations.container_type.#{container["type_1"]}", :default => container["type_1"]) if container["type_1"]
-        container["type_2"] = I18n.t("enumerations.container_type.#{container["type_2"]}", :default => container["type_2"]) if container["type_2"]
-        container["type_3"] = I18n.t("enumerations.container_type.#{container["type_3"]}", :default => container["type_3"]) if container["type_3"]
-      }
-      node_db_id = node['id']
-
-      node['id'] = "#{node["node_type"]}_#{node["id"]}"
-
-      if node['has_children'] && node['children'].empty?
-        node['children'] = true
-      end
-
-      node['type'] = node['node_type']
-
-      node['li_attr'] = {
-        "data-uri" => node['record_uri'],
-        "data-id" => node_db_id,
-        "rel" => node['node_type']
-      }
-      node['a_attr'] = {
-        "href" => "#tree::#{node['id']}",
-        "title" => node["title"]
-      }
-
-      if node['node_type'] == 'resource' || node['record_uri'] == limit_to
-#        node['state'] = {'opened' => true}
-      end
-
-    end
-
-    tree
-
+  def find_subject(subject,source, ext_id)
+    #title:subject AND primary_type:subject AND source:#{source} AND external_id:#{ext_id}
   end
 
-
-  # refactoring note: suspiciously similar to accessions_controller.rb
-  def fetch_resolved(id)
-    resource = JSONModel(:resource).find(id, find_opts)
-
-    if resource['classifications'] 
-      resource['classifications'].each do |classification|
-        next unless classification['_resolved']
-        resolved = classification["_resolved"] 
-        resolved['title'] = ClassificationHelper.format_classification(resolved['path_from_root'])
-      end 
-    end
-
-    resource
+  def find_agent(primary_name, rest_name, type, source, ext_id)
+    #title: #{primary_name}, #{rest_name} AND primary_type:agent_#{type}  AND source:#{source} AND external_id:#{ext_id}
   end
 
-  # read CSV file
-  def read_csv(file)
-    csv = CSV.parse(csv_text, :headers => true)
-    csv.each do |row|
-      Moulding.create!(row.to_hash)
-    end
-    csv
+  def add_children
+   #http://welling.hul.harvard.edu:8880/archival_objects/84957/accept_children
+    # children[] = /repositories/2/archival_objects/84958
+    #children[] = /repositories/2/archival_objects/84959
+    # index = 0
+    # this calls handle_accept_children in application_controller https://github.com/archivesspace/archivesspace/blob/c80d9b2205aa36474fe719f3599f83dad8e97bb4/frontend/app/controllers/application_controller.rb
+    # 
   end
-
-  # create archival object from the csv.. similar to accession..
-  def csv_resource(csv) 
-  @resource = Resource.new(:title => I18n.t("resource.title_default", :default => ""))._always_valid!
-
-    if params[:accession_id]
-      acc = Accession.find(params[:accession_id], find_opts)
-
-      if csv
-        @resource.populate_from_accession(csv)
-        flash.now[:info] = I18n.t("resource._frontend.messages.spawned", JSONModelI18nWrapper.new(:accession => csv))
-        flash[:spawned_from_accession] = acc.id
-      end
-
-    elsif user_prefs['default_values']
-      defaults = DefaultValues.get 'resource'
-
-      if defaults
-        @resource.update(defaults.values)
-        @form_title = "#{I18n.t('actions.new_prefix')} #{I18n.t('resource._singular')}"
-      end
-
-    end
-
-    return render_aspace_partial :partial => "resources/new_inline" if params[:inline]
-    
-  end
-  private
 
   def row_values(row)
 #    Pry::ColorPrinter.pp "ROW!"
     (1...row.size).map {|i| (row[i] && row[i].value) ? row[i].value.to_s.strip : nil}
   end
-
- 
 end
