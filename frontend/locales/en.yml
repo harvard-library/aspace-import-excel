@@ -4,4 +4,22 @@ en:
       import: Import from SpreadSheet
       add_file: Add File
       drag_drop: Drag and drop file here
-     
+      row: "Row %{row}"
+      processing_row: "Processing row %{row}"
+      row_error: "Row %{row} will not be processed due to errors: %{errs}"
+      error:
+       res_ead: This form's Resource is missing an EAD ID
+       row_ead: This row is missing an EAD ID
+       ead_mismatch:  "Form's EAD ID [%{res_ead}] does not match row's EAD ID [%{row_ead}]"
+       title: Missing title
+       hier_miss: Missing hierachy -- must be a number greater than 0
+       hier_zero: Hierarchy must be greater than 0 
+       hier_wrong: Hierarchy cannot not be more than one level below the previous row
+       level: Missing Description level
+       date: "Date must have at least one of: Date begin; Date end; or Date expression"
+       number: Missing Extent number
+       extent_type:  Missing Extent type
+       no_header: No header row found!
+       no_data: No processible data rows found!
+       excel: "Error(s) parsing Excel File: %{error}"
+

@@ -51,14 +51,18 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   def load_ss
     @position
     @parent = Resource.find(params[:rid])
-    Pry::ColorPrinter.pp ['resource', @parent]
+#    Pry::ColorPrinter.pp ['resource', @parent]
     aoid = params[:aoid] 
+    @hier = 0
     if aoid && aoid != ''
       @ao = JSONModel(:archival_object).find(aoid, find_opts )
+      @hier = @ao.level
+      @hier = @hier.to_i if @ao.level
       @position = @ao.position
       @ao_parent = @ao.parent
       Pry::ColorPrinter.pp ['archival object','position', @position]
       Pry::ColorPrinter.pp ['ref_id', @ao.ref_id, 'level', @ao.level]
+      Pry::ColorPrinter.pp ['parent', @ao_parent['ref']] if @ao_parent
     end
     begin
       dispatched_file = params[:file]
@@ -68,7 +72,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       sheet = workbook[0]
       rows = sheet.enum_for(:each)
       @counter = 0
- #     Pry::ColorPrinter.pp sheet.sheet_data.size
+      Pry::ColorPrinter.pp ["sheet size", sheet.sheet_data.size]
       while @headers.nil? && (row = rows.next)
         @counter += 1
         if row[0] && row[0].value =~ START_MARKER
@@ -78,9 +82,10 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           @counter += 1 # for the skipping
         end
       end
-      raise Exception.new("No header row found!") if @headers.nil?
+      raise Exception.new(I18n.t('plugins.aspace-import-excel.error.no_header')) if @headers.nil?
       @rows_processed = 0
       @report_out = []
+      @error_rows = 0
       begin
         while (row = rows.next)
           @counter += 1 
@@ -89,12 +94,13 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
             @counter += 1
             next 
           end
-          Pry::ColorPrinter.pp @headers.zip(values)
           @row_hash = Hash[@headers.zip(values)]
-          @rows_processed += 1
+#          Pry::ColorPrinter.pp @row_hash
           begin
             process_row
+            @rows_processed += 1
           rescue Exception => e
+            @error_rows += 1
             @report_out.push e.message
             Pry::ColorPrinter.pp e.message
           end
@@ -104,11 +110,12 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         Pry::ColorPrinter.pp ["stop iteration at counter", @counter]
         end
       end
-#      raise Exception.new("No data rows found!") if @rows_processed == 0
+    raise Exception.new( I18n.t('plugins.aspace-import-excel.error.no_data') + '<br/>' + @report_out.join('<br/>')) if @rows_processed == 0
     rescue Exception => e
       Pry::ColorPrinter.pp "EXCEPTION!" 
       Pry::ColorPrinter.pp e.backtrace
-      return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :error => "Error parsing Excel File: #{e.message}"}
+      return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid], 
+                           :error =>  I18n.t('plugins.aspace-import-excel.error.excel', :error => e.message) }
     end
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid]}
   end
@@ -142,22 +149,54 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 #      Pry::ColorPrinter.pp ["EXCEPTION", @archival_object._exceptions, e.backtrace]
 #    end
 
+  # look for all the required fields to make sure they are legit
+  def check_row
+    err_arr = []
+    begin
+      err_arr.push I18n.t('plugins.aspace-import-excel.error.title') if @row_hash['title'].blank?
+      # tree hierachy
+      hier = @row_hash['hierarchy']
+      if !hier 
+        err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_miss')
+      else
+        hier = hier.to_i
+        err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_zero') if hier < 1
+        err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_wrong') if (hier - 1) > @hier
+      end
+      err_arr.push I18n.t('plugins.aspace-import-excel.error.level') if @row_hash['level'].blank?
+      #date stuff
+      err_arr.push I18n.t('plugins.aspace-import-excel.error.date') if [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
+      # extent
+      err_arr.push I18n.t('plugins.aspace-import-excel.error.number') if @row_hash['number'].blank?
+      err_arr.push I18n.t('plugins.aspace-import-excel.error.extent_type') if @row_hash['extent_type'].blank?
+    rescue Exception => e
+      Pry::ColorPrinter.pp ["EXCEPTION", e.message, e.backtrace]
+    end
+      err_arr.join('; ')
+  end
+
   def process_row
-    @report_out.push "Processing Row #{@counter}"
-    resource_match
-    archival_object =  JSONModel(:archival_object).new
+    Pry::ColorPrinter.pp @counter
+    @report_out.push  I18n.t('plugins.aspace-import-excel.row', :row =>@counter)
+    ret_str =  resource_match
+    # mismatch of resource stops all other processing
+    if ret_str.blank?
+      ret_str = check_row
+    end
+    raise Exception.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
+#    archival_object =  JSONModel(:archival_object).new
   end
 
   # make sure that the resource ead id from the form matches that in the spreadsheet
   # throws an exception if the designated resource ead doesn't match the spreadsheet row ead
   def resource_match
     ret_str = ''
-    ret_str = "This form's Resource is missing an EAD ID" if @parent['ead_id'].blank?
-    ret_str += ' This row is missing an EAD ID' if @row_hash['ead'].strip.blank?
+    ret_str = I18n.t('plugins.aspace-import-excel.error.res_ead') if @parent['ead_id'].blank?
+    ret_str =  ' ' +  I18n.t('plugins.aspace-import-excel.error.row_ead')  if @row_hash['ead'].strip.blank?
     if ret_str.blank?
-      ret_str = "Form's EAD ID [#{@parent['ead_id']}] does not match row's EAD ID [#{@row_hash['ead']}]" if  @parent['ead_id'] != @row_hash['ead'].strip
+      ret_str =  I18n.t('plugins.aspace-import-excel.error.ead_mismatch', :res_ead => @parent['ead_id'], :row_ead => @row_hash['ead']) if  @parent['ead_id'] != @row_hash['ead'].strip
     end
-    raise Exception.new("Row #{@counter}: #{ret_str}") if !ret_str.blank?
+    ret_str.blank? ? nil : ret_str
   end
 
   def find_subject(subject,source, ext_id)
