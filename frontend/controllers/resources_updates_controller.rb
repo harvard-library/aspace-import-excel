@@ -66,6 +66,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     end
     begin
       dispatched_file = params[:file]
+      @orig_filename = dispatched_file.original_filename
       @input_file = dispatched_file.tempfile
       Pry::ColorPrinter.pp @input_file
       workbook = RubyXL::Parser.parse(@input_file)
@@ -82,7 +83,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           @counter += 1 # for the skipping
         end
       end
-      raise Exception.new(I18n.t('plugins.aspace-import-excel.error.no_header')) if @headers.nil?
+      raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_header')) if @headers.nil?
       @rows_processed = 0
       @report_out = []
       @error_rows = 0
@@ -99,9 +100,10 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           begin
             process_row
             @rows_processed += 1
-          rescue Exception => e
+          rescue ExcelImportException => e
             @error_rows += 1
             @report_out.push e.message
+            @report_out.push ' '
             Pry::ColorPrinter.pp e.message
           end
         end
@@ -110,12 +112,21 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         Pry::ColorPrinter.pp ["stop iteration at counter", @counter]
         end
       end
-    raise Exception.new( I18n.t('plugins.aspace-import-excel.error.no_data') + '<br/>' + @report_out.join('<br/>')) if @rows_processed == 0
+    raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_data') + '\n' + @report_out.join('\n')) if @rows_processed == 0
     rescue Exception => e
-      Pry::ColorPrinter.pp "EXCEPTION!" 
-      Pry::ColorPrinter.pp e.backtrace
+      errors = []
+      if e.is_a?( ExcelImportException)
+        errors = e.message.split('\n')
+        Pry::ColorPrinter.pp "WE GOT ROW ERRORS!"
+        errors.unshift I18n.t('plugins.aspace-import-excel.error.excel', :file => @orig_filename)
+      else # something else went wrong
+        errors = @report_out
+        errors.unshift I18n.t('plugins.aspace-import-excel.error.system',:row => @counter, :msg => e.message)
+        Pry::ColorPrinter.pp "EXCEPTION!" 
+        Pry::ColorPrinter.pp e.backtrace
+      end
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid], 
-                           :error =>  I18n.t('plugins.aspace-import-excel.error.excel', :error => e.message) }
+        :errors =>  errors}
     end
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid]}
   end
@@ -170,20 +181,21 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       err_arr.push I18n.t('plugins.aspace-import-excel.error.number') if @row_hash['number'].blank?
       err_arr.push I18n.t('plugins.aspace-import-excel.error.extent_type') if @row_hash['extent_type'].blank?
     rescue Exception => e
-      Pry::ColorPrinter.pp ["EXCEPTION", e.message, e.backtrace]
+      Pry::ColorPrinter.pp ["EXCEPTION", e.message, e.backtrace, @row_hash]
     end
       err_arr.join('; ')
   end
 
   def process_row
     Pry::ColorPrinter.pp @counter
-    @report_out.push  I18n.t('plugins.aspace-import-excel.row', :row =>@counter)
     ret_str =  resource_match
     # mismatch of resource stops all other processing
     if ret_str.blank?
       ret_str = check_row
     end
-    raise Exception.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
+    raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
+    @report_out.push  I18n.t('plugins.aspace-import-excel.row', :row =>@counter)
+
 #    archival_object =  JSONModel(:archival_object).new
   end
 

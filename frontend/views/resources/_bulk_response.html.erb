@@ -1,4 +1,8 @@
 <strong>Hi, <%= rid %>!</strong>
-<% if defined?(error) %>
-<div class="bg-danger"><blockquote><%= error %></blockquote></div>
+<% if defined?(errors) %>
+<div class="bg-danger"><blockquote>
+<% errors.each do |error| %>
+<%== error %><br/>
+<% end %>
+</blockquote></div>
 <% end %>

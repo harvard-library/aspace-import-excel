@@ -8,6 +8,7 @@ en:
       processing_row: "Processing row %{row}"
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
       error:
+       system: "Some system error has occurred  [%{msg}]. Processing stopped at row %{row}"
        res_ead: This form's Resource is missing an EAD ID
        row_ead: This row is missing an EAD ID
        ead_mismatch:  "Form's EAD ID [%{res_ead}] does not match row's EAD ID [%{row_ead}]"
@@ -21,5 +22,5 @@ en:
        extent_type:  Missing Extent type
        no_header: No header row found!
        no_data: No processible data rows found!
-       excel: "Error(s) parsing Excel File: %{error}"
+       excel: "Error(s) parsing Excel File %{file}"
 
