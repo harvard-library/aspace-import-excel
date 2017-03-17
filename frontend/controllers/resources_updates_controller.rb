@@ -54,7 +54,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 #    Pry::ColorPrinter.pp ['resource', @parent]
     aoid = params[:aoid] 
     @hier = 0
-    if aoid && aoid != ''
+    if !aoid.blank?
       @ao = JSONModel(:archival_object).find(aoid, find_opts )
       @hier = @ao.level
       @hier = @hier.to_i if @ao.level
@@ -125,7 +125,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         Pry::ColorPrinter.pp "EXCEPTION!" 
         Pry::ColorPrinter.pp e.backtrace
       end
-      return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid], 
+      return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid],
         :errors =>  errors}
     end
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid]}
