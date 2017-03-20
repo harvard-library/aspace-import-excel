@@ -128,7 +128,9 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid],
         :errors =>  errors}
     end
-    return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid]}
+    Pry::ColorPrinter.pp "REPORT OUT"
+    Pry::ColorPrinter.pp  @report_out
+    return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report_out}
   end
 
   private
