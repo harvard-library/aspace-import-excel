@@ -111,12 +111,7 @@ $(function () {
 			console.log(xhr);
 			console.log(err);
 			/* display error */
-			$modal.on("hide.bs.modal", function (event){
-				console.log("hide hit");
-				$modal.hide();
-			    });
-			$(".bulkbtn").removeClass("disabled");
-		        $(".bulkbtn.btn-cancel").text("Close").removeClass("disabled").addClass("close")
+			modalError($file_form_modal);
 		    }
 		});
 	    $modal.on("hide.bs.modal", function (event){
@@ -143,6 +138,17 @@ $(function () {
 		    handleFileUpload($file_form_modal);
 		});
 	    $file_form_modal.show();
+	}
+	var modalError = function($modal) {
+	    $(".bulkbtn").removeClass("disabled");
+            $(".bulkbtn.btn-cancel").text("Close").removeClass("disabled").addClass("close")
+	    $modal.find(".close").click(function(event) {
+		    $("input").each(function() { 
+			    console.log($(this).val());
+			    $(this).val("");
+			});
+		    $modal.hide();
+		});
 	}
 
         var modalSuccess = function($modal) {
