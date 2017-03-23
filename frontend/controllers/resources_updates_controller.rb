@@ -1,42 +1,14 @@
 class ResourcesUpdatesController < ApplicationController
 
-#  groups of variables
-
-# Identifying the resource: collection_id, ead (if both, they have to match)
-# the archival object : ref_id<-- ignored for the moment, Title(R) unit_id hiearchy(R) level(R) publish(t/f) restrictions_flag
-  #  processing_note n_abstract n_accessrestrict n_acqinfo n_arrangement n_bioghist n_custodhist n_dimensions n_odd n_langmaterial n_physdesc n_physfacet n_physloc n_prefercite n_processinfo n_relatedmaterial n_scopecontent n_separatedmaterial n_userestrict
-
-
-# dates: dates_label(default Creation) begin end date_type(R -- bulk,single inclusive) expression certainty
-
-# extents: portion(default whole) number(R) extent_type(R) container_summary physical_details dimensions
-
-# container: type_1 indicator_1 barcode type_2 indicator_2 type_3 indicator_3
-
-# digital object: digital_object_title digital_object_link thumbnail
-
-# Creator agent: creator_1_primary_name creator_1_rest_of_name creator_1_agent_record_id creator_person_1_authority creator_person_1_auth_id creator_1_relator
-#   creator_2_primary_name creator_2_rest_of_name creator_2_agent_record_id creator_person_2_authority creator_person_2_auth_id creator_2_relator
-#   creator_3_primary_name creator_3_rest_of_name creator_3_agent_record_id creator_person_3_authority creator_person_3_auth_id creator_3_relator
-#  family_agent family_agent_record_id family_agent_authority family_agent_authority_id family_agent_relator
-
-# linked_corporate_entity_agent corporate_agent_record_id corporate_agent_authority corporate_agent_authority_id corporate_entity_relator
-
-  # subject: subject_1_term subject_1_type subject_2_term subject_2_type
-
-
-
-#       
-
-
 START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file]
 
   require 'pry'
   require 'rubyXL'
-#  include ExportHelper
+  require 'asutils'
 
+  # create the file form for the spreadsheet
   def get_file
     rid = params[:rid]
     type = params[:type]
@@ -50,30 +22,8 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   # load in a spreadsheet
   def load_ss
     @position
-    @parent = Resource.find(params[:rid])
-#    Pry::ColorPrinter.pp ['resource', @parent]
-    aoid = params[:aoid] 
-    @hier = 0
-    if !aoid.blank?
-      @ao = JSONModel(:archival_object).find(aoid, find_opts )
-      @hier = @ao.level
-      @hier = @hier.to_i if @ao.level
-      @position = @ao.position
-      @ao_parent = @ao.parent
-      Pry::ColorPrinter.pp ['archival object','position', @position]
-      Pry::ColorPrinter.pp ['ref_id', @ao.ref_id, 'level', @ao.level]
-      Pry::ColorPrinter.pp ['parent', @ao_parent['ref']] if @ao_parent
-    end
     begin
-      dispatched_file = params[:file]
-      @orig_filename = dispatched_file.original_filename
-      @input_file = dispatched_file.tempfile
-      Pry::ColorPrinter.pp @input_file
-      workbook = RubyXL::Parser.parse(@input_file)
-      sheet = workbook[0]
-      rows = sheet.enum_for(:each)
-      @counter = 0
-      Pry::ColorPrinter.pp ["sheet size", sheet.sheet_data.size]
+      rows = initialize_info(params)
       while @headers.nil? && (row = rows.next)
         @counter += 1
         if row[0] && row[0].value =~ START_MARKER
@@ -84,21 +34,14 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         end
       end
       raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_header')) if @headers.nil?
-      @rows_processed = 0
-      @report_out = []
-      @error_rows = 0
       begin
         while (row = rows.next)
           @counter += 1 
           values = row_values(row)
-          if values.compact.empty?
-            @counter += 1
-            next 
-          end
+          next if values.compact.empty?
           @row_hash = Hash[@headers.zip(values)]
-#          Pry::ColorPrinter.pp @row_hash
           begin
-            process_row
+            ao = process_row
             @rows_processed += 1
           rescue ExcelImportException => e
             @error_rows += 1
@@ -108,19 +51,18 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           end
         end
       rescue StopIteration
-        begin
-        Pry::ColorPrinter.pp ["stop iteration at counter", @counter]
-        end
+        # we just want to catch this without processing further
       end
-    raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_data') + '\n' + @report_out.join('\n')) if @rows_processed == 0
+      if @rows_processed == 0
+        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_data') + '\n' + @report_out.join('\n')) 
+      end
     rescue Exception => e
       errors = []
       if e.is_a?( ExcelImportException)
         errors = e.message.split('\n')
-        Pry::ColorPrinter.pp "WE GOT ROW ERRORS!"
         errors.unshift I18n.t('plugins.aspace-import-excel.error.excel', :file => @orig_filename)
       else # something else went wrong
-        errors = @report_out
+        errors = @report_out if !@report_out.blank?
         errors.unshift I18n.t('plugins.aspace-import-excel.error.system',:row => @counter, :msg => e.message)
         Pry::ColorPrinter.pp "EXCEPTION!" 
         Pry::ColorPrinter.pp e.backtrace
@@ -128,41 +70,13 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid],
         :errors =>  errors}
     end
-    Pry::ColorPrinter.pp "REPORT OUT"
-    Pry::ColorPrinter.pp  @report_out
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report_out}
   end
 
   private
-#    @archival_object =  JSONModel(:archival_object).new
-#    @archival_object.resource = {'ref' => JSONModel(:resource).uri_for(params[:rid]) }
-#    @archival_object.title = 'Created by load_ss take 4'
-#    @archival_object.level = 'item'
-#    test_ao = JSONModel(:archival_object).find('84944', {})
-#     Pry::ColorPrinter.pp ['arch_obj', @archival_object]
-#    Pry::ColorPrinter.pp ['found ao', test_ao]
-#    Pry::ColorPrinter.pp ['exception checking:', @archival_object._exceptions]
-#    top_container = 'box 144'
-#    uri = '/repositories/2/resources/382'
-#    repo_id = 2
-#    tc_params = {}
-#    tc_params["type[]"] = 'top_container'
-#    tc_params["q"] = "display_string:\"#{top_container}\" AND collection_uri_u_sstr:\"#{uri}\""
-#    tc_params["filter"] = AdvancedQueryBuilder.new.and('collection_uri_u_sstr', uri, 'text', true).build.to_json
-#    search = Search.all(repo_id, tc_params)
-#    Pry::ColorPrinter.pp ['top_container search', tc_params,search['total_hits'], search['results'][0]['uri']]
-#    if search['total_hits'] = 1
-#      @archival_object['instances'] = {}
-#    end
-
-#    begin
-#      @archival_object.save
-#      Pry::ColorPrinter.pp @archival_object
-#    rescue Exception => e
-#      Pry::ColorPrinter.pp ["EXCEPTION", @archival_object._exceptions, e.backtrace]
-#    end
 
   # look for all the required fields to make sure they are legit
+  # strip all the strings and turn publish into true/false
   def check_row
     err_arr = []
     begin
@@ -185,7 +99,105 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     rescue Exception => e
       Pry::ColorPrinter.pp ["EXCEPTION", e.message, e.backtrace, @row_hash]
     end
-      err_arr.join('; ')
+    if err_arr.blank?
+      @row_hash.each do |k, v|
+        @row_hash[k] = v.strip if !v.blank?
+        if k == 'publish'
+          @row_hash[k] = (v == '1')
+        end
+      end
+    end
+    Pry::ColorPrinter.pp "PUBLISH: #{ @row_hash['publish']}"
+    err_arr.join('; ')
+  end
+
+  # create an archival_object
+  def create_archival_object(parent_uri)
+    ao = JSONModel(:archival_object).new._always_valid!
+    ao.resource = {'ref' => @resource['uri']}
+    ao.title = @row_hash['title']
+    ao.level = @row_hash['level'].downcase
+    ao.publish = @row_hash['publish']
+    ao.parent = {'ref' => parent_uri} if !parent_uri.blank?
+
+# For some reason, I need to save/create the smallest possible  amount of information first!
+    begin
+      ao.save
+    rescue Exception => e
+      Pry::ColorPrinter.pp "INITIAL SAVE FAILED!!!"
+Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
+      raise I18n.t('plugins.aspace-import-excel.error.system',:row => @counter, :msg => e.message)
+    end
+    ao.dates = create_date
+#    test_exceptions(ao, "with date")
+    ao.extents = create_extent
+#    test_exceptions(ao, "and extent")
+    ao
+  end
+  
+  def create_date
+    date =  { 'date_type' => (@row_hash['date_type'] || 'inclusive').downcase,
+              'label' => (@row_hash['dates_label'] || 'creation').downcase}
+    date['certainty']= @row_hash['date_certainty'].downcase if @row_hash['date_certainty']
+    %w(begin end expression).each do |w|
+      date[w] = @row_hash[w] if @row_hash[w]
+    end
+    d = JSONModel(:date).new(date)
+    begin
+       Pry::ColorPrinter.pp "DATE EXCEPTIONS?"
+      d._exceptions
+      Pry::ColorPrinter.pp "\t passed"
+    rescue Exception => e
+       Pry::ColorPrinter.pp ['DATE VALIDATION', e.message]
+    end
+    [d]
+  end
+
+  def create_extent
+    extent = {'portion' => (@row_hash['portion'] || 'whole').downcase,
+      'extent_type' => @row_hash['extent_type'].downcase}
+    %w(number container_summary physical_dates dimensions).each do |w|
+      extent[w] = @row_hash[w] || ''
+    end
+    ex = JSONModel(:extent).new(extent)
+    Pry::ColorPrinter.pp ex
+    begin
+      Pry::ColorPrinter.pp "EXTENT EXCEPTIONS?"
+      ex._exceptions
+      Pry::ColorPrinter.pp "\t passed"
+    rescue Exception => e
+       Pry::ColorPrinter.pp ['EXTENT  VALIDATION', e.message]
+       Pry::ColorPrinter.pp  ASUtils.jsonmodels_to_hashes(ex)
+    end
+
+    [ex]
+  end
+  # set up all the @ valriables (except for @header)
+  def initialize_info(params)
+    @resource = Resource.find(params[:rid])
+    @repository = @resource['repository']['ref']
+    @ao = nil
+    @hier = 1
+    aoid = params[:aoid] 
+    @resource_level = aoid.blank? 
+    if !@resource_level
+      @ao = JSONModel(:archival_object).find(aoid, find_opts )
+      @position = @ao.position
+      @ao_parent = @ao.parent # we need this for sibling/child disabiguation later on 
+#      Pry::ColorPrinter.pp ['archival object','position', @position]
+#      test_exceptions(@ao, "BASE ARCHIVAL OBJECT")
+    end
+    dispatched_file = params[:file]
+    @orig_filename = dispatched_file.original_filename
+    @input_file = dispatched_file.tempfile
+    @counter = 0
+    @rows_processed = 0
+    @report_out = []
+    @error_rows = 0
+    workbook = RubyXL::Parser.parse(@input_file)
+    sheet = workbook[0]
+ #   Pry::ColorPrinter.pp ["sheet size", sheet.sheet_data.size] 
+    rows = sheet.enum_for(:each)
   end
 
   def process_row
@@ -197,7 +209,16 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     end
     raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
     @report_out.push  I18n.t('plugins.aspace-import-excel.row', :row =>@counter)
-
+    parent_uri = @ao ? @ao.uri  : nil
+    ao = create_archival_object(parent_uri)
+  #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
+    begin
+      saving = ao.save
+    rescue  Exception => e
+      Pry::ColorPrinter.pp e.message
+      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
+      Pry::ColorPrinter.pp e.backtrace
+    end
 #    archival_object =  JSONModel(:archival_object).new
   end
 
@@ -205,10 +226,10 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   # throws an exception if the designated resource ead doesn't match the spreadsheet row ead
   def resource_match
     ret_str = ''
-    ret_str = I18n.t('plugins.aspace-import-excel.error.res_ead') if @parent['ead_id'].blank?
-    ret_str =  ' ' +  I18n.t('plugins.aspace-import-excel.error.row_ead')  if @row_hash['ead'].strip.blank?
+    ret_str = I18n.t('plugins.aspace-import-excel.error.res_ead') if @resource['ead_id'].blank?
+    ret_str =  ' ' +  I18n.t('plugins.aspace-import-excel.error.row_ead')  if @row_hash['ead'].blank?
     if ret_str.blank?
-      ret_str =  I18n.t('plugins.aspace-import-excel.error.ead_mismatch', :res_ead => @parent['ead_id'], :row_ead => @row_hash['ead']) if  @parent['ead_id'] != @row_hash['ead'].strip
+      ret_str =  I18n.t('plugins.aspace-import-excel.error.ead_mismatch', :res_ead => @resource['ead_id'], :row_ead => @row_hash['ead']) if @resource['ead_id'] != @row_hash['ead']
     end
     ret_str.blank? ? nil : ret_str
   end
@@ -228,6 +249,39 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     # index = 0
     # this calls handle_accept_children in application_controller https://github.com/archivesspace/archivesspace/blob/c80d9b2205aa36474fe719f3599f83dad8e97bb4/frontend/app/controllers/application_controller.rb
     # 
+  end
+ 
+  def test_create_a_o(x)
+    ao = JSONModel(:archival_object).new._always_valid!
+Pry::ColorPrinter.pp ao
+
+    ao.resource = {'ref' => @resource['uri']}
+    ao.title = "#{@ao.title} turned into item"
+    ao.level = 'item'
+    ao.publish = @ao.publish
+Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
+
+    begin
+      Pry::ColorPrinter.pp "SAVING TEST OBJECT?"
+     saving = ao.save
+      Pry::ColorPrinter.pp "SAVED!"
+      Pry::ColorPrinter.pp saving
+      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
+    rescue  Exception => e
+      Pry::ColorPrinter.pp e.message
+      Pry::ColorPrinter.pp e.backtrace
+    end
+  end
+
+  def test_exceptions(obj, what = '')
+    Pry::ColorPrinter.pp "TESTING #{what}: #{obj.jsonmodel_type}"
+    begin
+      obj._exceptions
+    rescue Exception => e
+      Pry::ColorPrinter.pp e.message
+      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(obj)
+#      Pry::ColorPrinter.pp  e.backtrace
+    end
   end
 
   def row_values(row)
