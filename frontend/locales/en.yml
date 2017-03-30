@@ -20,7 +20,11 @@ en:
        date: "Date must have at least one of: Date begin; Date end; or Date expression"
        number: Missing Extent number
        extent_type:  Missing Extent type
+       extent_validation: "Unable to validate extent: %{msg}" 
        no_header: No header row found!
        no_data: No processible data rows found!
        excel: "Error(s) parsing Excel File %{file}"
+       too_many: "Too many (%{count}) %{what} found for '%{value}'"
+       no_tc: "Unable to create Top Container: [%{why}]"
+       
 

@@ -7,7 +7,10 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   require 'pry'
   require 'rubyXL'
   require 'asutils'
-
+  require 'enum_list'
+  include UpdatesUtils
+  include LinkedObjects
+  
   # create the file form for the spreadsheet
   def get_file
     rid = params[:rid]
@@ -21,6 +24,10 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   # load in a spreadsheet
   def load_ss
+    @container_types = EnumList.new('container_type')
+    @extent_types = EnumList.new('extent_extent_type')
+    @extent_portions = EnumList.new('extent_portion')
+    @instance_types ||= EnumList.new('instance_instance_type')
     @position
     begin
       rows = initialize_info(params)
@@ -73,7 +80,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report_out}
   end
 
-  private
+  private  
 
   # look for all the required fields to make sure they are legit
   # strip all the strings and turn publish into true/false
@@ -130,8 +137,14 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
     ao.dates = create_date
 #    test_exceptions(ao, "with date")
-    ao.extents = create_extent
+    begin
+      ao.extents = create_extent
+    rescue Exception => e
+      @report_out.push e.message
+    end
 #    test_exceptions(ao, "and extent")
+    instance = create_top_container_instance
+    ao.instances = [instance] if instance
     ao
   end
   
@@ -154,23 +167,46 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   end
 
   def create_extent
-    extent = {'portion' => (@row_hash['portion'] || 'whole').downcase,
-      'extent_type' => @row_hash['extent_type'].downcase}
-    %w(number container_summary physical_dates dimensions).each do |w|
-      extent[w] = @row_hash[w] || ''
+    extent = {'portion' => @extent_portions.value(@row_hash['portion'] || 'whole'),
+      'extent_type' => @extent_types.value((@row_hash['extent_type']))}
+    %w(number container_summary physical_details dimensions).each do |w|
+      extent[w] = @row_hash[w] || nil
     end
     ex = JSONModel(:extent).new(extent)
-    Pry::ColorPrinter.pp ex
     begin
-      Pry::ColorPrinter.pp "EXTENT EXCEPTIONS?"
-      ex._exceptions
-      Pry::ColorPrinter.pp "\t passed"
+      if UpdatesUtils.test_exceptions(ex, "Exceptions")
+        return [ex]
+      end
     rescue Exception => e
-       Pry::ColorPrinter.pp ['EXTENT  VALIDATION', e.message]
-       Pry::ColorPrinter.pp  ASUtils.jsonmodels_to_hashes(ex)
+      raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.extent_validation', :msg => e.message))
     end
+  end
 
-    [ex]
+  def create_top_container_instance
+    instance = nil
+    if @row_hash['type']
+      begin
+        tc = ContainerInstanceHandler.get_or_create(@row_hash, @resource['uri'])
+        sc = {'top_container' => {'ref' => tc.uri},
+          'jsonmodeltype' => 'sub_container'}
+        %w(2 3).each do |num|
+          if @row_hash["type_#{num}"]
+            sc["type_#{num}"] = @container_types.value(@row_hash["type_#{num}"])
+            sc["indicator_#{num}"] = @row_hash["indicator_#{num}"]
+          end
+        end
+Pry::ColorPrinter.pp "SUB CONTAINER HASH: "
+Pry::ColorPrinter.pp sc        
+        instance = JSONModel(:instance).new._always_valid!
+        instance.instance_type = @instance_types.value(@row_hash['type'])
+        instance.sub_container = JSONModel(:sub_container).from_hash(sc)
+      rescue Exception => e
+        msg = e.message + "\n" + e.backtrace()[0]
+Pry::ColorPrinter.pp e.backtrace()
+        @report_out.push  I18n.t('plugins.aspace-import-excel.error.no_tc', :why => msg)
+      end
+    end
+    instance
   end
   # set up all the @ valriables (except for @header)
   def initialize_info(params)
@@ -201,6 +237,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   end
 
   def process_row
+    # just testing!
     Pry::ColorPrinter.pp @counter
     ret_str =  resource_match
     # mismatch of resource stops all other processing
@@ -273,16 +310,6 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
   end
 
-  def test_exceptions(obj, what = '')
-    Pry::ColorPrinter.pp "TESTING #{what}: #{obj.jsonmodel_type}"
-    begin
-      obj._exceptions
-    rescue Exception => e
-      Pry::ColorPrinter.pp e.message
-      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(obj)
-#      Pry::ColorPrinter.pp  e.backtrace
-    end
-  end
 
   def row_values(row)
 #    Pry::ColorPrinter.pp "ROW!"
