@@ -68,5 +68,34 @@ module LinkedObjects
       Pry::ColorPrinter.pp "FOUND NADA in the DB" if !ret_tc
       ret_tc
     end
+
+    def self.create_container_instance(row, resource_uri)
+      instance = nil
+      if row['type']
+        begin
+          tc = get_or_create(row, resource_uri)
+          sc = {'top_container' => {'ref' => tc.uri},
+            'jsonmodeltype' => 'sub_container'}
+          %w(2 3).each do |num|
+            if row["type_#{num}"]
+              sc["type_#{num}"] = @@container_types.value(row["type_#{num}"])
+              sc["indicator_#{num}"] = row["indicator_#{num}"]
+            end
+          end
+          instance = JSONModel(:instance).new._always_valid!
+          instance.instance_type = @@instance_types.value(row['type'])
+          instance.sub_container = JSONModel(:sub_container).from_hash(sc)
+        rescue ExcelImportException => ee
+          instance = nil
+          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.no_container_instance', :why => ee.message))
+        rescue Exception => e
+          msg = e.message + "\n" + e.backtrace()[0]
+          instance = nil
+          ExcelImportException.new(I18n.t('plugins.aspace-import-excel.no_container_instance', :why => msg))
+        end
+      end
+      instance
+    end
+
   end  # of container handler
 end

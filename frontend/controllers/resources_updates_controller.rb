@@ -184,27 +184,10 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
 
   def create_top_container_instance
     instance = nil
-    if @row_hash['type']
-      begin
-        tc = ContainerInstanceHandler.get_or_create(@row_hash, @resource['uri'])
-        sc = {'top_container' => {'ref' => tc.uri},
-          'jsonmodeltype' => 'sub_container'}
-        %w(2 3).each do |num|
-          if @row_hash["type_#{num}"]
-            sc["type_#{num}"] = @container_types.value(@row_hash["type_#{num}"])
-            sc["indicator_#{num}"] = @row_hash["indicator_#{num}"]
-          end
-        end
-Pry::ColorPrinter.pp "SUB CONTAINER HASH: "
-Pry::ColorPrinter.pp sc        
-        instance = JSONModel(:instance).new._always_valid!
-        instance.instance_type = @instance_types.value(@row_hash['type'])
-        instance.sub_container = JSONModel(:sub_container).from_hash(sc)
-      rescue Exception => e
-        msg = e.message + "\n" + e.backtrace()[0]
-Pry::ColorPrinter.pp e.backtrace()
-        @report_out.push  I18n.t('plugins.aspace-import-excel.error.no_tc', :why => msg)
-      end
+    begin
+      instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'])
+    rescue ExcelImportException => ee
+      @report_out.push ww.msg
     end
     instance
   end
