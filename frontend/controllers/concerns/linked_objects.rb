@@ -35,7 +35,7 @@ module LinkedObjects
     def self.get_or_create(row, resource)
       top_container = build(row)
       tc_key = key_for(top_container)
-      Pry::ColorPrinter.pp " tc key: #{tc_key}"
+#      Pry::ColorPrinter.pp " tc key: #{tc_key}"
       # check to see if we already have fetched one from the db, or created one.
       if !(existing_tc = @@top_containers.fetch(tc_key, false))
         if !(existing_tc = get_db_tc(top_container, resource))
@@ -45,14 +45,14 @@ module LinkedObjects
           tc.barcode = top_container[:barcode] if top_container[:barcode] 
           tc.repository = {'ref' => resource.split('/')[0..2].join('/')}
 #          UpdateUtils.test_exceptions(tc,'top_container')
-          Pry::ColorPrinter.pp ["About to save", tc]
+#          Pry::ColorPrinter.pp ["About to save", tc]
           tc.save
           existing_tc = tc
         end
-        Pry::ColorPrinter.pp "Existing tc key: #{tc_key}"
+#        Pry::ColorPrinter.pp "Existing tc key: #{tc_key}"
         @@top_containers[tc_key] = existing_tc
       end
- Pry::ColorPrinter.pp ["exisiting tc", existing_tc]
+# Pry::ColorPrinter.pp ["exisiting tc", existing_tc]
       existing_tc
     end
 
@@ -98,4 +98,30 @@ module LinkedObjects
     end
 
   end  # of container handler
+
+  #shamelessly stolen (and adapted from HM's nla_staff_spreadsheet plugin :-)
+  class ParentTracker
+    require 'pry'
+    def set_uri(hier, uri)
+      @current_hierarchy ||= {}
+      @current_hierarchy = Hash[@current_hierarchy.map {|k, v|
+                                  if k < hier
+                                    [k, v]
+                                  end
+                                }.compact]
+
+      # Record the URI of the current record
+      @current_hierarchy[hier] = uri
+    end
+    def parent_for(hier)
+      # Level 1 parent may  be a resource record and therefore nil, 
+      if hier > 0
+        parent_level = hier - 1
+        @current_hierarchy.fetch(parent_level)
+      else
+        nil
+      end
+    end
+  end #of ParentTracker
+
 end

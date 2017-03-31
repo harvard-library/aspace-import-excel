@@ -28,6 +28,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     @extent_types = EnumList.new('extent_extent_type')
     @extent_portions = EnumList.new('extent_portion')
     @instance_types ||= EnumList.new('instance_instance_type')
+    @parent = ParentTracker.new
     @position
     begin
       rows = initialize_info(params)
@@ -95,7 +96,9 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       else
         hier = hier.to_i
         err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_zero') if hier < 1
-        err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_wrong') if (hier - 1) > @hier
+        # going from a 1 to a 3, for example
+        err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_wrong') if (hier - 1) > @hier  
+        @hier = hier
       end
       err_arr.push I18n.t('plugins.aspace-import-excel.error.level') if @row_hash['level'].blank?
       #date stuff
@@ -114,7 +117,6 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         end
       end
     end
-    Pry::ColorPrinter.pp "PUBLISH: #{ @row_hash['publish']}"
     err_arr.join('; ')
   end
 
@@ -130,6 +132,19 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 # For some reason, I need to save/create the smallest possible  amount of information first!
     begin
       ao.save
+      @parent.set_uri(@hier, ao.uri)
+      if @hier == 1
+        if @first_one && @position
+        Pry::ColorPrinter.pp "Hierarchy: #{@hier}" 
+          a_test_hash = ASUtils.jsonmodels_to_hashes(ao)
+          pos = a_test_hash['position']
+          Pry::ColorPrinter.pp "Input position: #{@position} this position: #{pos}"
+          Pry::ColorPrinter.pp "Difference: #{pos - @position }"
+          Pry::ColorPrinter.pp "we'd have to move stuff" if (pos - @position) > 1
+          @first_one = false
+          @position = pos
+        end
+      end
     rescue Exception => e
       Pry::ColorPrinter.pp "INITIAL SAVE FAILED!!!"
 Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
@@ -157,9 +172,9 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
     d = JSONModel(:date).new(date)
     begin
-       Pry::ColorPrinter.pp "DATE EXCEPTIONS?"
+#       Pry::ColorPrinter.pp "DATE EXCEPTIONS?"
       d._exceptions
-      Pry::ColorPrinter.pp "\t passed"
+ #     Pry::ColorPrinter.pp "\t passed"
     rescue Exception => e
        Pry::ColorPrinter.pp ['DATE VALIDATION', e.message]
     end
@@ -191,18 +206,24 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
     instance
   end
-  # set up all the @ valriables (except for @header)
+  # set up all the @ variables (except for @header)
   def initialize_info(params)
     @resource = Resource.find(params[:rid])
     @repository = @resource['repository']['ref']
     @ao = nil
     @hier = 1
     aoid = params[:aoid] 
-    @resource_level = aoid.blank? 
-    if !@resource_level
+    @resource_level = aoid.blank?
+    @first_one = false  # to determine whether we need to worry about positioning
+    if @resource_level
+      @parent.set_uri(0, nil)
+    else
       @ao = JSONModel(:archival_object).find(aoid, find_opts )
       @position = @ao.position
-      @ao_parent = @ao.parent # we need this for sibling/child disabiguation later on 
+      parent = @ao.parent # we need this for sibling/child disabiguation later on 
+#       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(parent) if parent
+    @parent.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
+      @first_one = true
 #      Pry::ColorPrinter.pp ['archival object','position', @position]
 #      test_exceptions(@ao, "BASE ARCHIVAL OBJECT")
     end
@@ -229,7 +250,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
     raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
     @report_out.push  I18n.t('plugins.aspace-import-excel.row', :row =>@counter)
-    parent_uri = @ao ? @ao.uri  : nil
+    parent_uri = @parent.parent_for(@row_hash['hierarchy'].to_i)
     ao = create_archival_object(parent_uri)
   #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
     begin
@@ -271,29 +292,6 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     # 
   end
  
-  def test_create_a_o(x)
-    ao = JSONModel(:archival_object).new._always_valid!
-Pry::ColorPrinter.pp ao
-
-    ao.resource = {'ref' => @resource['uri']}
-    ao.title = "#{@ao.title} turned into item"
-    ao.level = 'item'
-    ao.publish = @ao.publish
-Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
-
-    begin
-      Pry::ColorPrinter.pp "SAVING TEST OBJECT?"
-     saving = ao.save
-      Pry::ColorPrinter.pp "SAVED!"
-      Pry::ColorPrinter.pp saving
-      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
-    rescue  Exception => e
-      Pry::ColorPrinter.pp e.message
-      Pry::ColorPrinter.pp e.backtrace
-    end
-  end
-
-
   def row_values(row)
 #    Pry::ColorPrinter.pp "ROW!"
     (1...row.size).map {|i| (row[i] && row[i].value) ? row[i].value.to_s.strip : nil}

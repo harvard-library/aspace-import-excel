@@ -13,18 +13,16 @@ class Handler
 
   # returns nil, a hash of a jason model (if 1 found), or throws a multiples found error
   def self.search(repo_id,params,jmsym)
-    Pry::ColorPrinter.pp "symbol"
-    Pry::ColorPrinter.pp jmsym
     obj = nil
     search  = Search.all(repo_id, params)
     total_hits = search['total_hits'] || 0
-    Pry::ColorPrinter.pp "Total hits: #{total_hits}"
+#    Pry::ColorPrinter.pp "Total hits: #{total_hits}"
     if total_hits == 1 && !search['results'].blank? # for some reason, you get a hit of '1' but still have empty results??
       obj = JSONModel(jmsym).find_by_uri(search['results'][0]['id'])
     elsif  total_hits > 1
       raise Exception.new("Too many")
     elsif total_hits == 0
-      Pry::ColorPrinter.pp search
+#      Pry::ColorPrinter.pp search
     end
     obj
   end

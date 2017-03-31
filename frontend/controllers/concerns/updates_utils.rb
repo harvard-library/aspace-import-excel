@@ -6,7 +6,7 @@ module UpdatesUtils
 
   # returns true if the input object validates, otherwise raises an erro
   def self.test_exceptions(obj, what = '')
-    Pry::ColorPrinter.pp "TESTING #{what}: #{obj.jsonmodel_type}"
+#    Pry::ColorPrinter.pp "TESTING #{what}: #{obj.jsonmodel_type}"
     ret_val = false
     begin
       obj._exceptions
