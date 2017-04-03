@@ -7,6 +7,11 @@ my_routes = [File.join(File.dirname(__FILE__), "routes.rb")]
 class ExcelImportException < Exception
 end
 
+# create a "stop everything" exception
+
+class StopExcelImportException < Exception
+end
+
 
 # Work around small difference in rubyzip API (from https://github.com/hudmol/nla_staff_spreadsheet_importer/blob/2a28e6379a6748877ab433735153bba96be09b12/backend/plugin_init.rb)
 module Zip

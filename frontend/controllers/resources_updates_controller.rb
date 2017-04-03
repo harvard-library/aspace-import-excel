@@ -28,8 +28,9 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     @extent_types = EnumList.new('extent_extent_type')
     @extent_portions = EnumList.new('extent_portion')
     @instance_types ||= EnumList.new('instance_instance_type')
-    @parent = ParentTracker.new
-    @position
+    @parents = ParentTracker.new
+    @orig_position
+    @first_sibling_position
     begin
       rows = initialize_info(params)
       while @headers.nil? && (row = rows.next)
@@ -51,11 +52,14 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           begin
             ao = process_row
             @rows_processed += 1
+          rescue StopExcelImportException => se
+            @report_out.push se.message
+            @report_out.push I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter)
+            raise StopIteration.new
           rescue ExcelImportException => e
             @error_rows += 1
             @report_out.push e.message
             @report_out.push ' '
-            Pry::ColorPrinter.pp e.message
           end
         end
       rescue StopIteration
@@ -66,7 +70,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       end
     rescue Exception => e
       errors = []
-      if e.is_a?( ExcelImportException)
+      if e.is_a?( ExcelImportException) || e.is_a?( StopExcelImportException)
         errors = e.message.split('\n')
         errors.unshift I18n.t('plugins.aspace-import-excel.error.excel', :file => @orig_filename)
       else # something else went wrong
@@ -97,7 +101,13 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         hier = hier.to_i
         err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_zero') if hier < 1
         # going from a 1 to a 3, for example
-        err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_wrong') if (hier - 1) > @hier  
+        if (hier - 1) > @hier
+          err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_wrong')
+          if @hier == 0
+            err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_wrong_resource')
+            raise StopExcelImportException.new(err_arr.join(';'))
+          end
+        end
         @hier = hier
       end
       err_arr.push I18n.t('plugins.aspace-import-excel.error.level') if @row_hash['level'].blank?
@@ -106,8 +116,10 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       # extent
       err_arr.push I18n.t('plugins.aspace-import-excel.error.number') if @row_hash['number'].blank?
       err_arr.push I18n.t('plugins.aspace-import-excel.error.extent_type') if @row_hash['extent_type'].blank?
+    rescue StopExcelImportException => se
+      raise
     rescue Exception => e
-      Pry::ColorPrinter.pp ["EXCEPTION", e.message, e.backtrace, @row_hash]
+      Pry::ColorPrinter.pp ["UNEXPLAINED EXCEPTION", e.message, e.backtrace, @row_hash]
     end
     if err_arr.blank?
       @row_hash.each do |k, v|
@@ -132,7 +144,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 # For some reason, I need to save/create the smallest possible  amount of information first!
     begin
       ao.save
-      @parent.set_uri(@hier, ao.uri)
+      @parents.set_uri(@hier, ao.uri)
       if @hier == 1
         if @first_one && @position
         Pry::ColorPrinter.pp "Hierarchy: #{@hier}" 
@@ -216,13 +228,14 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     @resource_level = aoid.blank?
     @first_one = false  # to determine whether we need to worry about positioning
     if @resource_level
-      @parent.set_uri(0, nil)
+      @parents.set_uri(0, nil)
+      @hier = 0
     else
       @ao = JSONModel(:archival_object).find(aoid, find_opts )
       @position = @ao.position
       parent = @ao.parent # we need this for sibling/child disabiguation later on 
 #       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(parent) if parent
-    @parent.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
+      @parents.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
       @first_one = true
 #      Pry::ColorPrinter.pp ['archival object','position', @position]
 #      test_exceptions(@ao, "BASE ARCHIVAL OBJECT")
@@ -241,8 +254,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   end
 
   def process_row
-    # just testing!
-    Pry::ColorPrinter.pp @counter
+#    Pry::ColorPrinter.pp @counter
     ret_str =  resource_match
     # mismatch of resource stops all other processing
     if ret_str.blank?
@@ -250,7 +262,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
     raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
     @report_out.push  I18n.t('plugins.aspace-import-excel.row', :row =>@counter)
-    parent_uri = @parent.parent_for(@row_hash['hierarchy'].to_i)
+    parent_uri = @parents.parent_for(@row_hash['hierarchy'].to_i)
     ao = create_archival_object(parent_uri)
   #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
     begin
@@ -289,6 +301,23 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     #children[] = /repositories/2/archival_objects/84959
     # index = 0
     # this calls handle_accept_children in application_controller https://github.com/archivesspace/archivesspace/blob/c80d9b2205aa36474fe719f3599f83dad8e97bb4/frontend/app/controllers/application_controller.rb
+   # unless params[:children]
+      # Nothing to do
+   #   return render :json => {
+   #                   :position => params[:index].to_i
+   #   }
+   # end
+
+   # response = JSONModel::HTTP.post_form(target_jsonmodel.uri_for(params[:id]) + "/accept_children",
+   #                                      "children[]" => params[:children],
+   #                                      "position" => params[:index].to_i)
+   # if response.code == '200'
+   #   render :json => {
+   #     :position => params[:index].to_i
+   #   }
+   # else
+   #   raise "Error setting parent of archival objects: #{response.body}"
+   # end
     # 
   end
  

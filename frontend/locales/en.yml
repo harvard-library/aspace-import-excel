@@ -9,13 +9,15 @@ en:
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
       error:
        system: "Some system error has occurred  [%{msg}]. Processing stopped at row %{row}"
+       stopped: "Processing stopped at row %{row}"
        res_ead: This form's Resource is missing an EAD ID
        row_ead: This row is missing an EAD ID
        ead_mismatch:  "Form's EAD ID [%{res_ead}] does not match row's EAD ID [%{row_ead}]"
        title: Missing title
        hier_miss: Missing hierachy -- must be a number greater than 0
        hier_zero: Hierarchy must be greater than 0 
-       hier_wrong: Hierarchy cannot not be more than one level below the previous row
+       hier_wrong: Hierarchy cannot not be more than one level deeper than the previous row
+       hier_wrong_resource:  did you mean to start processing with an archival object selected?
        level: Missing Description level
        date: "Date must have at least one of: Date begin; Date end; or Date expression"
        number: Missing Extent number
