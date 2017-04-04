@@ -220,6 +220,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   end
   # set up all the @ variables (except for @header)
   def initialize_info(params)
+    initialize_enums
     @resource = Resource.find(params[:rid])
     @repository = @resource['repository']['ref']
     @ao = nil
@@ -254,6 +255,10 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     rows = sheet.enum_for(:each)
   end
 
+  def initialize_enums
+    ContainerInstanceHandler.renew
+    DigitalObjectHandler.renew
+  end
   def process_row
 #    Pry::ColorPrinter.pp @counter
     ret_str =  resource_match

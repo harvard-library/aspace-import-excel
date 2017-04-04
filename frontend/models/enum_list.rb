@@ -25,7 +25,6 @@ Pry::ColorPrinter.pp "we required the EnumList"
     @list.length
   end
 
-  private
   def renew
     @list = []
     list_hash = {}

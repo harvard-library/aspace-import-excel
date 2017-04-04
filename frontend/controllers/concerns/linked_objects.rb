@@ -6,16 +6,27 @@ module LinkedObjects
 # a lot of this is adapted from Hudson Mlonglo's Arrearage plugin:
 #https://github.com/hudmol/nla_staff_spreadsheet_importer/blob/master/backend/converters/arrearage_converter.rb
 
+  class DigitalObjectHandler < Handler
+    @@digital_object_types ||= EnumList.new('digital_object_digital_object_type')
+
+    def self.renew
+      clear(@@digital_object_types)
+    end
+  end  # DigitalObjectHandler
+
 # one of the differences is that we don't care about location, and we do lookup against the database
 
   class ContainerInstanceHandler < Handler
-    require 'enum_list'
-    require 'handler'
-#    require_relative 'updates_utils'
 
     @@top_containers = {}
     @@container_types ||= EnumList.new('container_type')
     @@instance_types ||= EnumList.new('instance_instance_type') # for when we move instances over here
+
+
+    def self.renew
+      clear( @@container_types)
+      clear(@@instance_types)
+    end
 
     def self.key_for(top_container)
       key = "#{top_container[:type]}: #{top_container[:indicator]}"

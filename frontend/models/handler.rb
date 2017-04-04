@@ -27,9 +27,8 @@ class Handler
     obj
   end
 
-  def self.clear(enum_list, obj_list)
+  def self.clear(enum_list)
     enum_list.renew
-    obj_list = {} if obj_list
   end
 
 
