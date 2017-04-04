@@ -236,6 +236,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       parent = @ao.parent # we need this for sibling/child disabiguation later on 
 #       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(parent) if parent
       @parents.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
+      @parents.set_uri(1, @ao.uri)
       @first_one = true
 #      Pry::ColorPrinter.pp ['archival object','position', @position]
 #      test_exceptions(@ao, "BASE ARCHIVAL OBJECT")
