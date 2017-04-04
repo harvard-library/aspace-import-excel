@@ -8,6 +8,41 @@ module LinkedObjects
 
   class DigitalObjectHandler < Handler
     @@digital_object_types ||= EnumList.new('digital_object_digital_object_type')
+    
+    def self.create(row, archival_object)
+      dig_o = nil
+      dig_instance = nil
+      unless !row['thumbnail'] && !row['digital_object_link']
+        files = []
+        if !row['digital_object_link'].blank? && row['digital_object_link'].start_with?('http')
+          fv = JSONModel(:file_version).new._always_valid!
+          fv.file_uri = row['digital_object_link']
+          fv.publish = row['publish']
+          fv.xlink_actuate_attribute = 'onRequest'
+          fv.xlink_show_attribute = 'new'
+          files.push fv
+        end
+        if !row['thumbnail'].blank? && row['thumbnail'].start_with?('http')
+          fv = JSONModel(:file_version).new._always_valid!
+          fv.file_uri = row['thumbnail']
+          fv.publish = row['publish']
+          fv.xlink_actuate_attribute = 'onLoad'
+          fv.xlink_show_attribute = 'embed'
+          fv.is_representative = true
+          files.push fv
+        end
+        osn = archival_object.ref_id + 'd'
+        dig_o = JSONModel(:digital_object).new._always_valid!
+        dig_o.title = row['digital_object_title'].blank? ? archival_object.title : row['digital_object_title']
+        dig_o.digital_object_id = osn
+        dig_o.file_versions = files
+        dig_o.save
+        dig_instance = JSONModel(:instance).new._always_valid!
+        dig_instance.instance_type = 'digital_object'
+        dig_instance.digital_object = {"ref" => dig_o.uri}
+      end
+      dig_instance
+    end
 
     def self.renew
       clear(@@digital_object_types)

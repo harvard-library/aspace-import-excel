@@ -172,6 +172,10 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
 #    test_exceptions(ao, "and extent")
     instance = create_top_container_instance
     ao.instances = [instance] if instance
+    if (dig_instance = DigitalObjectHandler.create(@row_hash, ao))
+      ao.instances ||= []
+      ao.instances << dig_instance
+    end
     ao
   end
   
