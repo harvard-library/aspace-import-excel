@@ -24,13 +24,15 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   # load in a spreadsheet
   def load_ss
+    @created_ao_refs = []
+    @first_level_aos = []
     @container_types = EnumList.new('container_type')
     @extent_types = EnumList.new('extent_extent_type')
     @extent_portions = EnumList.new('extent_portion')
     @instance_types ||= EnumList.new('instance_instance_type')
     @parents = ParentTracker.new
-    @orig_position
-    @first_sibling_position
+    @start_position
+    @need_to_move = false
     begin
       rows = initialize_info(params)
       while @headers.nil? && (row = rows.next)
@@ -82,6 +84,8 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid],
         :errors =>  errors}
     end
+    move_archival_objects if @need_to_move
+    Pry::ColorPrinter.pp "Number of Archival Object created: #{@created_ao_refs.length}"
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report_out}
   end
 
@@ -145,18 +149,6 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     begin
       ao.save
       @parents.set_uri(@hier, ao.uri)
-      if @hier == 1
-        if @first_one && @position
-        Pry::ColorPrinter.pp "Hierarchy: #{@hier}" 
-          a_test_hash = ASUtils.jsonmodels_to_hashes(ao)
-          pos = a_test_hash['position']
-          Pry::ColorPrinter.pp "Input position: #{@position} this position: #{pos}"
-          Pry::ColorPrinter.pp "Difference: #{pos - @position }"
-          Pry::ColorPrinter.pp "we'd have to move stuff" if (pos - @position) > 1
-          @first_one = false
-          @position = pos
-        end
-      end
     rescue Exception => e
       Pry::ColorPrinter.pp "INITIAL SAVE FAILED!!!"
 Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
@@ -222,9 +214,18 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
     instance
   end
+
+  # this refreshes the controlled list enumerations
+  def initialize_enums
+    ContainerInstanceHandler.renew
+    DigitalObjectHandler.renew
+  end
+  
   # set up all the @ variables (except for @header)
   def initialize_info(params)
     initialize_enums
+    tree = JSONModel(:resource_tree).find(nil, :resource_id => params[:rid]).to_hash
+#Pry::ColorPrinter.pp tree
     @resource = Resource.find(params[:rid])
     @repository = @resource['repository']['ref']
     @ao = nil
@@ -237,7 +238,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       @hier = 0
     else
       @ao = JSONModel(:archival_object).find(aoid, find_opts )
-      @position = @ao.position
+      @start_position = @ao.position
       parent = @ao.parent # we need this for sibling/child disabiguation later on 
 #       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(parent) if parent
       @parents.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
@@ -259,10 +260,22 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     rows = sheet.enum_for(:each)
   end
 
-  def initialize_enums
-    ContainerInstanceHandler.renew
-    DigitalObjectHandler.renew
+  def move_archival_objects
+    unless @first_level_aos.empty?
+      uri = (@ao && @ao.parent) ? @ao.parent['ref'] : @resource.uri
+      Pry::ColorPrinter.pp "URI: #{uri}"
+
+      response = JSONModel::HTTP.post_form("#{uri}/accept_children",
+                                           "children[]" => @first_level_aos,
+                                           "position" => @start_position + 1)
+      unless response.code == '200'
+        Pry::ColorPrinter.pp "BAD MOVE! #{response.code}"
+        Pry::ColorPrinter.pp response.body
+        @report_out.push  I18n.t('plugins.aspace-import-excel.error.no_move', :code => response.code)
+      end
+    end
   end
+
   def process_row
 #    Pry::ColorPrinter.pp @counter
     ret_str =  resource_match
@@ -277,6 +290,15 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
     begin
       saving = ao.save
+      @created_ao_refs.push ao.uri
+      if @hier == 1
+        @first_level_aos.push ao.uri 
+        if @first_one && @start_position
+          @need_to_move = (ao.position - @start_position) > 1
+          @first_one = false
+          Pry::ColorPrinter.pp "Need to move: #{@need_to_move}"
+        end
+      end
     rescue  Exception => e
       Pry::ColorPrinter.pp e.message
       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
