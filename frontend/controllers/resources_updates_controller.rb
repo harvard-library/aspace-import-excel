@@ -1,4 +1,5 @@
 class ResourcesUpdatesController < ApplicationController
+  require 'nokogiri'
 
 START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
@@ -8,6 +9,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   require 'rubyXL'
   require 'asutils'
   require 'enum_list'
+  include NotesHelper
   include UpdatesUtils
   include LinkedObjects
   
@@ -144,7 +146,6 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     ao.level = @row_hash['level'].downcase
     ao.publish = @row_hash['publish']
     ao.parent = {'ref' => parent_uri} if !parent_uri.blank?
-
 # For some reason, I need to save/create the smallest possible  amount of information first!
     begin
       ao.save
@@ -168,6 +169,9 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       ao.instances ||= []
       ao.instances << dig_instance
     end
+    Pry::ColorPrinter.pp "calling handle notes"
+    errs =  handle_notes(ao)
+    @report_out.concat(errs) if !errs.blank?
     ao
   end
   
@@ -215,15 +219,46 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     instance
   end
 
-  # this refreshes the controlled list enumerations
+  def handle_notes(ao)
+    errs = []
+    notes_keys = @row_hash.keys.grep(/n_/)
+    notes_keys.each do |key|
+      unless @row_hash[key].blank?
+        content = @row_hash[key]
+        type = key.match(/n_(.+)$/)[1]
+        note_type = @note_types[type]
+        note = JSONModel(note_type[:target]).new
+        note.type = note_type[:value]
+        begin 
+          wellformed(content)
+# if the target is multipart, then the data goes in a JSONMODEL(:note_text).content;, which is pushed to the note.subnote array; otherwise it's just pushed to the note.content array
+          if note_type[:target] == :note_multipart
+            inner_note = JSONModel(:note_text).new
+            inner_note.content = content
+            note.subnotes.push inner_note
+          else
+            note.content.push content
+          end
+          ao.notes.push note
+        rescue Exception => e
+          errs.push(I18n.t('plugins.aspace-import-excel.error.bad_note', :type => note_type[:value] , :msg => CGI::escapeHTML( e.message)))
+        end
+      end
+    end
+    errs
+  end
+
+  # this refreshes the controlled list enumerations, which may have changed since the last import
   def initialize_enums
     ContainerInstanceHandler.renew
     DigitalObjectHandler.renew
+    SubjectHandler.renew
   end
   
   # set up all the @ variables (except for @header)
   def initialize_info(params)
     initialize_enums
+    @note_types =  note_types_for(:archival_object)
     tree = JSONModel(:resource_tree).find(nil, :resource_id => params[:rid]).to_hash
 #Pry::ColorPrinter.pp tree
     @resource = Resource.find(params[:rid])
@@ -326,6 +361,15 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   def find_agent(primary_name, rest_name, type, source, ext_id)
     #title: #{primary_name}, #{rest_name} AND primary_type:agent_#{type}  AND source:#{source} AND external_id:#{ext_id}
   end
+
+  # use nokogiri if there seems to be an XML element (or element closure); allow exceptions to bubble up
+  def wellformed(note)
+    if note.match("</?[a-zA-Z]+>")
+      frag = Nokogiri::XML("<root>#{note}</root>") {|config| config.strict}
+    end
+  end
+
+
 
   def add_children
    #http://welling.hul.harvard.edu:8880/archival_objects/84957/accept_children
