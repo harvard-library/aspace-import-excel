@@ -1,14 +1,23 @@
-<strong>Hi, <%= rid %>!</strong>
-<% if defined?(errors) %>
-<div class="bg-danger"><blockquote>
-<% errors.each do |error| %>
-<%== error %><br/>
+<% unless report.terminal_error.blank? %>
+<div class="bg-danger"><blockquote><%= report.terminal_error %></blockquote></div>
 <% end %>
-</blockquote></div>
-<% else %>
-<div class="bg-info"><blockquote>
-<% report.each do |line| %>
-<%== line %><br/>
-<% end %>
-</blockquote></div>
-<% end %>
+<% if report.row_count > 0 %>
+<ul>
+<% report.rows.each do |row| %>
+<li><%= row.row %>
+   <% unless row.errors.blank? %>
+   <ul>
+     <% row.errors.each do |err| %>
+	<li class="bg-danger"><%= err %></li>
+     <% end %><%# of error each %>
+   </ul>
+   <% end %> <%# of unless %>
+   <% if row.archival_object_id.blank? %>
+     <%= t('plugins.aspace-import-excel.no_ao') %>
+   <% else %>
+     <%= t('plugins.aspace-import-excel.ao', :id => row.archival_object_id ) %>
+   <% end %> <%# of ao_id %>
+</li>
+<% end %><%# of row each %>
+</ul>
+<% end %> <%# of rows %>

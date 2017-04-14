@@ -12,6 +12,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   include NotesHelper
   include UpdatesUtils
   include LinkedObjects
+  require 'ingest_report'
   
   # create the file form for the spreadsheet
   def get_file
@@ -26,6 +27,8 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   # load in a spreadsheet
   def load_ss
+    @report_out = []
+    @report = IngestReport.new
     @created_ao_refs = []
     @first_level_aos = []
     @container_types = EnumList.new('container_type')
@@ -54,41 +57,42 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           next if values.compact.empty?
           @row_hash = Hash[@headers.zip(values)]
           begin
+            @report.new_row(@counter)
             ao = process_row
             @rows_processed += 1
           rescue StopExcelImportException => se
-            @report_out.push se.message
-            @report_out.push I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter)
+            @report.add_errors([se.message, I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter)])
             raise StopIteration.new
           rescue ExcelImportException => e
             @error_rows += 1
-            @report_out.push e.message
-            @report_out.push ' '
+            @report.add_errors( e.message)
           end
+          @report.end_row
         end
       rescue StopIteration
         # we just want to catch this without processing further
       end
       if @rows_processed == 0
-        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_data') + '\n' + @report_out.join('\n')) 
+        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_data'))
       end
     rescue Exception => e
-      errors = []
       if e.is_a?( ExcelImportException) || e.is_a?( StopExcelImportException)
-        errors = e.message.split('\n')
-        errors.unshift I18n.t('plugins.aspace-import-excel.error.excel', :file => @orig_filename)
+        @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.excel', :errs => e.message), @counter)
       else # something else went wrong
-        errors = @report_out if !@report_out.blank?
-        errors.unshift I18n.t('plugins.aspace-import-excel.error.system',:row => @counter, :msg => e.message)
-        Pry::ColorPrinter.pp "EXCEPTION!" 
+        @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.system', :msg => e.message), @counter)
+        Pry::ColorPrinter.pp "EXCEPTION!"
+ 
+        Pry::ColorPrinter.pp e.message
         Pry::ColorPrinter.pp e.backtrace
       end
+      @report.end_row
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid],
         :errors =>  errors}
     end
     move_archival_objects if @need_to_move
+    @report.end_row
     Pry::ColorPrinter.pp "Number of Archival Object created: #{@created_ao_refs.length}"
-    return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report_out}
+    return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report}
   end
 
   private  
@@ -160,7 +164,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     begin
       ao.extents = create_extent
     rescue Exception => e
-      @report_out.push e.message
+      @report.add_errors(e.message)
     end
 #    test_exceptions(ao, "and extent")
     instance = create_top_container_instance
@@ -171,7 +175,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
     Pry::ColorPrinter.pp "calling handle notes"
     errs =  handle_notes(ao)
-    @report_out.concat(errs) if !errs.blank?
+    @report.add_errors(errs) if !errs.blank?
     ao
   end
   
@@ -214,7 +218,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     begin
       instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'])
     rescue ExcelImportException => ee
-      @report_out.push ww.msg
+      @report.add_errors(ee.msg)
     end
     instance
   end
@@ -249,7 +253,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   end
 
   # this refreshes the controlled list enumerations, which may have changed since the last import
-  def initialize_enums
+  def initialize_handler_enums
     ContainerInstanceHandler.renew
     DigitalObjectHandler.renew
     SubjectHandler.renew
@@ -257,7 +261,10 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   
   # set up all the @ variables (except for @header)
   def initialize_info(params)
-    initialize_enums
+    dispatched_file = params[:file]
+    @orig_filename = dispatched_file.original_filename
+    @report.set_file_name(@orig_filename)
+    initialize_handler_enums
     @note_types =  note_types_for(:archival_object)
     tree = JSONModel(:resource_tree).find(nil, :resource_id => params[:rid]).to_hash
 #Pry::ColorPrinter.pp tree
@@ -282,12 +289,10 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
 #      Pry::ColorPrinter.pp ['archival object','position', @position]
 #      test_exceptions(@ao, "BASE ARCHIVAL OBJECT")
     end
-    dispatched_file = params[:file]
-    @orig_filename = dispatched_file.original_filename
+
     @input_file = dispatched_file.tempfile
     @counter = 0
     @rows_processed = 0
-    @report_out = []
     @error_rows = 0
     workbook = RubyXL::Parser.parse(@input_file)
     sheet = workbook[0]
@@ -306,7 +311,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       unless response.code == '200'
         Pry::ColorPrinter.pp "BAD MOVE! #{response.code}"
         Pry::ColorPrinter.pp response.body
-        @report_out.push  I18n.t('plugins.aspace-import-excel.error.no_move', :code => response.code)
+        @report.errors(I18n.t('plugins.aspace-import-excel.error.no_move', :code => response.code))
       end
     end
   end
@@ -319,9 +324,9 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       ret_str = check_row
     end
     raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
-    @report_out.push  I18n.t('plugins.aspace-import-excel.row', :row =>@counter)
     parent_uri = @parents.parent_for(@row_hash['hierarchy'].to_i)
     ao = create_archival_object(parent_uri)
+    @report.add_archival_object_id(ao.uri)
   #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
     begin
       saving = ao.save

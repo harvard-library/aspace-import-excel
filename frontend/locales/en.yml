@@ -7,8 +7,12 @@ en:
       row: "Row %{row}"
       processing_row: "Processing row %{row}"
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
+      no_ao: No Archival Object created
+      ao: "Archival Object created: %{id}"
       error:
-       system: "Some system error has occurred  [%{msg}]. Processing stopped at row %{row}"
+       file_name: File name cannot be determined
+       system: "Some system error has occurred  [%{msg}]."
+       initialize: "Processing is terminated [%{msg}]"
        stopped: "Processing stopped at row %{row}"
        res_ead: This form's Resource is missing an EAD ID
        row_ead: This row is missing an EAD ID
@@ -25,7 +29,7 @@ en:
        extent_validation: "Unable to validate extent: %{msg}" 
        no_header: No header row found!
        no_data: No processible data rows found!
-       excel: "Error(s) parsing Excel File %{file}"
+       excel: "Error(s) parsing Excel File %{errs}"
        too_many: "Too many (%{count}) %{what} found for '%{value}'"
        no_tc: "Unable to create Top Container: [%{why}]"
        no_container_instance: "Unable to create Container Instance: [%{why}]"
