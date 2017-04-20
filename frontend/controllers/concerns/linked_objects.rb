@@ -68,6 +68,7 @@ module LinkedObjects
       key += " #{top_container[:barcode]}" if top_container[:barcode]
       key
     end
+
     
     def self.build(row)
       {
@@ -91,14 +92,12 @@ module LinkedObjects
           tc.barcode = top_container[:barcode] if top_container[:barcode] 
           tc.repository = {'ref' => resource.split('/')[0..2].join('/')}
 #          UpdateUtils.test_exceptions(tc,'top_container')
-#          Pry::ColorPrinter.pp ["About to save", tc]
           tc.save
+          @@top_containers[tc_key] = tc
           existing_tc = tc
         end
-#        Pry::ColorPrinter.pp "Existing tc key: #{tc_key}"
         @@top_containers[tc_key] = existing_tc
       end
-# Pry::ColorPrinter.pp ["exisiting tc", existing_tc]
       existing_tc
     end
 
@@ -133,11 +132,11 @@ module LinkedObjects
           instance.sub_container = JSONModel(:sub_container).from_hash(sc)
         rescue ExcelImportException => ee
           instance = nil
-          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.no_container_instance', :why => ee.message))
+          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why => ee.message))
         rescue Exception => e
           msg = e.message + "\n" + e.backtrace()[0]
           instance = nil
-          ExcelImportException.new(I18n.t('plugins.aspace-import-excel.no_container_instance', :why => msg))
+          ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why => msg))
         end
       end
       instance
@@ -170,4 +169,81 @@ module LinkedObjects
     end
   end #of ParentTracker
 
+  class SubjectHandler < Handler
+    @@subjects = {} # will track both confirmed ids, and newly created ones.
+    @@subject_term_types ||= EnumList.new('subject_term_type')
+    @@subject_sources ||=  EnumList.new('subject_source')
+
+    def self.renew
+      clear(@@subject_term_types)
+      clear(@@subject_sources)
+    end
+
+    def self.key_for(subject)
+      key = "#{subject[:term]} #{subject[:source]}: #{subject[:type]}"
+      key
+    end
+    def self.build(row, num)
+      {
+        :record_id => row.fetch("subject_#{num}_record_id"),
+        :term =>  row.fetch("subject_#{num}_term"),
+        :type =>   @@subject_term_types.value(row.fetch("subject_#{num}_type") || 'topical'),
+        :source => @@subject_sources.value( row.fetch("subject_#{num}_source") || 'ingest')
+      }
+    end
+ 
+    def self.get_or_create(row, num, repo_id)
+      subject = build(row, num)
+      subject_key = key_for(subject)
+      existing_subject = nil
+      # because we might get the record id, we first look that up
+      subj = nil
+      unless subject[:record_id].blank?
+        if !(existing_subject = @@subjects[subject[:record_id]])
+          begin
+            subj = JSONModel(:subject).find( subject[:record_id])
+          rescue Exception => e
+            raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject', :why => e.message))  if e.message != 'RecordNotFound'
+          end
+          if subj
+            @@subjects[subject[:record_id]] = subj
+            existing_subject = subj
+          end
+        end
+      end
+      if !existing_subject && !(existing_subject = @@subjects[subject_key]) && !subject[:term].blank? && !(existing_subject = get_db_subj(subject, repo_id))
+        begin
+          term = JSONModel(:term).new._always_valid!
+          term.term =  subject[:term]
+          term.term_type = subject[:type]
+          term.vocabulary = '/vocabularies/1'  # we're making a gross assumption here
+          subj = JSONModel(:subject).new._always_valid!
+          subj.terms.push term
+          subj.source = subject[:source]
+          subj.vocabulary = '/vocabularies/1'  # we're making a gross assumption here
+          subj.save
+          existing_subject = subj
+        rescue Exception => e
+          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_subject', :why => e.message))
+        end
+      end
+      if existing_subject
+        @@subjects[existing_subject.id.to_s] = existing_subject
+        @@subjects[subject_key] = existing_subject
+        #            Pry::ColorPrinter.pp "num: #{num} subject_key: #{subject_key}"
+      end
+      existing_subject
+    end
+   
+    def self.get_db_subj(subject, repo_id)
+      s_params = {}
+      s_params["type[]"] = 'subject'
+      s_params["q"] = "title:\"#{subject[:term]}\" AND first_term_type:#{subject[:type]}"
+      ret_subj = search(repo_id, s_params, :subject)
+       Pry::ColorPrinter.pp "FOUND NADA in the DB" if !ret_subj
+      ret_subj
+    end
+
+
+  end
 end

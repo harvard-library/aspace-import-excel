@@ -87,7 +87,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       end
       @report.end_row
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid],
-        :errors =>  errors}
+        :report =>  @report}
     end
     move_archival_objects if @need_to_move
     @report.end_row
@@ -173,6 +173,8 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       ao.instances ||= []
       ao.instances << dig_instance
     end
+    subjs = process_subjects
+    subjs.each {|subj| ao.subjects.push({'ref' => subj.uri})} unless subjs.blank?
     Pry::ColorPrinter.pp "calling handle notes"
     errs =  handle_notes(ao)
     @report.add_errors(errs) if !errs.blank?
@@ -345,6 +347,22 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       Pry::ColorPrinter.pp e.backtrace
     end
 #    archival_object =  JSONModel(:archival_object).new
+  end
+
+  def process_subjects
+    ret_subjs = []
+    (1..2).each do |num|
+      unless @row_hash["subject_#{num}_record_id"].blank? && @row_hash["subject_#{num}_term"].blank?
+        subj = nil
+        begin
+          subj = SubjectHandler.get_or_create(@row_hash, num, @repository.split('/')[2])  # TODO: add reporting
+         ret_subjs.push subj if subj
+        rescue ExcelImportException => e
+          @report.add_errors(e.msg)
+        end
+      end
+    end
+    ret_subjs
   end
 
   # make sure that the resource ead id from the form matches that in the spreadsheet
