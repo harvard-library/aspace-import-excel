@@ -15,7 +15,7 @@
    <% if row.archival_object_id.blank? %>
      <%= t('plugins.aspace-import-excel.no_ao') %>
    <% else %>
-     <%= t('plugins.aspace-import-excel.ao', :id => row.archival_object_id ) %>
+     <%= t('plugins.aspace-import-excel.created', :what =>t('plugins.aspace-import-excel.ao'), :id => row.archival_object_id ) %>
    <% end %> <%# of ao_id %>
 </li>
 <% end %><%# of row each %>

@@ -8,7 +8,11 @@ en:
       processing_row: "Processing row %{row}"
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
       no_ao: No Archival Object created
-      ao: "Archival Object created: %{id}"
+      created: "%{what} created: %{id}"
+      ao: Archival Object
+      tc: Top Container
+      subj: Subject
+      agent: Agent
       error:
        file_name: File name cannot be determined
        system: "Some system error has occurred  [%{msg}]."
