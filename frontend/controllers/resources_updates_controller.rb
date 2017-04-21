@@ -169,7 +169,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
 #    test_exceptions(ao, "and extent")
     instance = create_top_container_instance
     ao.instances = [instance] if instance
-    if (dig_instance = DigitalObjectHandler.create(@row_hash, ao))
+    if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
       ao.instances ||= []
       ao.instances << dig_instance
     end
@@ -218,7 +218,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   def create_top_container_instance
     instance = nil
     begin
-      instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'])
+      instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
     rescue ExcelImportException => ee
       @report.add_errors(ee.msg)
     end
@@ -355,10 +355,10 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       unless @row_hash["subject_#{num}_record_id"].blank? && @row_hash["subject_#{num}_term"].blank?
         subj = nil
         begin
-          subj = SubjectHandler.get_or_create(@row_hash, num, @repository.split('/')[2])  # TODO: add reporting
-         ret_subjs.push subj if subj
+          subj = SubjectHandler.get_or_create(@row_hash, num, @repository.split('/')[2], @report)
+          ret_subjs.push subj if subj
         rescue ExcelImportException => e
-          @report.add_errors(e.msg)
+          @report.add_errors(e.message)
         end
       end
     end

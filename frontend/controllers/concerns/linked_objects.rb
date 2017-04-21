@@ -9,7 +9,7 @@ module LinkedObjects
   class DigitalObjectHandler < Handler
     @@digital_object_types ||= EnumList.new('digital_object_digital_object_type')
     
-    def self.create(row, archival_object)
+    def self.create(row, archival_object, report)
       dig_o = nil
       dig_instance = nil
       unless !row['thumbnail'] && !row['digital_object_link']
@@ -37,6 +37,7 @@ module LinkedObjects
         dig_o.digital_object_id = osn
         dig_o.file_versions = files
         dig_o.save
+        report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.dig'), :id => dig_o.uri))
         dig_instance = JSONModel(:instance).new._always_valid!
         dig_instance.instance_type = 'digital_object'
         dig_instance.digital_object = {"ref" => dig_o.uri}
@@ -79,7 +80,7 @@ module LinkedObjects
     end
     
     # returns a top container JSONModel
-    def self.get_or_create(row, resource)
+    def self.get_or_create(row, resource, report)
       top_container = build(row)
       tc_key = key_for(top_container)
 #      Pry::ColorPrinter.pp " tc key: #{tc_key}"
@@ -93,6 +94,7 @@ module LinkedObjects
           tc.repository = {'ref' => resource.split('/')[0..2].join('/')}
 #          UpdateUtils.test_exceptions(tc,'top_container')
           tc.save
+          report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.tc'), :id=> tc.uri))
           @@top_containers[tc_key] = tc
           existing_tc = tc
         end
@@ -114,11 +116,11 @@ module LinkedObjects
       ret_tc
     end
 
-    def self.create_container_instance(row, resource_uri)
+    def self.create_container_instance(row, resource_uri,report)
       instance = nil
       if row['type']
         begin
-          tc = get_or_create(row, resource_uri)
+          tc = get_or_create(row, resource_uri, report)
           sc = {'top_container' => {'ref' => tc.uri},
             'jsonmodeltype' => 'sub_container'}
           %w(2 3).each do |num|
@@ -192,8 +194,12 @@ module LinkedObjects
       }
     end
  
-    def self.get_or_create(row, num, repo_id)
-      subject = build(row, num)
+    def self.get_or_create(row, num, repo_id, report)
+      begin
+        subject = build(row, num)
+      rescue Exception => e
+        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject', :num => num,:why => e.message))
+      end
       subject_key = key_for(subject)
       existing_subject = nil
       # because we might get the record id, we first look that up
@@ -203,29 +209,19 @@ module LinkedObjects
           begin
             subj = JSONModel(:subject).find( subject[:record_id])
           rescue Exception => e
-            raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject', :why => e.message))  if e.message != 'RecordNotFound'
+            raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))  if e.message != 'RecordNotFound' || subject[:term].blank?
           end
           if subj
             @@subjects[subject[:record_id]] = subj
             existing_subject = subj
           end
+
         end
       end
-      if !existing_subject && !(existing_subject = @@subjects[subject_key]) && !subject[:term].blank? && !(existing_subject = get_db_subj(subject, repo_id))
-        begin
-          term = JSONModel(:term).new._always_valid!
-          term.term =  subject[:term]
-          term.term_type = subject[:type]
-          term.vocabulary = '/vocabularies/1'  # we're making a gross assumption here
-          subj = JSONModel(:subject).new._always_valid!
-          subj.terms.push term
-          subj.source = subject[:source]
-          subj.vocabulary = '/vocabularies/1'  # we're making a gross assumption here
-          subj.save
+      if !existing_subject && !(existing_subject = @@subjects[subject_key]) && !(existing_subject = get_db_subj(subject, repo_id))
+          subj = create_subj(subject)
+          report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.subj'), :id => subj.uri))
           existing_subject = subj
-        rescue Exception => e
-          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_subject', :why => e.message))
-        end
       end
       if existing_subject
         @@subjects[existing_subject.id.to_s] = existing_subject
@@ -234,7 +230,24 @@ module LinkedObjects
       end
       existing_subject
     end
-   
+
+    def self.create_subj(subject)
+      begin
+        term = JSONModel(:term).new._always_valid!
+        term.term =  subject[:term]
+        term.term_type = subject[:type]
+        term.vocabulary = '/vocabularies/1'  # we're making a gross assumption here
+        subj = JSONModel(:subject).new._always_valid!
+        subj.terms.push term
+        subj.source = subject[:source]
+        subj.vocabulary = '/vocabularies/1'  # we're making a gross assumption here
+        subj.save
+      rescue Exception => e
+        raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
+      end
+      subj
+    end   
+
     def self.get_db_subj(subject, repo_id)
       s_params = {}
       s_params["type[]"] = 'subject'

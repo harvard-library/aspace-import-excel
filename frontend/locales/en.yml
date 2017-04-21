@@ -13,6 +13,7 @@ en:
       tc: Top Container
       subj: Subject
       agent: Agent
+      dig: Digital Object
       error:
        file_name: File name cannot be determined
        system: "Some system error has occurred  [%{msg}]."
@@ -37,7 +38,7 @@ en:
        too_many: "Too many (%{count}) %{what} found for '%{value}'"
        no_tc: "Unable to create Top Container: [%{why}]"
        no_container_instance: "Unable to create Container Instance: [%{why}]"
-       no_subject: "Unable to create Subject: [%{why}]"
+       no_subject: "Unable to create Subject %{num}: [%{why}]"
        no_move: "Unable to move the archival objects from the end of the list (response code %{code})"
        bad_note: "%{type} note is not wellformed: %{msg}"
 
