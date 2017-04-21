@@ -11,7 +11,16 @@
 	<li class="bg-danger"><%= err %></li>
      <% end %><%# of error each %>
    </ul>
-   <% end %> <%# of unless %>
+   <% end %> <%# of unless no errors %>
+
+   <% unless row.info.blank? %>
+   <ul>
+     <% row.info.each do |info| %>
+        <li class="bg-info"><%= info %></li>
+     <% end %><%# of info each %>
+   </ul>
+   <% end %> <%# unless no info %>
+
    <% if row.archival_object_id.blank? %>
      <%= t('plugins.aspace-import-excel.no_ao') %>
    <% else %>

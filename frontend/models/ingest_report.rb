@@ -17,6 +17,9 @@ class IngestReport
       @current_row.add_errors(errors)
   end
 
+  def add_info(info)
+    @current_row.add_info(info)
+  end
 
   def add_archival_object_id(id)
     @current_row.archival_object(id)
