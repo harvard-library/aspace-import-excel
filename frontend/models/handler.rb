@@ -12,9 +12,15 @@ class Handler
   require 'pry'
 
   # returns nil, a hash of a jason model (if 1 found), or throws a multiples found error
-  def self.search(repo_id,params,jmsym)
+  # if repo_id is nil, do a global search (subject and agent)
+  def self.search(repo_id,params,jmsym, *type)
     obj = nil
-    search  = Search.all(repo_id, params)
+    search = nil
+    if repo_id
+      search  = Search.all(repo_id, params)
+    else
+      search = Search.global(params,type[0])
+    end
     total_hits = search['total_hits'] || 0
 #    Pry::ColorPrinter.pp "Total hits: #{total_hits}"
     if total_hits == 1 && !search['results'].blank? # for some reason, you get a hit of '1' but still have empty results??
