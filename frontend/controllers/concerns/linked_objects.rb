@@ -1,11 +1,103 @@
 module LinkedObjects
   extend ActiveSupport::Concern
+
+
 # This module incorporates all the classes needed to handle objects that must be linked to
 # Archival Objects, such as Subjects, Top Containers, etc.
 
 # a lot of this is adapted from Hudson Mlonglo's Arrearage plugin:
 #https://github.com/hudmol/nla_staff_spreadsheet_importer/blob/master/backend/converters/arrearage_converter.rb
 
+
+  class AgentHandler < Handler
+    @@agents = {} 
+    @@agent_relators ||= EnumList.new('linked_agent_archival_record_relators')
+    AGENT_TYPES = { 'families' => 'family', 'corporate_entities' => 'corporate_entity', 'people' => 'person'}
+    def self.renew
+      clear(@@agent_relators)
+    end
+    def self.key_for(agent)
+      key = "#{agent[:type]} #{agent[:header]}"
+    end
+    
+   def self.build(row, type, num)
+     relator = num ? row.fetch("#{type}_agent_relator_#{num}") :  row.fetch("#{type}_agent_relator")
+     {
+       :type => type,
+       :id => num ? row.fetch("#{type}_agent_record_id_#{num}") :  row.fetch("#{type}_agent_record_id"),
+       :name => num ? row.fetch("#{type}_agent_header_#{num}") :  row.fetch("#{type}_agent_header"),
+       :relator => relator ? @@agent_relators.value(relator) : nil
+     }
+   end
+
+   def self.get_or_create(row, type, num, report)
+     agent = build(row, type, num)
+     agent_key = key_for(agent)
+     unless agent[:id].blank?
+       begin
+         existing_agent = JSONModel("agent_#{AGENT_TYPES[agent[:type]]}".to_sym).find(agent[:id])
+      rescue Exception => e
+        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :why => e.message)) if e.message != 'RecordNotFound'
+       end
+     end
+     begin
+       if !existing_agent && !(existing_agent = @@agents.fetch(agent_key, false)) && !(existing_agent = get_db_agent(agent))
+         ret_agent = create_agent(agent)
+         report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.agent'), :id => ret_agent.uri))
+         existing_agent = ret_agent
+       end
+     rescue Exception => e
+        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num => ( num ? num : ''),  :why => e.message))
+     end
+     agent_link = nil
+     if existing_agent
+       @@agents[existing_agent.id.to_s] = existing_agent
+       @@agents[agent_key] = existing_agent
+       agent_link = {"ref" => existing_agent.uri, "role" => 'creator'}
+       agent_link["relator"] =  @@agent_relators.value(agent[:relator]) if !agent[:relator].blank?
+     end
+     agent_link
+   end
+
+  def self.create_agent(agent)
+    begin
+      ret_agent = JSONModel("agent_#{AGENT_TYPES[agent[:type]]}".to_sym).new._always_valid!
+      ret_agent.names = name_obj(agent)
+      ret_agent.save
+    rescue Exception => e
+       raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_agent', :num => (num ? num : ''), :why => e.message))
+    end
+    ret_agent
+  end
+
+  def self.get_db_agent(agent)
+    ret_ag = nil
+    if agent.id
+      begin
+        ret_ag = JSONModel("agent_#{agent.type}".to_sym).find(agent.id)
+      rescue Exception => e
+        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :why => e.message)) if e.message != 'RecordNotFound' 
+      end
+    else
+      a_params = {"q" => "title:\"#{agent[name]}\" AND primary_type:#{AGENT_TYPES[agent[type]]}"}
+      ret_ag = search(nil, a_params, :agent, 'agents')
+    end
+    ret_ag
+  end
+
+   def self.name_obj(agent)
+     obj = JSONModel("name_#{agent[:type]}".to_sym).new._always_valid!
+     obj.source = 'ingest'
+     obj.authorized = true
+     obj.is_display_name = true
+     if agent[:type] == 'family'
+       obj.family_name = agent[:name]
+     else
+       obj.primary_name = agent[:name]
+     end
+     obj
+   end
+  end # agent
   class DigitalObjectHandler < Handler
     @@digital_object_types ||= EnumList.new('digital_object_digital_object_type')
     
@@ -218,15 +310,18 @@ module LinkedObjects
 
         end
       end
-      if !existing_subject && !(existing_subject = @@subjects[subject_key]) && !(existing_subject = get_db_subj(subject, repo_id))
+      begin
+        if !existing_subject && !(existing_subject = @@subjects[subject_key]) && !(existing_subject = get_db_subj(subject))
           subj = create_subj(subject)
           report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.subj'), :id => subj.uri))
           existing_subject = subj
+        end
+      rescue Exception => e
+        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
       end
       if existing_subject
         @@subjects[existing_subject.id.to_s] = existing_subject
         @@subjects[subject_key] = existing_subject
-        #            Pry::ColorPrinter.pp "num: #{num} subject_key: #{subject_key}"
       end
       existing_subject
     end
@@ -248,13 +343,11 @@ module LinkedObjects
       subj
     end   
 
-    def self.get_db_subj(subject, repo_id)
+    def self.get_db_subj(subject)
       s_params = {}
-      s_params["type[]"] = 'subject'
       s_params["q"] = "title:\"#{subject[:term]}\" AND first_term_type:#{subject[:type]}"
-      ret_subj = search(repo_id, s_params, :subject)
-       Pry::ColorPrinter.pp "FOUND NADA in the DB" if !ret_subj
-      ret_subj
+
+      ret_subj = search(nil, s_params, :subject, 'subjects')
     end
 
 

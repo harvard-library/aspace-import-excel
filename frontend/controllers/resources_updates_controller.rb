@@ -175,6 +175,8 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
     end
     subjs = process_subjects
     subjs.each {|subj| ao.subjects.push({'ref' => subj.uri})} unless subjs.blank?
+    links = process_agents
+    ao.linked_agents = links
     Pry::ColorPrinter.pp "calling handle notes"
     errs =  handle_notes(ao)
     @report.add_errors(errs) if !errs.blank?
@@ -316,6 +318,28 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
         @report.errors(I18n.t('plugins.aspace-import-excel.error.no_move', :code => response.code))
       end
     end
+  end
+
+  def process_agents
+    agent_links = []
+    %w(people corporate_entities).each do |type|
+      Pry::ColorPrinter.pp type
+      (1..3).each do |num|
+        Pry::ColorPrinter.pp num
+        id_key = "#{type}_agent_record_id_#{num}"
+        header_key = "#{type}_agent_record_header_#{num}"
+        unless !@row_hash[id_key] || (@row_hash[id_key].blank? && @row_hash[header_key].blank?)
+          link = nil
+          begin
+            link = AgentHandler.get_or_create(@row_hash, type, num.to_s, @report)
+            agent_links.push link if link
+          rescue ExcelImportException => e
+            @report.add_errors(e.message)
+          end
+        end
+      end
+    end
+    agent_links
   end
 
   def process_row
