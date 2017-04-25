@@ -26,7 +26,7 @@ class Handler
     if total_hits == 1 && !search['results'].blank? # for some reason, you get a hit of '1' but still have empty results??
       obj = JSONModel(jmsym).find_by_uri(search['results'][0]['id'])
     elsif  total_hits > 1
-      raise Exception.new("Too many")
+      raise Exception.new(I18n.t('plugins.aspace-import-excel.error.too_many'))
     elsif total_hits == 0
 #      Pry::ColorPrinter.pp search
     end
