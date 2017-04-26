@@ -154,7 +154,7 @@ $(function () {
         var modalSuccess = function($modal) {
 	    $(".bulkbtn.btn-cancel").text("Close").removeClass("disabled").addClass("close")
 	    $modal.find(".close").click(function(event) {
-		    window.location.href = APP_PATH+"resources/"+rid + "/edit";
+		    window.location.reload(true);
 		});
 	}
 	var toggleTreeSpinner = function(){
