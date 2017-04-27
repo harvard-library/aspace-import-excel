@@ -11,6 +11,12 @@ class Handler
   require 'enum_list'
   require 'pry'
 
+  # centralize the checking for an already-found object
+  def self.stored(hash, id, key)
+    ret_obj = hash.fetch(id, nil) || hash.fetch(key, nil)
+  end
+
+
   # returns nil, a hash of a jason model (if 1 found), or throws a multiples found error
   # if repo_id is nil, do a global search (subject and agent)
   def self.search(repo_id,params,jmsym, *type)
@@ -19,7 +25,13 @@ class Handler
     if repo_id
       search  = Search.all(repo_id, params)
     else
-      search = Search.global(params,type[0])
+      begin
+        search = Search.global(params,type[0])
+      rescue Exception => e
+        s = JSONModel::HTTP::get_json("/search/#{type[0]}", params)
+        raise e if !e.message.match('<h1>Not Found</h1>')  # global search doesn't handle this gracefully :-(
+        search = {'total_hits' => 0}
+      end
     end
     total_hits = search['total_hits'] || 0
 #    Pry::ColorPrinter.pp "Total hits: #{total_hits}"

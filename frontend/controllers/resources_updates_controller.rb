@@ -322,16 +322,15 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
 
   def process_agents
     agent_links = []
-    %w(people corporate_entities).each do |type|
-      Pry::ColorPrinter.pp type
+    %w(people corporate_entities families).each do |type|
       (1..3).each do |num|
-        Pry::ColorPrinter.pp num
         id_key = "#{type}_agent_record_id_#{num}"
-        header_key = "#{type}_agent_record_header_#{num}"
-        unless !@row_hash[id_key] || (@row_hash[id_key].blank? && @row_hash[header_key].blank?)
+        header_key = "#{type}_agent_header_#{num}"
+        unless @row_hash[id_key].blank? && @row_hash[header_key].blank?
           link = nil
           begin
-            link = AgentHandler.get_or_create(@row_hash, type, num.to_s, @report)
+Pry::ColorPrinter.pp id_key
+            link = AgentHandler.get_or_create(@row_hash, type, num.to_s, @resource['uri'], @report)
             agent_links.push link if link
           rescue ExcelImportException => e
             @report.add_errors(e.message)
