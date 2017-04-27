@@ -14,6 +14,7 @@ en:
       subj: Subject
       agent: Agent
       dig: Digital Object
+      unfound_id: "PLACEHOLDER FOR %{type} ID %{id} NOT FOUND"
       error:
        too_many: More than one match found in the database
        type_undef: Unable to determine type
