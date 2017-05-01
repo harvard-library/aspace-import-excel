@@ -18,16 +18,12 @@ module LinkedObjects
     end
     def self.key_for(agent)
       key = "#{agent[:type]} #{agent[:name]}"
-      Pry::ColorPrinter.pp "KEY: #{key}"
       key
     end
     
    def self.build(row, type, num)
      id = row.fetch("#{type}_agent_record_id_#{num}", nil)
      input_name = row.fetch("#{type}_agent_header_#{num}",nil)
- if type.match('corporate')
-   Pry::ColorPrinter.pp "Corporate: |#{input_name}|"
- end
      {
        :type => AGENT_TYPES[type],
        :id => id,
@@ -307,52 +303,52 @@ Pry::ColorPrinter.pp ret_agent
       key
     end
     def self.build(row, num)
+      id =  row.fetch("subject_#{num}_record_id", nil)
+      input_term = row.fetch("subject_#{num}_term", nil)
       {
-        :record_id => row.fetch("subject_#{num}_record_id"),
-        :term =>  row.fetch("subject_#{num}_term"),
+        :id => id,
+        :term =>  input_term || (id ? I18n.t('plugins.aspace-import-excel.unfound_id', :id => id, :type => 'subject') : nil),
         :type =>   @@subject_term_types.value(row.fetch("subject_#{num}_type") || 'topical'),
-        :source => @@subject_sources.value( row.fetch("subject_#{num}_source") || 'ingest')
+        :source => @@subject_sources.value( row.fetch("subject_#{num}_source") || 'ingest'),
+        :id_but_no_term => id && !input_term
       }
     end
  
     def self.get_or_create(row, num, repo_id, report)
-      begin
-        subject = build(row, num)
-      rescue Exception => e
-        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject', :num => num,:why => e.message))
-      end
+      subject = build(row, num)
       subject_key = key_for(subject)
-      existing_subject = nil
-      # because we might get the record id, we first look that up
-      subj = nil
-      unless subject[:record_id].blank?
-        if !(existing_subject = @@subjects[subject[:record_id]])
+      Pry::ColorPrinter.pp "Subject key: #{subject_key}"
+      if !(subj = stored(@@subjects, subject[:id], subject_key))
+        unless subject[:id].blank?
           begin
-            subj = JSONModel(:subject).find( subject[:record_id])
+            subj = JSONModel(:subject).find( subject[:id])
           rescue Exception => e
-            raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))  if e.message != 'RecordNotFound' || subject[:term].blank?
+             if e.message != 'RecordNotFound'
+               Pry::ColorPrinter.pp e
+               raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
+             end
           end
-          if subj
-            @@subjects[subject[:record_id]] = subj
-            existing_subject = subj
+        end
+        begin
+          unless subj || (subj = get_db_subj(subject))
+            subj = create_subj(subject)
+            report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')}[#{subject[:term]}]", :id => subj.uri))
           end
-
+        rescue Exception => e
+          Pry::ColorPrinter.pp e.message
+          Pry::ColorPrinter.pp e.backtrace
+          raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
+        end
+        if subj
+          if subj[:id_but_no_term]
+            @@subjects[subject[:id].to_s] = subj
+          else
+            @@subjects[subj.id.to_s] = subj
+          end
+          @@subjects[subject_key] = subj
         end
       end
-      begin
-        if !existing_subject && !(existing_subject = @@subjects[subject_key]) && !(existing_subject = get_db_subj(subject))
-          subj = create_subj(subject)
-          report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')} [#{subject.title}]", :id => subj.uri))
-          existing_subject = subj
-        end
-      rescue Exception => e
-        raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
-      end
-      if existing_subject
-        @@subjects[existing_subject.id.to_s] = existing_subject
-        @@subjects[subject_key] = existing_subject
-      end
-      existing_subject
+      subj
     end
 
     def self.create_subj(subject)
@@ -378,7 +374,5 @@ Pry::ColorPrinter.pp ret_agent
 
       ret_subj = search(nil, s_params, :subject, 'subjects')
     end
-
-
   end
 end
