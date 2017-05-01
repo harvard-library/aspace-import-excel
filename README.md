@@ -5,12 +5,11 @@ An [ArchivesSpace ](http://archivesspace.org/ "ArchivesSpace") plugin to support
 
 Initial development will support interactive selection of an archival object (or resource) as the starting point of the bulk upload.  
 
-The Excel template will be found in the templates/ folder as [**archival_objects_interactive.xslx**] (https://github.com/harvard-library/aspace-import-excel/blob/master/templates/archival_objects_interactive.xlsx).  As we expand this plugin to support background job bulk-ingest, there may be more templates provided, or this template will be refined.
+The Excel template will be found in the templates/ folder as [**archival_objects_interactive_r2.xslx**] (https://github.com/harvard-library/aspace-import-excel/blob/master/templates/archival_objects_interactive_r2.xlsx).  As we expand this plugin to support background job bulk-ingest, there may be more templates provided, or this template will be refined.
 
 The intention is not to completely reproduce a Finding Aid as presented in an EAD XML, or to allow for every permutation of Archival Object creation within ArchivesSpace.  We are aiming for the "80% rule"; that is, at least 80% of the work that would be done interactively can be replaced by an excel spreadsheet; additional refinements to individual archival objects (such as addition of agents-as-subjects, assignment of locations to top-level containers, etc.) would take place interactively.
 
 
-The current plan is to leverage the backend's import converters to do some of the heavy lifting.
 
 ## Contributors
 
