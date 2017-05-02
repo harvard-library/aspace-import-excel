@@ -2,11 +2,11 @@
 <div class="bg-danger"><blockquote><%= report.terminal_error %></blockquote></div>
 <% end %>
 <% if report.row_count > 0 %>
-<ul>
+<ul style="list-style: none; ">
 <% report.rows.each do |row| %>
 <li><%= row.row %>
    <% unless row.errors.blank? %>
-   <ul>
+   <ul style="list-style: none; ">
      <% row.errors.each do |err| %>
 	<li class="bg-danger"><%= err %></li>
      <% end %><%# of error each %>
@@ -14,7 +14,7 @@
    <% end %> <%# of unless no errors %>
 
    <% unless row.info.blank? %>
-   <ul>
+   <ul style="list-style: none; ">
      <% row.info.each do |info| %>
         <li class="bg-info"><%= info %></li>
      <% end %><%# of info each %>
