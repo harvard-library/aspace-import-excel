@@ -17,7 +17,7 @@ Pry::ColorPrinter.pp "we required the EnumList"
     else
       v = @list_hash[label]
     end
-    raise Exception.new("'#{label}' not found in list #{@which}") if !v
+    raise Exception.new("NOT FOUND: '#{label}' not found in list #{@which}") if !v
     v
   end
 
