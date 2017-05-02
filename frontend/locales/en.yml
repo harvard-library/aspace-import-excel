@@ -45,4 +45,6 @@ en:
        no_subject: "Unable to create Subject %{num}: [%{why}]"
        no_move: "Unable to move the archival objects from the end of the list (response code %{code})"
        bad_note: "%{type} note is not wellformed: %{msg}"
+       bad_relator: "Unable to create agent link: '%{label}' is not a valid relator"
+       relator_invalid: "Unable to create agent link due to problem with relator '%{label}': %{why}" 
 

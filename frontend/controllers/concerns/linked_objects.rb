@@ -69,7 +69,15 @@ module LinkedObjects
        end
        @@agents[agent_key] = agent_obj
        agent_link = {"ref" => agent_obj.uri, "role" => 'creator'}
-       agent_link["relator"] =  @@agent_relators.value(agent[:relator]) if !agent[:relator].blank?
+       begin
+         agent_link["relator"] =  @@agent_relators.value(agent[:relator]) if !agent[:relator].blank?
+       rescue Exception => e
+         if e.message.start_with?("NOT FOUND")
+           raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.bad_relator', :label => agent[:relator]))
+         else
+           raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.relator_invalid', :label => agent[:relator], :why => e.message))
+         end
+       end
      end
      agent_link
    end
