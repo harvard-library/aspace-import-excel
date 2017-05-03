@@ -56,16 +56,19 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           values = row_values(row)
           next if values.compact.empty?
           @row_hash = Hash[@headers.zip(values)]
+          ao = nil
           begin
             @report.new_row(@counter)
             ao = process_row
             @rows_processed += 1
+            @error_level = nil
           rescue StopExcelImportException => se
             @report.add_errors([se.message, I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter)])
             raise StopIteration.new
           rescue ExcelImportException => e
             @error_rows += 1
             @report.add_errors( e.message)
+            @error_level = @hier
           end
           @report.end_row
         end
@@ -102,7 +105,11 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   def check_row
     err_arr = []
     begin
-      err_arr.push I18n.t('plugins.aspace-import-excel.error.title') if @row_hash['title'].blank?
+      missing_title = @row_hash['title'].blank?
+      #date stuff
+      missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
+      Pry::ColorPrinter.pp "missing title & date: #{(missing_title && missing_date)}"
+      err_arr.push  I18n.t('plugins.aspace-import-excel.error.title_and_date') if (missing_title && missing_date)
       # tree hierachy
       hier = @row_hash['hierarchy']
       if !hier 
@@ -121,11 +128,6 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         @hier = hier
       end
       err_arr.push I18n.t('plugins.aspace-import-excel.error.level') if @row_hash['level'].blank?
-      #date stuff
-      err_arr.push I18n.t('plugins.aspace-import-excel.error.date') if [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
-      # extent
-      err_arr.push I18n.t('plugins.aspace-import-excel.error.number') if @row_hash['number'].blank?
-      err_arr.push I18n.t('plugins.aspace-import-excel.error.extent_type') if @row_hash['extent_type'].blank?
     rescue StopExcelImportException => se
       raise
     rescue Exception => e
@@ -147,6 +149,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     ao = JSONModel(:archival_object).new._always_valid!
     ao.resource = {'ref' => @resource['uri']}
     ao.title = @row_hash['title']
+    ao.dates = create_date unless [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
     ao.level = @row_hash['level'].downcase
     ao.publish = @row_hash['publish']
     ao.parent = {'ref' => parent_uri} if !parent_uri.blank?
@@ -159,10 +162,8 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       raise I18n.t('plugins.aspace-import-excel.error.system',:row => @counter, :msg => e.message)
     end
-    ao.dates = create_date
-#    test_exceptions(ao, "with date")
     begin
-      ao.extents = create_extent
+      ao.extents = create_extent unless [@row_hash['number'],@row_hash['extent_type'], @row_hash['portion']].compact.empty?
     rescue Exception => e
       @report.add_errors(e.message)
     end
@@ -369,7 +370,6 @@ Pry::ColorPrinter.pp id_key
       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       Pry::ColorPrinter.pp e.backtrace
     end
-#    archival_object =  JSONModel(:archival_object).new
   end
 
   def process_subjects
