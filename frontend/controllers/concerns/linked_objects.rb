@@ -63,8 +63,6 @@ module LinkedObjects
        if agent[:id_but_no_name]
          @@agents[agent[:id].to_s] = agent_obj
        else
-         Pry::ColorPrinter.pp "not id but no name"
-         Pry::ColorPrinter.pp agent_obj
          @@agents[agent_obj.id.to_s] = agent_obj
        end
        @@agents[agent_key] = agent_obj
@@ -86,7 +84,6 @@ module LinkedObjects
     begin
       ret_agent = JSONModel("agent_#{agent[:type]}".to_sym).new._always_valid!
       ret_agent.names = [name_obj(agent)]
-Pry::ColorPrinter.pp ret_agent
       ret_agent.publish = !agent[:id_but_no_name]
       ret_agent.save
     rescue Exception => e
@@ -325,7 +322,7 @@ Pry::ColorPrinter.pp ret_agent
     def self.get_or_create(row, num, repo_id, report)
       subject = build(row, num)
       subject_key = key_for(subject)
-      Pry::ColorPrinter.pp "Subject key: #{subject_key}"
+#      Pry::ColorPrinter.pp "Subject key: #{subject_key}"
       if !(subj = stored(@@subjects, subject[:id], subject_key))
         unless subject[:id].blank?
           begin
