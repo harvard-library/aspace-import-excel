@@ -27,7 +27,7 @@ en:
        row_ead: This row is missing an EAD ID
        ead_mismatch:  "Form's EAD ID [%{res_ead}] does not match row's EAD ID [%{row_ead}]"
        title: Missing title
-       title_and_date: Missing title AND date
+       title_and_date: Missing Title AND Creation Date
        hier_miss: Missing hierachy -- must be a number greater than 0
        hier_zero: Hierarchy must be greater than 0 
        hier_wrong: Hierarchy cannot not be more than one level deeper than the previous row
