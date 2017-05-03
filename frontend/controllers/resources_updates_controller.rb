@@ -62,6 +62,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
             ao = process_row
             @rows_processed += 1
             @error_level = nil
+            Pry::ColorPrinter.pp "no ao" if !ao
           rescue StopExcelImportException => se
             @report.add_errors([se.message, I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter)])
             raise StopIteration.new
@@ -69,6 +70,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
             @error_rows += 1
             @report.add_errors( e.message)
             @error_level = @hier
+            Pry::ColorPrinter.pp "Error level: #{@error_level}"
           end
           @report.end_row
         end
@@ -105,17 +107,14 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   def check_row
     err_arr = []
     begin
-      missing_title = @row_hash['title'].blank?
-      #date stuff
-      missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
-      Pry::ColorPrinter.pp "missing title & date: #{(missing_title && missing_date)}"
-      err_arr.push  I18n.t('plugins.aspace-import-excel.error.title_and_date') if (missing_title && missing_date)
-      # tree hierachy
+      # we'll check hierarchical level first, in case there was a parent that didn't get created
       hier = @row_hash['hierarchy']
       if !hier 
         err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_miss')
       else
         hier = hier.to_i
+        # we bail if the parent wasn't created!
+        return I18n.t('plugins.aspace-import-excel.error.hier_below_error_level') if (@error_level && hier > @error_level)
         err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_zero') if hier < 1
         # going from a 1 to a 3, for example
         if (hier - 1) > @hier
@@ -126,7 +125,12 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           end
         end
         @hier = hier
-      end
+      end 
+      missing_title = @row_hash['title'].blank?
+      #date stuff
+      missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
+      err_arr.push  I18n.t('plugins.aspace-import-excel.error.title_and_date') if (missing_title && missing_date)
+      # tree hierachy
       err_arr.push I18n.t('plugins.aspace-import-excel.error.level') if @row_hash['level'].blank?
     rescue StopExcelImportException => se
       raise
@@ -153,15 +157,6 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     ao.level = @row_hash['level'].downcase
     ao.publish = @row_hash['publish']
     ao.parent = {'ref' => parent_uri} if !parent_uri.blank?
-# For some reason, I need to save/create the smallest possible  amount of information first!
-    begin
-      ao.save
-      @parents.set_uri(@hier, ao.uri)
-    rescue Exception => e
-      Pry::ColorPrinter.pp "INITIAL SAVE FAILED!!!"
-Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
-      raise I18n.t('plugins.aspace-import-excel.error.system',:row => @counter, :msg => e.message)
-    end
     begin
       ao.extents = create_extent unless [@row_hash['number'],@row_hash['extent_type'], @row_hash['portion']].compact.empty?
     rescue Exception => e
@@ -308,8 +303,7 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
   def move_archival_objects
     unless @first_level_aos.empty?
       uri = (@ao && @ao.parent) ? @ao.parent['ref'] : @resource.uri
-      Pry::ColorPrinter.pp "URI: #{uri}"
-
+      Pry::ColorPrinter.pp "moving: URI: #{uri}"
       response = JSONModel::HTTP.post_form("#{uri}/accept_children",
                                            "children[]" => @first_level_aos,
                                            "position" => @start_position + 1)
@@ -330,7 +324,6 @@ Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
         unless @row_hash[id_key].blank? && @row_hash[header_key].blank?
           link = nil
           begin
-Pry::ColorPrinter.pp id_key
             link = AgentHandler.get_or_create(@row_hash, type, num.to_s, @resource['uri'], @report)
             agent_links.push link if link
           rescue ExcelImportException => e
@@ -351,11 +344,12 @@ Pry::ColorPrinter.pp id_key
     end
     raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
     parent_uri = @parents.parent_for(@row_hash['hierarchy'].to_i)
-    ao = create_archival_object(parent_uri)
-    @report.add_archival_object_id(ao.uri)
-  #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
     begin
+      ao = create_archival_object(parent_uri)
+  #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
       saving = ao.save
+      @report.add_archival_object_id(ao.uri)
+      @parents.set_uri(@hier, ao.uri)
       @created_ao_refs.push ao.uri
       if @hier == 1
         @first_level_aos.push ao.uri 
@@ -365,6 +359,9 @@ Pry::ColorPrinter.pp id_key
           Pry::ColorPrinter.pp "Need to move: #{@need_to_move}"
         end
       end
+    rescue JSONModel::ValidationException => ve
+      # ao won't have been created
+      raise ExcelImportException.new(ve.message)
     rescue  Exception => e
       Pry::ColorPrinter.pp e.message
       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
@@ -415,33 +412,6 @@ Pry::ColorPrinter.pp id_key
     end
   end
 
-
-
-  def add_children
-   #http://welling.hul.harvard.edu:8880/archival_objects/84957/accept_children
-    # children[] = /repositories/2/archival_objects/84958
-    #children[] = /repositories/2/archival_objects/84959
-    # index = 0
-    # this calls handle_accept_children in application_controller https://github.com/archivesspace/archivesspace/blob/c80d9b2205aa36474fe719f3599f83dad8e97bb4/frontend/app/controllers/application_controller.rb
-   # unless params[:children]
-      # Nothing to do
-   #   return render :json => {
-   #                   :position => params[:index].to_i
-   #   }
-   # end
-
-   # response = JSONModel::HTTP.post_form(target_jsonmodel.uri_for(params[:id]) + "/accept_children",
-   #                                      "children[]" => params[:children],
-   #                                      "position" => params[:index].to_i)
-   # if response.code == '200'
-   #   render :json => {
-   #     :position => params[:index].to_i
-   #   }
-   # else
-   #   raise "Error setting parent of archival objects: #{response.body}"
-   # end
-    # 
-  end
  
   def row_values(row)
 #    Pry::ColorPrinter.pp "ROW!"
