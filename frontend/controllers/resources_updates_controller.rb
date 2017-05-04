@@ -348,7 +348,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       ao = create_archival_object(parent_uri)
   #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
       saving = ao.save
-      @report.add_archival_object_id(ao.uri)
+      @report.add_archival_object(ao)
       @parents.set_uri(@hier, ao.uri)
       @created_ao_refs.push ao.uri
       if @hier == 1

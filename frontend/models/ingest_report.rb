@@ -21,10 +21,9 @@ class IngestReport
     @current_row.add_info(info)
   end
 
-  def add_archival_object_id(id)
-    @current_row.archival_object(id)
+  def add_archival_object(ao)
+    @current_row.archival_object(ao)if ao
   end
-
 
   # If we stop processing before getting to the end of the spreadsheet, we want that reported out special
   def add_terminal_error(error, counter)
@@ -67,13 +66,14 @@ class IngestReport
     @terminal_error
   end
 
-  Row = Struct.new(:archival_object_id, :row, :errors, :info) do
+  Row = Struct.new(:archival_object_id,:archival_object_display, :row, :errors, :info) do
 
     def initialize(row_number)
       self.row = I18n.t('plugins.aspace-import-excel.row', :row => row_number)
       self.errors = []
       self.info = []
       self.archival_object_id = nil
+      self.archival_object_display = nil
     end
     
     # if other structures (top_container, agent, etc.) were created along the way
@@ -90,8 +90,9 @@ Pry::ColorPrinter.pp errors
       end
     end
     
-    def archival_object(id)
-      self.archival_object_id = id
+    def archival_object(ao)
+      self.archival_object_id = ao.uri
+      self.archival_object_display = ao.display_string
     end
   end
 end
