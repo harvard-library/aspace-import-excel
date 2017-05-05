@@ -30,3 +30,24 @@
 <% end %><%# of row each %>
 </ul>
 <% end %> <%# of rows %>
+
+<textarea id="excel_clip" readonly style="width:1px; height:1px;">
+  <% report.rows.each do |row| %>
+  <%= row.row %>  <% if row.archival_object_id.blank? %>
+     <%= t('plugins.aspace-import-excel.no_ao') %>
+   <% else %>   <%= t('plugins.aspace-import-excel.clip_created', :what =>t('plugins.aspace-import-excel.ao'), :id => row.archival_object_id ,
+         :nm => row.archival_object_display ) %>
+   <% end %>
+   <% unless row.info.blank? %>
+     <% row.info.each do |info| %> 
+      <%= t('plugins.aspace-import-excel.clip_info', :what => info) %>
+     <% end %>
+   <% end %>
+   <%  unless row.errors.blank? %>
+     <% row.errors.each do |err| %>
+      <%= t('plugins.aspace-import-excel.clip_err', :err => err) %>
+     <% end %>
+   <% end %>
+ <% end %>
+</textarea>
+

@@ -4,11 +4,15 @@ en:
       import: Import from SpreadSheet
       add_file: Add File
       drag_drop: Drag and drop file here
+      clip_btn: Copy to Clipboard
       row: "Row %{row}"
       processing_row: "Processing row %{row}"
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
       no_ao: No Archival Object created
       created: "%{what} created: %{id}"
+      clip_created:  "\t%{what} created: \t%{id}\t%{nm}"
+      clip_info: "\t\t\t\t%{what}\n"
+      clip_err: "\t\t\t\tERROR: %{err}\n"
       ao: Archival Object
       tc: Top Container
       subj: Subject

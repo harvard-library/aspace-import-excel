@@ -24,7 +24,8 @@
     </div>
 
     <div class="modal-footer">
-      <button id="bulkFileButton" class="btn btn-primary bulkbtn"><%= t('plugins.aspace-import-excel.import') %></button>
+      <button id="bulkFileButton" class="btn btn-primary bulkbtn"><%= I18n.t('plugins.aspace-import-excel.import') %></button>
+      <button class="btn btn-primary action-button clip-btn disabled" type="button" data-clipboard-target="#excel_clip"><%= I18n.t('plugins.aspace-import-excel.clip_btn') %></button>
       <button class="btn btn-cancel btn-default bulkbtn" data-dismiss="modal"><%= I18n.t "actions.cancel" %></button>
     </div>
    <% end %>
