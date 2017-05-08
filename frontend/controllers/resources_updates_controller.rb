@@ -152,7 +152,8 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   def create_archival_object(parent_uri)
     ao = JSONModel(:archival_object).new._always_valid!
     ao.resource = {'ref' => @resource['uri']}
-    ao.title = @row_hash['title']
+    ao.title = @row_hash['title'] if  @row_hash['title']
+    ao.component_id =  @row_hash['unit_id'] if @row_hash['unit_id']
     ao.dates = create_date unless [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
     ao.level = @row_hash['level'].downcase
     ao.publish = @row_hash['publish']
