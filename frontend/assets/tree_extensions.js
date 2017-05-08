@@ -100,7 +100,7 @@ $(function () {
 			}, */
 		success: function(data, status, xhr) {
 			/*display? */
-			alert("Success!");
+			alert("The file has been processed");
 			console.log("reset modal");
 			$("#bulk_messages").html(data);
 			modalSuccess($file_form_modal);
@@ -137,11 +137,26 @@ $(function () {
 		    event.preventDefault();
 		    handleFileUpload($file_form_modal);
 		});
+	    var clipboard = new Clipboard('.clip-btn');
+	    clipboard.on('success', function(e) {
+		    console.log('Action:', e.action);
+		    console.log('Text:', e.text);
+		    console.log('Trigger:', e.trigger);
+		    alert('Copied!');
+		});
+
+	    clipboard.on('error', function(e) {
+		    console.error('Action:', e.action);
+		    console.error('Trigger:', e.trigger);
+		    alert("Unable to copy");
+		});
+
 	    $file_form_modal.show();
 	}
 	var modalError = function($modal) {
 	    $(".bulkbtn").removeClass("disabled");
             $(".bulkbtn.btn-cancel").text("Close").removeClass("disabled").addClass("close")
+	    $(".clip-btn").removeClass("disabled");
 	    $modal.find(".close").click(function(event) {
 		    $("input").each(function() { 
 			    console.log($(this).val());
@@ -151,12 +166,14 @@ $(function () {
 		});
 	}
 
-        var modalSuccess = function($modal) {
+	var modalSuccess = function($modal) {
 	    $(".bulkbtn.btn-cancel").text("Close").removeClass("disabled").addClass("close")
+	    $(".clip-btn").removeClass("disabled");
 	    $modal.find(".close").click(function(event) {
 		    window.location.reload(true);
 		});
 	}
+	
 	var toggleTreeSpinner = function(){
 	    $(".archives-tree-container .spinner").toggle();
 	}
