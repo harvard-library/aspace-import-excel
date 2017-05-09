@@ -174,7 +174,6 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     subjs.each {|subj| ao.subjects.push({'ref' => subj.uri})} unless subjs.blank?
     links = process_agents
     ao.linked_agents = links
-    Pry::ColorPrinter.pp "calling handle notes"
     errs =  handle_notes(ao)
     @report.add_errors(errs) if !errs.blank?
     ao
@@ -219,7 +218,10 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     begin
       instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
     rescue ExcelImportException => ee
-      @report.add_errors(ee.msg)
+      @report.add_errors(ee.message)
+    rescue Exception => e
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
+      Pry::ColorPrinter.pp e.message
     end
     instance
   end
