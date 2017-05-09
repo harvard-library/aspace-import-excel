@@ -205,42 +205,64 @@ module LinkedObjects
     def self.get_or_create(row, resource, report)
       top_container = build(row)
       tc_key = key_for(top_container)
-#      Pry::ColorPrinter.pp " tc key: #{tc_key}"
+      Pry::ColorPrinter.pp " tc key: #{tc_key}"
       # check to see if we already have fetched one from the db, or created one.
-      if !(existing_tc = @@top_containers.fetch(tc_key, false))
-        if !(existing_tc = get_db_tc(top_container, resource))
-          tc = JSONModel(:top_container).new._always_valid!
-          tc.type = top_container[:type]
-          tc.indicator = top_container[:indicator]
-          tc.barcode = top_container[:barcode] if top_container[:barcode] 
-          tc.repository = {'ref' => resource.split('/')[0..2].join('/')}
+      existing_tc = @@top_containers.fetch(tc_key, false) ||  get_db_tc(top_container, resource)
+      if !existing_tc
+       Pry::ColorPrinter.pp  "no existing tc!"
+        tc = JSONModel(:top_container).new._always_valid!
+        tc.type = top_container[:type]
+        tc.indicator = top_container[:indicator]
+        tc.barcode = top_container[:barcode] if top_container[:barcode] 
+        tc.repository = {'ref' => resource.split('/')[0..2].join('/')}
 #          UpdateUtils.test_exceptions(tc,'top_container')
+        begin
           tc.save
-          report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"{I18n.t('plugins.aspace-import-excel.tc')} [#{tc.type} #{tc.indicator}]", :id=> tc.uri))
-          @@top_containers[tc_key] = tc
+          report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.tc')} [#{tc.type} #{tc.indicator}]", :id=> tc.uri))
           existing_tc = tc
+        rescue Exception => e
+          Pry::ColorPrinter.pp tc
+          Pry::ColorPrinter.pp e.message
+          Pry::ColorPrinter.pp e.backtrace
+          raise  ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
         end
-        @@top_containers[tc_key] = existing_tc
+        @@top_containers[tc_key] = existing_tc if existing_tc
       end
       existing_tc
     end
 
     def self.get_db_tc(top_container, resource_uri)
-      repo_idnum = resource_uri.split('/')[2]
-      ret_tc = nil
-      tc_str = "#{top_container[:type]} #{top_container[:indicator]}"
-      tc_str += " [#{top_container[:barcode]}]" if top_container[:barcode]
-      tc_params = {}
-      tc_params["type[]"] = 'top_container'
-      tc_params["q"] = "display_string:\"#{tc_str}\" AND collection_uri_u_sstr:\"#{resource_uri}\""
-      ret_tc = search(repo_idnum,tc_params, :top_container)
+      repo_id = resource_uri.split('/')[2]
+      if !(ret_tc = get_db_tc_by_barcode(top_container[:barcode], repo_id))
+        tc_str = "#{top_container[:type]} #{top_container[:indicator]}"
+        tc_str += ": [#{top_container[:barcode]}]" if top_container[:barcode]
+        tc_params = {}
+        tc_params["type[]"] = 'top_container'
+        tc_params["q"] = "display_string:\"#{tc_str}\" AND collection_uri_u_sstr:\"#{resource_uri}\""
+        Pry::ColorPrinter.pp "Q: #{tc_params['q']}"
+        ret_tc = search(repo_id,tc_params, :top_container)
+      end
       Pry::ColorPrinter.pp "FOUND NADA in the DB" if !ret_tc
       ret_tc
     end
+    
+    def self.get_db_tc_by_barcode(barcode, repo_id)
+      ret_tc = nil
+      if barcode
+        tc_params = {}
+        tc_params["type[]"] = 'top_container'
+        tc_params["q"] = "barcode_u_sstr:#{barcode}"
+        ret_tc = search(repo_id,tc_params, :top_container)
+      Pry::ColorPrinter.pp "looked for barcode"
+        Pry::ColorPrinter.pp ret_tc
+      end
+      ret_tc
+    end
+
 
     def self.create_container_instance(row, resource_uri,report)
       instance = nil
-      if row['type']
+      if row['type_1']
         begin
           tc = get_or_create(row, resource_uri, report)
           sc = {'top_container' => {'ref' => tc.uri},
@@ -252,7 +274,7 @@ module LinkedObjects
             end
           end
           instance = JSONModel(:instance).new._always_valid!
-          instance.instance_type = @@instance_types.value(row['type'])
+          instance.instance_type = @@instance_types.value(row['type_1'])
           instance.sub_container = JSONModel(:sub_container).from_hash(sc)
         rescue ExcelImportException => ee
           instance = nil
