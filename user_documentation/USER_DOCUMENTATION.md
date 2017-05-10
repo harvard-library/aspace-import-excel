@@ -49,9 +49,16 @@ Processing Note | String | |
 
 ### Dates
 
-
+A Date must have **at least** either a *begin date* or a *date expression.*
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
+Dates Label | String | creation| from the *Date Label* controlled value list
+Date Begin | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
+Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
+Date Type | in column drop-down| *inclusive*| 
+Date Expression |String||
+Date Certainty |String | from the *Date Certainty* controlled value list
+
 
 
