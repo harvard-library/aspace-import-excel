@@ -45,7 +45,7 @@ Hierarchical Relationship| number | | **REQUIRED**
 Description Level| in column drop-down || **REQUIRED**
 Publish?| in column drop-down | **False** | This is applied to any information (such as subject, note) created with this Archival Object
 Restrictions Apply? | in column drop-down | **False** | 
-Processing Note | String | |
+Processing Note | String | | No markup allowed
 
 ### Dates
 
@@ -58,7 +58,65 @@ Date Begin | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-
 Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
 Date Type | in column drop-down| *inclusive*| 
 Date Expression |String||
-Date Certainty |String | from the *Date Certainty* controlled value list
+Date Certainty |String | | from the *Date Certainty* controlled value list
+
+### Extent Information
+
+Please note the required fields.
+
+Column | Value | Default | Comment
+-------|-------|---------|---------
+Extent portion | String| whole| from the *Extent Portion* controlled value list
+Extent number | Number||**REQUIRED**
+Extent type | String| |**REQUIRED** from the *Extent Extent Type* controlled value list
+Container Summary|String||
+Physical details |String||
+Dimensions| String ||
+
+### Container Information  - Creating a Container Instance
+
+A Container instance associates the Archival Object with a Top Container, with additional information on Child and Grandchild sub-containers if present.
+
+The ingester will try to find an already-created Top Container in the database.
++ If you have defined a barcode:
+   + If there's a match for that repository, that Top Container will be used without further checking.
+   + Otherwise, a new Top Container will be created.
++ If you have not defined a barcode:
+   + The type and indicator will be used to search the database for a Top Container that is already associated with the resource;
+   + Otherwise, a new Top Container will be created.
+
+
+If you are specifying container information, note that both **type** and **indicator** are required for each level (top, child, and grandchild) you want to specify.
+
+Column | Value | Default | Comment
+-------|-------|---------|---------
+Top Container type | String | Box| from the *Container Type* controlled value list
+Top Container indicator|String | Unknown || **REQUIRED**
+Child type | String||from the *Container Type* controlled value list
+Child indicator|String |  || 
+Grandchild type | String||from the *Container Type* controlled value list
+Grandchild indicator|String |  || 
+
+## Digital Objects
+
+Ingest allows you to create a Digital Object, and associate it with the Archival Object.  The "publish" state will be whatever the "publish" state of the Archival Object has been defined to be.
+
+Column | Value | Default | Comment
+-------|-------|---------|---------
+Digital Object Title| String | the Archival Object title|
+URL of Linked-out digital object| URL String ||  this becomes the File Version with the **actuate_attribute** set to "onRequest" and the **show_attribute** set to "new"
+URL of thumbnail| URL String ||  if defined, this becomes the File version with the**actuate_attribute** set to "onLoad", the **show_attribute**set to "embed", and the "is representative" flag is set to TRUE.
+
+
+### Agent Objects
+
+The ingester allows you to link Agents (*CREATOR role only!*) to Archival objects.  You can specify up to 3 Person Agents, up to 2 Corporate Agents, and one Family Agent per Archival object.
+
+If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header header string, with all capitalization and punctuation.
+
+Either the Record ID *or* the header string is **required**; if you include both, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  otherwise.
+
+If for some reason you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it.
 
 
 
