@@ -118,5 +118,37 @@ Either the Record ID *or* the header string is **required**; if you include both
 
 If for some reason you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it.
 
+#### Person agents:
+
+Column | Value | Default | Comment
+-------|-------|---------|---------
+Agent/Creator (1) Record ID  | number||
+Agent/Creator (1) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent/Creator (1) Relator|string|| **REQUIRED** if specifying this agent. From the *Linked Agent Archival Record Relators*  controlled value list.
+Agent/Creator (2) Record ID  | number||
+Agent/Creator (2) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent/Creator (2) Relator|string||  **REQUIRED** if specifying this agent. From the *Linked Agent Archival Record Relators*  controlled value list.
+Agent/Creator (3 Record ID  | number||
+Agent/Creator (3) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent/Creator (3) Relator|string||  **REQUIRED** if specifying this agent. From the *Linked Agent Archival Record Relators*  controlled value list.
+
+#### Family Agent:
+Column | Value | Default | Comment
+-------|-------|---------|---------
+Family Agent/Creator  Record ID  | number||
+Family Agent/Creator header string  |String|| must be the entire header, including punctuation & capitalization
+Family Agent/Creator Relator|string|| **REQUIRED** if specifying this agent. From the *Linked Agent Archival Record Relators*  controlled value list.
+
+#### Corporate Agents:
+Column | Value | Default | Comment
+-------|-------|---------|---------
+Corporate Agent/Creator  Record ID  | number||
+Corporate Agent/Creator header string  |String|| must be the entire header, including punctuation & capitalization
+Corporate Agent/Creator Relator|string||  **REQUIRED** if specifying this agent. From the *Linked Agent Archival Record Relators*  controlled value list.
+Corporate Agent/Creator  Record ID (2)  | number||
+Corporate Agent/Creator header string (2)  |String|| must be the entire header, including punctuation & capitalization
+Corporate Agent/Creator Relator (2)|string||  **REQUIRED** if specifying this agent. From the *Linked Agent Archival Record Relators*  controlled value list.
+
+
 
 
