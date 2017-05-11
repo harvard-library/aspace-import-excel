@@ -23,7 +23,9 @@ As long as you **don't edit** the **row** marked *"ArchivesSpace field code"*, y
 
 **Note**  that some columns already have in-column drop down data validation defined.  You may of course add more of these. See [The Excel help page](https://support.office.com/en-us/article/Apply-data-validation-to-cells-29FECBCC-D1B9-42C1-9D76-EFF3CE5F7249) to learn how to create these. 
 
-### Required Columns
+<a href="#required">Required Columns</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+### <a name="required">Required Columns</a>
 
 There are very few columns that _must_ be filled in:
 
@@ -47,7 +49,7 @@ Publish?| in column drop-down | **False** | This is applied to any information (
 Restrictions Apply? | in column drop-down | **False** | 
 Processing Note | String | | No markup allowed
 
-### Dates
+### <a name="dates">Dates</a>
 
 A Date must have **at least** either a *begin date* or a *date expression.*
 
@@ -60,7 +62,7 @@ Date Type | in column drop-down| *inclusive*|
 Date Expression |String||
 Date Certainty |String | | from the *Date Certainty* controlled value list
 
-### Extent Information
+### <a name="extent">Extent Information</a>
 
 Please note the required fields.
 
@@ -73,7 +75,7 @@ Container Summary|String||
 Physical details |String||
 Dimensions| String ||
 
-### Container Information  - Creating a Container Instance
+### <a name="contain">Container Information  - Creating a Container Instance</a>
 
 A Container instance associates the Archival Object with a Top Container, with additional information on Child and Grandchild sub-containers if present.
 
@@ -97,7 +99,7 @@ Child indicator|String |  ||
 Grandchild type | String||from the *Container Type* controlled value list
 Grandchild indicator|String |  || 
 
-## Digital Objects
+### <a name="digital">Digital Objects</a>
 
 Ingest allows you to create a Digital Object, and associate it with the Archival Object.  The "publish" state will be whatever the "publish" state of the Archival Object has been defined to be.
 
@@ -108,7 +110,7 @@ URL of Linked-out digital object| URL String ||  this becomes the File Version w
 URL of thumbnail| URL String ||  if defined, this becomes the File version with the**actuate_attribute** set to "onLoad", the **show_attribute**set to "embed", and the "is representative" flag is set to TRUE.
 
 
-### Agent Objects
+### <a name="agent">Agent Objects</a>
 
 The ingester allows you to link Agents (*CREATOR role only!*) to Archival objects.  You can specify up to 3 Person Agents, up to 2 Corporate Agents, and one Family Agent per Archival object.
 
