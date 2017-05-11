@@ -32,6 +32,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     @created_ao_refs = []
     @first_level_aos = []
     @date_labels = EnumList.new('date_label')
+    @date_certainty = EnumList.new('date_certainty')
     @container_types = EnumList.new('container_type')
     @extent_types = EnumList.new('extent_extent_type')
     @extent_portions = EnumList.new('extent_portion')
@@ -163,6 +164,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     ao.resource = {'ref' => @resource['uri']}
     ao.title = @row_hash['title'] if  @row_hash['title']
     ao.component_id =  @row_hash['unit_id'] if @row_hash['unit_id']
+    ao.repository_processing_note = @row_hash['processing_note'] if @row_hash['processing_note']
     unless [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
       begin
         ao.dates = create_date 
@@ -197,7 +199,13 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   def create_date
     date =  { 'date_type' => (@row_hash['date_type'] || 'inclusive').downcase,
       'label' =>  @date_labels.value((@row_hash['dates_label'] || 'creation')) }
-    date['certainty']= @row_hash['date_certainty'].downcase if @row_hash['date_certainty']
+    if @row_hash['date_certainty']
+      begin
+        date['certainty'] = @date_certainty.value(@row_hash['date_certainty'])
+      rescue Exception => e
+        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.certainty', :what => e.message))
+      end
+    end
     %w(begin end expression).each do |w|
       date[w] = @row_hash[w] if @row_hash[w]
     end

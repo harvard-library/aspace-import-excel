@@ -10,7 +10,7 @@ en:
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
       no_ao: No Archival Object created
       created: "%{what} created: %{id}"
-      clip_created:  "\t%{what} created: \t%{id}\t%{nm}"
+      clip_created:  "\t%{what} created: \t%{nm}\t%{id}"
       clip_info: "\t\t\t\t%{what}\n"
       clip_err: "\t\t\t\tERROR: %{err}\n"
       ao: Archival Object
@@ -20,9 +20,10 @@ en:
       dig: Digital Object
       unfound_id: "PLACEHOLDER FOR %{type} ID %{id} NOT FOUND"
       error:
+       certainty: "Invalid 'date certainty' ignored: (%{what})"
        below_bad_ao: Cannot process because it's a child of the bad archival object
        enum: "NOT FOUND: '%{label}' not found in list %{which}"
-       invalid_date: "Invalid date definition %{what}"
+       invalid_date: "Invalid date definition (%{what})"
        too_many: More than one match found in the database
        type_undef: Unable to determine type
        file_name: File name cannot be determined
