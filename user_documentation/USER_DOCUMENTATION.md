@@ -100,6 +100,7 @@ If you are specifying container information, note that both **type** and **indic
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
+Container Intance type| String | | **REQUIRED** if you are defining a Container Instance. Value from the *Instance Instance Type* controlled value list
 Top Container type | String | Box| from the *Container Type* controlled value list
 Top Container indicator|String | Unknown || **REQUIRED**
 Child type | String||from the *Container Type* controlled value list
