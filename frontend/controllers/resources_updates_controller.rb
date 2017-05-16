@@ -238,13 +238,15 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   def create_top_container_instance
     instance = nil
-    begin
-      instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
-    rescue ExcelImportException => ee
-      @report.add_errors(ee.message)
-    rescue Exception => e
-      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
-      Pry::ColorPrinter.pp e.message
+    unless @row_hash['cont_instance_type'].empty? && @row_hash['type_1'].empty?
+      begin
+        instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
+      rescue ExcelImportException => ee
+        @report.add_errors(ee.message)
+      rescue Exception => e
+        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
+        Pry::ColorPrinter.pp e.message
+      end
     end
     instance
   end

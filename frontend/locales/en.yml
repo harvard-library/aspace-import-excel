@@ -51,6 +51,7 @@ en:
        too_many: "Too many (%{count}) %{what} found for '%{value}'"
        no_agent: "Unable to create Agent [%{why}]"
        no_tc: "Unable to create Top Container: [%{why}]"
+       missing_instance_type: Missing instance type
        no_container_instance: "Unable to create Container Instance: [%{why}]"
        no_subject: "Unable to create Subject %{num}: [%{why}]"
        no_move: "Unable to move the archival objects from the end of the list (response code %{code})"

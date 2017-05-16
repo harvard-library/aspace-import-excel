@@ -203,29 +203,30 @@ module LinkedObjects
     
     # returns a top container JSONModel
     def self.get_or_create(row, resource, report)
-      top_container = build(row)
-      tc_key = key_for(top_container)
-      Pry::ColorPrinter.pp " tc key: #{tc_key}"
-      # check to see if we already have fetched one from the db, or created one.
-      existing_tc = @@top_containers.fetch(tc_key, false) ||  get_db_tc(top_container, resource)
-      if !existing_tc
-       Pry::ColorPrinter.pp  "no existing tc!"
-        tc = JSONModel(:top_container).new._always_valid!
-        tc.type = top_container[:type]
-        tc.indicator = top_container[:indicator]
-        tc.barcode = top_container[:barcode] if top_container[:barcode] 
-        tc.repository = {'ref' => resource.split('/')[0..2].join('/')}
-#          UpdateUtils.test_exceptions(tc,'top_container')
-        begin
+      begin
+        top_container = build(row)
+        tc_key = key_for(top_container)
+        Pry::ColorPrinter.pp " tc key: #{tc_key}"
+        # check to see if we already have fetched one from the db, or created one.
+        existing_tc = @@top_containers.fetch(tc_key, false) ||  get_db_tc(top_container, resource)
+        if !existing_tc
+          Pry::ColorPrinter.pp  "no existing tc!"
+          tc = JSONModel(:top_container).new._always_valid!
+          tc.type = top_container[:type]
+          tc.indicator = top_container[:indicator]
+          tc.barcode = top_container[:barcode] if top_container[:barcode] 
+          tc.repository = {'ref' => resource.split('/')[0..2].join('/')}
+          #          UpdateUtils.test_exceptions(tc,'top_container')
           tc.save
           report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.tc')} [#{tc.type} #{tc.indicator}]", :id=> tc.uri))
           existing_tc = tc
-        rescue Exception => e
-          Pry::ColorPrinter.pp tc
-          Pry::ColorPrinter.pp e.message
-          Pry::ColorPrinter.pp e.backtrace
-          raise  ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
         end
+      rescue Exception => e
+        report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
+        Pry::ColorPrinter.pp tc
+        Pry::ColorPrinter.pp e.message
+        Pry::ColorPrinter.pp e.backtrace
+        existing_tc = nil
         @@top_containers[tc_key] = existing_tc if existing_tc
       end
       existing_tc
@@ -262,6 +263,7 @@ module LinkedObjects
 
     def self.create_container_instance(row, resource_uri,report)
       instance = nil
+      raise  ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.missing_instance_type')) if row['cont_instance_type'].empty?
       if row['type_1']
         begin
           tc = get_or_create(row, resource_uri, report)
@@ -274,11 +276,11 @@ module LinkedObjects
             end
           end
           instance = JSONModel(:instance).new._always_valid!
-          instance.instance_type = @@instance_types.value(row['type_1'])
+          instance.instance_type = @@instance_types.value(row['cont_instance_type'])
           instance.sub_container = JSONModel(:sub_container).from_hash(sc)
         rescue ExcelImportException => ee
           instance = nil
-          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why => ee.message))
+          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why => ee.messag))
         rescue Exception => e
           msg = e.message + "\n" + e.backtrace()[0]
           instance = nil
