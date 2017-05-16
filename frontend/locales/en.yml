@@ -13,6 +13,7 @@ en:
       clip_created:  "\t%{what} created: \t%{nm}\t%{id}"
       clip_info: "\t\t\t\t%{what}\n"
       clip_err: "\t\t\t\tERROR: %{err}\n"
+      clip_header: "Row\tStatus\tTitle\tURI\tInfo"
       ao: Archival Object
       tc: Top Container
       subj: Subject

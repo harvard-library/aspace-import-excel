@@ -32,6 +32,7 @@
 <% end %> <%# of rows %>
 
 <textarea id="excel_clip" readonly style="width:1px; height:1px;">
+  <%= t('plugins.aspace-import-excel.clip_header') %>
   <% report.rows.each do |row| %>
   <%= row.row %>  <% if row.archival_object_id.blank? %>
      <%= t('plugins.aspace-import-excel.no_ao') %>
