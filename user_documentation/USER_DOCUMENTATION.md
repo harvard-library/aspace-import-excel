@@ -177,7 +177,6 @@ Subject (1) Record ID|number||
 Subject (1) Term |String ||
 Subject (1) Type | String| topical|   from the *Subject Term Type*  controlled value list 
 Subject (1) Source | String| ingest| from the *Subject Source* controlled value list 
-
 Subject (2) Record ID|number||
 Subject (2) Term |String ||
 Subject (2) Type | String| topical|   from the *Subject Term Type*  controlled value list 
