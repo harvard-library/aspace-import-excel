@@ -281,12 +281,15 @@ module LinkedObjects
           instance.instance_type = @@instance_types.value(row['cont_instance_type'])
           instance.sub_container = JSONModel(:sub_container).from_hash(sc)
         rescue ExcelImportException => ee
+          Pry::ColorPrinter.pp "Excel Except: #{ee.message}"
           instance = nil
-          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why => ee.messag))
+          raise ee
         rescue Exception => e
-          msg = e.message + "\n" + e.backtrace()[0]
+          Pry::ColorPrinter.pp "Exception: #{e.message}"
+#          Pry::ColorPrinter.pp e.backtrace
+          msg = e.message #+ "\n" + e.backtrace()[0]
           instance = nil
-          ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why => msg))
+          raise ExcelImportException.new(msg)
         end
       end
       instance

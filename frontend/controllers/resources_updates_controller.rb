@@ -244,7 +244,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       begin
         instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
       rescue ExcelImportException => ee
-        @report.add_errors(ee.message)
+        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why =>ee.message))
       rescue Exception => e
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
         Pry::ColorPrinter.pp e.message
