@@ -180,7 +180,11 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     rescue Exception => e
       @report.add_errors(e.message)
     end
+    errs =  handle_notes(ao)
+    @report.add_errors(errs) if !errs.blank?
 #    test_exceptions(ao, "and extent")
+    # we have to save the ao for the display_string
+    ao.save # if there's a problem, the exception flows upward...
     instance = create_top_container_instance
     ao.instances = [instance] if instance
     if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
@@ -191,8 +195,6 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     subjs.each {|subj| ao.subjects.push({'ref' => subj.uri})} unless subjs.blank?
     links = process_agents
     ao.linked_agents = links
-    errs =  handle_notes(ao)
-    @report.add_errors(errs) if !errs.blank?
     ao
   end
   
@@ -238,7 +240,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   def create_top_container_instance
     instance = nil
-    unless @row_hash['cont_instance_type'].empty? && @row_hash['type_1'].empty?
+    unless @row_hash['cont_instance_type'].blank? && @row_hash['type_1'].blank?
       begin
         instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
       rescue ExcelImportException => ee
@@ -248,6 +250,8 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         Pry::ColorPrinter.pp e.message
       end
     end
+Pry::ColorPrinter.pp "instance"
+Pry::ColorPrinter.pp instance
     instance
   end
 

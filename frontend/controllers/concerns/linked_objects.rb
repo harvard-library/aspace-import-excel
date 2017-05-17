@@ -155,11 +155,11 @@ module LinkedObjects
         end
         osn = archival_object.ref_id + 'd'
         dig_o = JSONModel(:digital_object).new._always_valid!
-        dig_o.title = row['digital_object_title'].blank? ? archival_object.title : row['digital_object_title']
+        dig_o.title = row['digital_object_title'].blank? ? archival_object.display_string : row['digital_object_title']
         dig_o.digital_object_id = osn
         dig_o.file_versions = files
         dig_o.save
-        report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.dig'), :id => dig_o.uri))
+        report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.dig'), :id => "'#{dig_o.title}' #{dig_o.uri}"))
         dig_instance = JSONModel(:instance).new._always_valid!
         dig_instance.instance_type = 'digital_object'
         dig_instance.digital_object = {"ref" => dig_o.uri}
@@ -195,8 +195,8 @@ module LinkedObjects
     
     def self.build(row)
       {
-        :type => @@container_types.value(row.fetch('type_1', 'Box')),
-        :indicator => row.fetch('indicator_1', 'Unknown'),
+        :type => @@container_types.value(row.fetch('type_1', 'Box') || 'Box'),
+        :indicator => row.fetch('indicator_1', 'Unknown') || 'Unknown',
         :barcode => row.fetch('barcode',nil)
       }
     end
@@ -225,7 +225,7 @@ module LinkedObjects
         report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
         Pry::ColorPrinter.pp tc
         Pry::ColorPrinter.pp e.message
-        Pry::ColorPrinter.pp e.backtrace
+#        Pry::ColorPrinter.pp e.backtrace
         existing_tc = nil
         @@top_containers[tc_key] = existing_tc if existing_tc
       end
@@ -263,16 +263,18 @@ module LinkedObjects
 
     def self.create_container_instance(row, resource_uri,report)
       instance = nil
-      raise  ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.missing_instance_type')) if row['cont_instance_type'].empty?
+      raise  ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.missing_instance_type')) if row['cont_instance_type'].blank?
       if row['type_1']
         begin
           tc = get_or_create(row, resource_uri, report)
+#Pry::ColorPrinter.pp "got or created tc"
+#Pry::ColorPrinter.pp tc
           sc = {'top_container' => {'ref' => tc.uri},
             'jsonmodeltype' => 'sub_container'}
           %w(2 3).each do |num|
             if row["type_#{num}"]
               sc["type_#{num}"] = @@container_types.value(row["type_#{num}"])
-              sc["indicator_#{num}"] = row["indicator_#{num}"]
+              sc["indicator_#{num}"] = row["indicator_#{num}"] || 'Unknown'
             end
           end
           instance = JSONModel(:instance).new._always_valid!
