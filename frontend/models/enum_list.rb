@@ -17,7 +17,7 @@ Pry::ColorPrinter.pp "we required the EnumList"
     else
       v = @list_hash[label]
     end
-    raise Exception.new("NOT FOUND: '#{label}' not found in list #{@which}") if !v
+    raise Exception.new(I18n.t('plugins.aspace-import-excel.error.enum',:label =>label,:which => @which)) if !v
     v
   end
 

@@ -31,6 +31,8 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     @report = IngestReport.new
     @created_ao_refs = []
     @first_level_aos = []
+    @date_labels = EnumList.new('date_label')
+    @date_certainty = EnumList.new('date_certainty')
     @container_types = EnumList.new('container_type')
     @extent_types = EnumList.new('extent_extent_type')
     @extent_portions = EnumList.new('extent_portion')
@@ -127,8 +129,16 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         @hier = hier
       end 
       missing_title = @row_hash['title'].blank?
-      #date stuff
-      missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
+      #date stuff: if already missing the title, we have to make sure the date label is valid
+      missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty? 
+      if !missing_date
+        begin
+          label = @date_labels.value((@row_hash['dates_label'] || 'creation'))
+        rescue Exception => e
+          err_arr.push I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message)
+          missing_date = true
+        end
+      end
       err_arr.push  I18n.t('plugins.aspace-import-excel.error.title_and_date') if (missing_title && missing_date)
       # tree hierachy
       err_arr.push I18n.t('plugins.aspace-import-excel.error.level') if @row_hash['level'].blank?
@@ -154,7 +164,14 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     ao.resource = {'ref' => @resource['uri']}
     ao.title = @row_hash['title'] if  @row_hash['title']
     ao.component_id =  @row_hash['unit_id'] if @row_hash['unit_id']
-    ao.dates = create_date unless [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
+    ao.repository_processing_note = @row_hash['processing_note'] if @row_hash['processing_note']
+    unless [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
+      begin
+        ao.dates = create_date 
+      rescue Exception => e
+        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message))
+      end
+    end
     ao.level = @row_hash['level'].downcase
     ao.publish = @row_hash['publish']
     ao.parent = {'ref' => parent_uri} if !parent_uri.blank?
@@ -181,8 +198,14 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   
   def create_date
     date =  { 'date_type' => (@row_hash['date_type'] || 'inclusive').downcase,
-              'label' => (@row_hash['dates_label'] || 'creation').downcase}
-    date['certainty']= @row_hash['date_certainty'].downcase if @row_hash['date_certainty']
+      'label' =>  @date_labels.value((@row_hash['dates_label'] || 'creation')) }
+    if @row_hash['date_certainty']
+      begin
+        date['certainty'] = @date_certainty.value(@row_hash['date_certainty'])
+      rescue Exception => e
+        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.certainty', :what => e.message))
+      end
+    end
     %w(begin end expression).each do |w|
       date[w] = @row_hash[w] if @row_hash[w]
     end
@@ -215,13 +238,15 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   def create_top_container_instance
     instance = nil
-    begin
-      instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
-    rescue ExcelImportException => ee
-      @report.add_errors(ee.message)
-    rescue Exception => e
-      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
-      Pry::ColorPrinter.pp e.message
+    unless @row_hash['cont_instance_type'].empty? && @row_hash['type_1'].empty?
+      begin
+        instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
+      rescue ExcelImportException => ee
+        @report.add_errors(ee.message)
+      rescue Exception => e
+        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
+        Pry::ColorPrinter.pp e.message
+      end
     end
     instance
   end
