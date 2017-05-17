@@ -14,4 +14,5 @@ The intention is not to completely reproduce a Finding Aid as presented in an EA
 ## Contributors
 
 * Bobbi Fox: https://github.com/bobbi-SMR (maintainer)
+* Robin Wendler: https://github.com/rwendler
 
