@@ -105,9 +105,9 @@ Container Instance type| String | | **REQUIRED** if you are defining a Container
 Top Container type | String | Box| from the *Container Type* controlled value list
 Top Container indicator|String | Unknown || **REQUIRED**
 Child type | String||from the *Container Type* controlled value list
-Child indicator|String |  || 
+Child indicator|String |Unknown   || *only used if a Child type is specified*
 Grandchild type | String||from the *Container Type* controlled value list
-Grandchild indicator|String |  || 
+Grandchild indicator|String | Unknown  || *only used if a Grandchild type is specified*
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
