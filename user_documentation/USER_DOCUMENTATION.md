@@ -47,7 +47,7 @@ EAD ID | String | | **REQUIRED**
 Title  | String| |Title of the Archival Object; required if no Creation Date information
 Component Unit Identifier| String | |
 Hierarchical Relationship| Number | | **REQUIRED**
-Description Level| in column drop-down || **REQUIRED**
+Description Level| in column drop-down || **REQUIRED** *from the Archival Record Level controlled value list*
 Publish?| in column drop-down | **False** | This is applied to any information (such as subject, note) created with this Archival Object
 Restrictions Apply? | in column drop-down | **False** | 
 Processing Note | String | | No markup allowed
