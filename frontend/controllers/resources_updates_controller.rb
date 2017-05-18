@@ -31,9 +31,10 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     @report = IngestReport.new
     @created_ao_refs = []
     @first_level_aos = []
+    @archival_levels = EnumList.new('archival_record_level')
+    @container_types = EnumList.new('container_type')
     @date_labels = EnumList.new('date_label')
     @date_certainty = EnumList.new('date_certainty')
-    @container_types = EnumList.new('container_type')
     @extent_types = EnumList.new('extent_extent_type')
     @extent_portions = EnumList.new('extent_portion')
     @instance_types ||= EnumList.new('instance_instance_type')
@@ -88,7 +89,6 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       else # something else went wrong
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.system', :msg => e.message), @counter)
         Pry::ColorPrinter.pp "EXCEPTION!"
- 
         Pry::ColorPrinter.pp e.message
         Pry::ColorPrinter.pp e.backtrace
       end
@@ -141,7 +141,11 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
       end
       err_arr.push  I18n.t('plugins.aspace-import-excel.error.title_and_date') if (missing_title && missing_date)
       # tree hierachy
-      err_arr.push I18n.t('plugins.aspace-import-excel.error.level') if @row_hash['level'].blank?
+      begin
+        level = @archival_levels.value(@row_hash['level'])
+      rescue Exception => e
+        err_arr.push I18n.t('plugins.aspace-import-excel.error.level')
+      end
     rescue StopExcelImportException => se
       raise
     rescue Exception => e
@@ -172,9 +176,9 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message))
       end
     end
-    ao.level = @row_hash['level'].downcase
+    ao.level =  @archival_levels.value(@row_hash['level'])
     ao.publish = @row_hash['publish']
-    ao.parent = {'ref' => parent_uri} if !parent_uri.blank?
+    ao.parent = {'ref' => parent_uri} unless parent_uri.blank?
     begin
       ao.extents = create_extent unless [@row_hash['number'],@row_hash['extent_type'], @row_hash['portion']].compact.empty?
     rescue Exception => e
@@ -182,9 +186,14 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     end
     errs =  handle_notes(ao)
     @report.add_errors(errs) if !errs.blank?
-#    test_exceptions(ao, "and extent")
     # we have to save the ao for the display_string
-    ao.save # if there's a problem, the exception flows upward...
+    begin
+      ao.save # if there's a problem, the exception flows upward...
+    rescue Exception => e
+      Pry::ColorPrinter.pp "save error: #{e.message}"
+      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao) if ao
+      raise e
+    end
     instance = create_top_container_instance
     ao.instances = [instance] if instance
     if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
@@ -218,19 +227,20 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
  #     Pry::ColorPrinter.pp "\t passed"
     rescue Exception => e
        Pry::ColorPrinter.pp ['DATE VALIDATION', e.message]
+      raise e
     end
     [d]
   end
 
   def create_extent
-    extent = {'portion' => @extent_portions.value(@row_hash['portion'] || 'whole'),
-      'extent_type' => @extent_types.value((@row_hash['extent_type']))}
-    %w(number container_summary physical_details dimensions).each do |w|
-      extent[w] = @row_hash[w] || nil
-    end
-    ex = JSONModel(:extent).new(extent)
     begin
-      if UpdatesUtils.test_exceptions(ex, "Exceptions")
+      extent = {'portion' => @extent_portions.value(@row_hash['portion'] || 'whole'),
+        'extent_type' => @extent_types.value((@row_hash['extent_type']))}
+      %w(number container_summary physical_details dimensions).each do |w|
+        extent[w] = @row_hash[w] || nil
+      end
+      ex = JSONModel(:extent).new(extent)
+      if UpdatesUtils.test_exceptions(ex, "Extent")
         return [ex]
       end
     rescue Exception => e
@@ -250,8 +260,8 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         Pry::ColorPrinter.pp e.message
       end
     end
-Pry::ColorPrinter.pp "instance"
-Pry::ColorPrinter.pp instance
+#Pry::ColorPrinter.pp "instance"
+#Pry::ColorPrinter.pp instance
     instance
   end
 
@@ -398,6 +408,7 @@ Pry::ColorPrinter.pp instance
       Pry::ColorPrinter.pp e.message
       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       Pry::ColorPrinter.pp e.backtrace
+      raise ExcelImportException.new(e.message)
     end
   end
 
@@ -450,3 +461,4 @@ Pry::ColorPrinter.pp instance
     (1...row.size).map {|i| (row[i] && row[i].value) ? row[i].value.to_s.strip : nil}
   end
 end
+

@@ -41,7 +41,7 @@ en:
        hier_wrong: Hierarchy cannot not be more than one level deeper than the previous row
        hier_wrong_resource:  did you mean to start processing with an archival object selected?
        hier_below_error_level: The parent archival object was not created
-       level: Missing Description level
+       level: Missing valid Description level
        date: "Date must have at least one of: Date begin; Date end; or Date expression"
        number: Missing Extent number
        extent_type:  Missing Extent type
