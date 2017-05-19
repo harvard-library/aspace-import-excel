@@ -227,8 +227,8 @@ module LinkedObjects
         Pry::ColorPrinter.pp e.message
 #        Pry::ColorPrinter.pp e.backtrace
         existing_tc = nil
-        @@top_containers[tc_key] = existing_tc if existing_tc
       end
+      @@top_containers[tc_key] = existing_tc if existing_tc
       existing_tc
     end
 
