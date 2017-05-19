@@ -22,6 +22,7 @@ With your new Resource in *edit* mode, click on the "Load via Spreadsheet" butto
 Click on the **Add File** button, and select the **empty_test_collection.xlsx** file, that you've downloade from <a href="empty_test_collection.xlsx">here</a> . This spreadsheet creates two top level "Series" Archival Objects; the second Archival Object will also have a child "Item" object.  There are a few errors in the spreadsheet, so that you can see the error reporting mechanism.
 
 Here's what it looks like from an MS Windows view:
+
 <img alt="Selecting the first spreadsheet" src="images/empty_test_file_selection.png"/>
 
 ### Click "Import From Spreadsheet"
@@ -52,6 +53,7 @@ Similarly, you can edit the other two objects, if you like.
 ### Select Your Upload Point
 
 With your Resource in **edit** mode, select the "**The Early Years, 1990 - 1995**" archival object.
+
 <img alt="resource with archival object selected" src="images/select_archival_object.png"/>
 
 ### Load Spreadsheet
@@ -60,11 +62,13 @@ As <a href="#first">above</a>, click on "Load via Spreadsheet", add the **add_to
 
 ### Results
 
-These are the expected results: <img alt="results of second import" src="images/add_ss_load_report.png"/>
+These are the expected results: 
+<img alt="results of second import" src="images/add_ss_load_report.png"/>
 
 If you had not edited the "**The Early Years, 1990 - 1995**" archival object to add the Container instance, as described <a href="#ad_errors">above</a>, you will also see a "Top Container [box 1] created..." message.
 
 These results also were copied and pasted into an Excel spreadsheet:
+
 <img alt="snapshot of second load results" src="images/add_load_report_in_xls.png" />
 
 We have also uploaded the actual spreadsheet <a href="results/add_ss_load_report.xlsx">here</a>.
