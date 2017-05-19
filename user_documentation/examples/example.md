@@ -19,7 +19,12 @@ With your new Resource in *edit* mode, click on the "Load via Spreadsheet" butto
 <img alt="the 'Load Spreadsheet Popup'" src="images/load_popup.png"/>
 
 
-Click on the **Add File** button, and select the **empty_test_collection.xlsx** file, that you've downloade from <a href="empty_test_collection.xlsx">here</a> . This spreadsheet creates two top level "Series" Archival Objects; the second Archival Object will also have a child "Item" object.  There are a few errors in the spreadsheet, so that you can see the error reporting mechanism.
+Click on the **Add File** button, and select the **empty_test_collection.xlsx** file, that you've downloade from <a href="empty_test_collection.xlsx">here</a> . This spreadsheet creates two top level "Series" Archival Objects; the second Archival Object will also have a child "Item" object.  There are a few errors in the spreadsheet, so that you can see the error reporting mechanism.  
+
+This spreadsheet has specified an Agent by the Agent ID of 3760.  If you don't have an Agent with that ID, an agent will be created, with the header of "PLACEHOLDER FOR person agent ID 3760 NOT FOUND", and reported as such in the results.
+It also specifies a subject with the ID of 837, but also specifies the term, type, and source.  If you don't have a subject with that ID, a new subject will be created based on that information; again, it will be reported in the results.
+
+
 
 Here's what it looks like from an MS Windows view:
 
@@ -59,6 +64,8 @@ With your Resource in **edit** mode, select the "**The Early Years, 1990 - 1995*
 ### Load Spreadsheet
 
 As <a href="#first">above</a>, click on "Load via Spreadsheet", add the **add_to_hl_test_ingest_collection.xlsx** file that you've downloaded from <a href="add_to_hl_test_ingest_collection.xlsx">here</a>, then click on "Import from SpreadSheet".
+
+This spreadsheet also specifies Agent ID 3760.  If you already had an agent with the ID, that is what will be assigned to it; otherwise, the agent created by the ingest of the previous spreadsheet will be used.  Similarly, the subject ID 837 is referenced as well, and treated the same.
 
 ### Results
 
