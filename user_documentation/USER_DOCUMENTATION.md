@@ -1,6 +1,8 @@
 # Using the Excel Spreadsheet Template to add Archival Objects to a Resource
 **Note** *that the Resource must already be defined.*
 
+**We are also providing some example spreadsheets**. See <a href="examples/example.md">An Example of Using aspace-import-exel</a> .
+
 ## Initiating the ingest
 1. In ArchivesSpace, where you invoke the ingest depends on what you are trying to do.
    + **If** the resource has no Archival Objects, or you want your Archival Objects to be appended to the end of the list of first-level Archival Objects, locate the desired Resource record. </li>
