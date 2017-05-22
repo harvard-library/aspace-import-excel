@@ -81,7 +81,7 @@ These results also were copied and pasted into an Excel spreadsheet:
 We have also uploaded the actual spreadsheet <a href="results/add_ss_load_report.xlsx">here</a>.
 
 And here's a view of the Resource's "tree" after the two spreadsheets have been loaded:
-<img alt="snapshot of the Resource's 'tree'" src="images/tree_after_load.png"/>
+<img alt="snapshot of the Resource's 'tree'" src="images/tree_after_add_load.png"/>
 
 
 
