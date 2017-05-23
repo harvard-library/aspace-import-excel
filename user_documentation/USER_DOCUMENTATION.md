@@ -1,7 +1,11 @@
 # Using the Excel Spreadsheet Template to add Archival Objects to a Resource
-**Note** *that the Resource must already be defined.*
+
+**The Excel Spreadsheet Template is at** https://github.com/harvard-library/aspace-import-excel/blob/master/templates/aspace_import_excel_template.xlsx
 
 **We are also providing some example spreadsheets**. See <a href="examples/example.md">An Example of Using aspace-import-exel</a> .
+
+
+**Note** *that the Resource must already be defined.*
 
 ## Initiating the ingest
 1. In ArchivesSpace, where you invoke the ingest depends on what you are trying to do.
@@ -20,7 +24,12 @@
 
 ## Using the Template to Create a Spreadsheet
 
-The template is designed to be flexible enough to accommodate different workflows.
+The Excel Spreadsheet template is at https://github.com/harvard-library/aspace-import-excel/blob/master/templates/aspace_import_excel_template.xlsx .
+
+Use **Save as**  *(your new filename}*.xlsx to begin creating your spreadsheet.
+
+
+The template is designed to be flexible enough to accommodate different workflows.  The first row is the place where you can put identifying information, such as "Foo Collection".
 
 As long as you **don't edit** the **row** marked *"ArchivesSpace field code"*, you may hide, delete, or rearrange **columns** to suit your workflow.  Indeed, you will see that there are a few already-hidden columns; these are not currently used, but may be used in future enhancements.
 
