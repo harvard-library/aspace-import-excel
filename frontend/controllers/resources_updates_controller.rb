@@ -267,12 +267,13 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
   def handle_notes(ao)
     errs = []
-    notes_keys = @row_hash.keys.grep(/n_/)
+    notes_keys = @row_hash.keys.grep(/^n_/)
     notes_keys.each do |key|
       unless @row_hash[key].blank?
         content = @row_hash[key]
         type = key.match(/n_(.+)$/)[1]
         note_type = @note_types[type]
+#        Pry::ColorPrinter.pp "content for #{key}: |#{content}|  type: #{type} note_type#{note_type}"
         note = JSONModel(note_type[:target]).new
         note.type = note_type[:value]
         begin 
