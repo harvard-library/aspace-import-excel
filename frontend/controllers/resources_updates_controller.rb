@@ -165,17 +165,22 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   # create an archival_object
   def create_archival_object(parent_uri)
     ao = JSONModel(:archival_object).new._always_valid!
-    ao.resource = {'ref' => @resource['uri']}
     ao.title = @row_hash['title'] if  @row_hash['title']
-    ao.component_id =  @row_hash['unit_id'] if @row_hash['unit_id']
-    ao.repository_processing_note = @row_hash['processing_note'] if @row_hash['processing_note']
     unless [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
       begin
         ao.dates = create_date 
       rescue Exception => e
+#        Pry::ColorPrinter.pp "We gots a date exception! #{e.message}"
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message))
       end
     end
+    #because the date may have been invalid, we should check if there's a title, otherwise bail
+    if ao.title.blank? && ao.dates.blank?
+      raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.title_and_date'))
+    end
+    ao.resource = {'ref' => @resource['uri']}
+    ao.component_id =  @row_hash['unit_id'] if @row_hash['unit_id']
+    ao.repository_processing_note = @row_hash['processing_note'] if @row_hash['processing_note']
     ao.level =  @archival_levels.value(@row_hash['level'])
     ao.publish = @row_hash['publish']
     ao.parent = {'ref' => parent_uri} unless parent_uri.blank?
@@ -220,15 +225,15 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     %w(begin end expression).each do |w|
       date[w] = @row_hash[w] if @row_hash[w]
     end
-    d = JSONModel(:date).new(date)
-    begin
-#       Pry::ColorPrinter.pp "DATE EXCEPTIONS?"
-      d._exceptions
- #     Pry::ColorPrinter.pp "\t passed"
-    rescue Exception => e
-       Pry::ColorPrinter.pp ['DATE VALIDATION', e.message]
-      raise e
+    invalids = JSONModel::Validations.check_date(date)
+    unless invalids.blank?
+      err_msg = ''
+      invalids.each do |inv|
+        err_msg << " #{inv[0]}: #{inv[1]}"
+      end
+      raise Exception.new(err_msg)
     end
+    d = JSONModel(:date).new(date)
     [d]
   end
 
