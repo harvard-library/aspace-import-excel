@@ -101,22 +101,22 @@ $(function () {
 		success: function(data, status, xhr) {
 			/*display? */
 			alert("The file has been processed");
-			console.log("reset modal");
 			$("#bulk_messages").html(data);
 			modalSuccess($file_form_modal);
 		    },
 		error: function(xhr, status, err) {
 			alert("ERROR: " + status + "; Error detected");
 			$("#bulk_messages").html(xhr.responseText);
-			console.log(xhr);
-			console.log(err);
+			/* console.log(xhr);
+			   console.log(err); */
 			/* display error */
 			modalError($file_form_modal);
 		    }
 		});
-	    $modal.on("hide.bs.modal", function (event){
-		    console.log("hide hit");
+	    $modal.on("hidden.bs.modal", function (event){
+		    /*console.log("hide hit"); */
 		    $modal.hide();
+		    $("body").css("overflow", "auto");
 		});
 	}
 
@@ -130,7 +130,7 @@ $(function () {
 
 
 	var openFileModal = function() {
-	    $file_form_modal = AS.openCustomModal("bulkIngestFileModal", "Load Spreadsheet",  file_modal_html, false, null, $("#bulkFileButton").get(0));
+	    $file_form_modal = AS.openCustomModal("bulkIngestFileModal", "Load Spreadsheet",  file_modal_html, 'large', null, $("#bulkFileButton").get(0));
 	    initExcelFileUploadSection();
 	    $("#bulkFileButton").on("click",  function(event) {
 		    event.stopPropagation();
@@ -139,9 +139,9 @@ $(function () {
 		});
 	    var clipboard = new Clipboard('.clip-btn');
 	    clipboard.on('success', function(e) {
-		    console.log('Action:', e.action);
+		    /* console.log('Action:', e.action);
 		    console.log('Text:', e.text);
-		    console.log('Trigger:', e.trigger);
+		    console.log('Trigger:', e.trigger); */
 		    alert('Copied!');
 		});
 
@@ -159,10 +159,13 @@ $(function () {
 	    $(".clip-btn").removeClass("disabled");
 	    $modal.find(".close").click(function(event) {
 		    $("input").each(function() { 
-			    console.log($(this).val());
+			    /*console.log($(this).val()); */
 			    $(this).val("");
 			});
+		    $("#bulk_messages").html("");
+		    $("#excel_filename").html("");
 		    $modal.hide();
+		    $("body").css("overflow", "auto");
 		});
 	}
 
@@ -191,7 +194,7 @@ $(function () {
 		    toggleTreeSpinner();
 		    return;
 		}
-		console.log("we got rid: " + obj.rid + " "  + obj.aoid + " ref_id: " + obj.ref_id + " resource: " + obj.resource + " position: " + obj.position);
+		/*console.log("we got rid: " + obj.rid + " "  + obj.aoid + " ref_id: " + obj.ref_id + " resource: " + obj.resource + " position: " + obj.position); */
 		if (file_modal_html  === '') {
 		    $.ajax({
 			url: APP_PATH + "resources/" + obj.rid + "/getfile",
@@ -209,9 +212,9 @@ $(function () {
 			});
 		}
 		else {
-		    console.log("we have html already");
+		    /*console.log("we have html already"); */
 		    if (typeof($file_form_modal) !== 'undefined') {
-			console.log("Remove");
+			/* console.log("Remove"); */
 			$file_form_modal.remove();
 		    }
 		    openFileModal();
