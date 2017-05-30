@@ -65,7 +65,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
             ao = process_row
             @rows_processed += 1
             @error_level = nil
-            Pry::ColorPrinter.pp "no ao" if !ao
+#            Pry::ColorPrinter.pp "no ao" if !ao
           rescue StopExcelImportException => se
             @report.add_errors([se.message, I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter)])
             raise StopIteration.new
@@ -73,7 +73,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
             @error_rows += 1
             @report.add_errors( e.message)
             @error_level = @hier
-            Pry::ColorPrinter.pp "Error level: #{@error_level}"
+#            Pry::ColorPrinter.pp "Error level: #{@error_level}"
           end
           @report.end_row
         end
@@ -88,7 +88,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.excel', :errs => e.message), @counter)
       else # something else went wrong
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.system', :msg => e.message), @counter)
-        Pry::ColorPrinter.pp "EXCEPTION!"
+        Pry::ColorPrinter.pp "UNEXPECTED EXCEPTION!"
         Pry::ColorPrinter.pp e.message
         Pry::ColorPrinter.pp e.backtrace
       end
@@ -98,7 +98,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     end
     move_archival_objects if @need_to_move
     @report.end_row
-    Pry::ColorPrinter.pp "Number of Archival Object created: #{@created_ao_refs.length}"
+#    Pry::ColorPrinter.pp "Number of Archival Object created: #{@created_ao_refs.length}"
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report}
   end
 
@@ -195,7 +195,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     begin
       ao.save # if there's a problem, the exception flows upward...
     rescue Exception => e
-      Pry::ColorPrinter.pp "save error: #{e.message}"
+      Pry::ColorPrinter.pp "UNEXPECTED save error: #{e.message}"
       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao) if ao
       raise e
     end
@@ -262,7 +262,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why =>ee.message))
       rescue Exception => e
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
-        Pry::ColorPrinter.pp e.message
+#        Pry::ColorPrinter.pp e.message
       end
     end
 #Pry::ColorPrinter.pp "instance"
@@ -351,12 +351,12 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   def move_archival_objects
     unless @first_level_aos.empty?
       uri = (@ao && @ao.parent) ? @ao.parent['ref'] : @resource.uri
-      Pry::ColorPrinter.pp "moving: URI: #{uri}"
+#      Pry::ColorPrinter.pp "moving: URI: #{uri}"
       response = JSONModel::HTTP.post_form("#{uri}/accept_children",
                                            "children[]" => @first_level_aos,
                                            "position" => @start_position + 1)
       unless response.code == '200'
-        Pry::ColorPrinter.pp "BAD MOVE! #{response.code}"
+        Pry::ColorPrinter.pp "UNEXPECTED BAD MOVE! #{response.code}"
         Pry::ColorPrinter.pp response.body
         @report.errors(I18n.t('plugins.aspace-import-excel.error.no_move', :code => response.code))
       end
@@ -404,16 +404,16 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         if @first_one && @start_position
           @need_to_move = (ao.position - @start_position) > 1
           @first_one = false
-          Pry::ColorPrinter.pp "Need to move: #{@need_to_move}"
+#          Pry::ColorPrinter.pp "Need to move: #{@need_to_move}"
         end
       end
     rescue JSONModel::ValidationException => ve
       # ao won't have been created
       raise ExcelImportException.new(ve.message)
     rescue  Exception => e
-      Pry::ColorPrinter.pp e.message
-      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
+      Pry::ColorPrinter.pp "UNEXPECTED #{e.message}"
       Pry::ColorPrinter.pp e.backtrace
+      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       raise ExcelImportException.new(e.message)
     end
   end

@@ -12,9 +12,9 @@ module UpdatesUtils
       obj._exceptions
       true
     rescue Exception => e
-      Pry::ColorPrinter.pp e.message
-      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(obj)
-      Pry::ColorPrinter.pp  e.backtrace[1..2]
+#      Pry::ColorPrinter.pp e.message
+#      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(obj)
+#      Pry::ColorPrinter.pp  e.backtrace[1..2]
       raise ExcelImportException.new("editable?") if e.message.include?("editable?")
       raise e
     end

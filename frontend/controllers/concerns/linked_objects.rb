@@ -42,7 +42,7 @@ module LinkedObjects
            agent_obj = JSONModel("agent_#{agent[:type]}".to_sym).find(agent[:id])
          rescue Exception => e
            if e.message != 'RecordNotFound'
-             Pry::ColorPrinter.pp e
+#             Pry::ColorPrinter.pp e
              raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :why => e.message)) 
            end
          end
@@ -53,8 +53,8 @@ module LinkedObjects
          report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.agent')}[#{agent[:name]}]", :id => agent_obj.uri))
        end
        rescue Exception => e
-         Pry::ColorPrinter.pp e.message
-         Pry::ColorPrinter.pp e.backtrace
+#         Pry::ColorPrinter.pp e.message
+#         Pry::ColorPrinter.pp e.backtrace
          raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num =>  num,  :why => e.message))
        end
      end
@@ -99,8 +99,8 @@ module LinkedObjects
         ret_ag = JSONModel("agent_#{agent[:type]}".to_sym).find(agent[:id])
       rescue Exception => e
         if e.message != 'RecordNotFound' 
-          Pry::ColorPrinter.pp e.message
-          Pry::ColorPrinter.pp e.backtrace
+#          Pry::ColorPrinter.pp e.message
+#          Pry::ColorPrinter.pp e.backtrace
           raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :why => e.message)) 
         end
       end
@@ -206,11 +206,11 @@ module LinkedObjects
       begin
         top_container = build(row)
         tc_key = key_for(top_container)
-        Pry::ColorPrinter.pp " tc key: #{tc_key}"
+#        Pry::ColorPrinter.pp " tc key: #{tc_key}"
         # check to see if we already have fetched one from the db, or created one.
         existing_tc = @@top_containers.fetch(tc_key, false) ||  get_db_tc(top_container, resource)
         if !existing_tc
-          Pry::ColorPrinter.pp  "no existing tc!"
+#          Pry::ColorPrinter.pp  "no existing tc!"
           tc = JSONModel(:top_container).new._always_valid!
           tc.type = top_container[:type]
           tc.indicator = top_container[:indicator]
@@ -223,8 +223,8 @@ module LinkedObjects
         end
       rescue Exception => e
         report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
-        Pry::ColorPrinter.pp tc
-        Pry::ColorPrinter.pp e.message
+#        Pry::ColorPrinter.pp tc
+#        Pry::ColorPrinter.pp e.message
 #        Pry::ColorPrinter.pp e.backtrace
         existing_tc = nil
       end
@@ -240,10 +240,10 @@ module LinkedObjects
         tc_params = {}
         tc_params["type[]"] = 'top_container'
         tc_params["q"] = "display_string:\"#{tc_str}\" AND collection_uri_u_sstr:\"#{resource_uri}\""
-        Pry::ColorPrinter.pp "Q: #{tc_params['q']}"
+#        Pry::ColorPrinter.pp "Q: #{tc_params['q']}"
         ret_tc = search(repo_id,tc_params, :top_container)
       end
-      Pry::ColorPrinter.pp "FOUND NADA in the DB" if !ret_tc
+#      Pry::ColorPrinter.pp "FOUND NADA in the DB" if !ret_tc
       ret_tc
     end
     
@@ -254,8 +254,8 @@ module LinkedObjects
         tc_params["type[]"] = 'top_container'
         tc_params["q"] = "barcode_u_sstr:#{barcode}"
         ret_tc = search(repo_id,tc_params, :top_container)
-      Pry::ColorPrinter.pp "looked for barcode"
-        Pry::ColorPrinter.pp ret_tc
+#      Pry::ColorPrinter.pp "looked for barcode"
+#        Pry::ColorPrinter.pp ret_tc
       end
       ret_tc
     end
@@ -281,11 +281,11 @@ module LinkedObjects
           instance.instance_type = @@instance_types.value(row['cont_instance_type'])
           instance.sub_container = JSONModel(:sub_container).from_hash(sc)
         rescue ExcelImportException => ee
-          Pry::ColorPrinter.pp "Excel Except: #{ee.message}"
+#          Pry::ColorPrinter.pp "Excel Except: #{ee.message}"
           instance = nil
           raise ee
         rescue Exception => e
-          Pry::ColorPrinter.pp "Exception: #{e.message}"
+#          Pry::ColorPrinter.pp "Exception: #{e.message}"
 #          Pry::ColorPrinter.pp e.backtrace
           msg = e.message #+ "\n" + e.backtrace()[0]
           instance = nil
@@ -358,7 +358,7 @@ module LinkedObjects
             subj = JSONModel(:subject).find( subject[:id])
           rescue Exception => e
              if e.message != 'RecordNotFound'
-               Pry::ColorPrinter.pp e
+#               Pry::ColorPrinter.pp e
                raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
              end
           end
@@ -369,8 +369,8 @@ module LinkedObjects
             report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')}[#{subject[:term]}]", :id => subj.uri))
           end
         rescue Exception => e
-          Pry::ColorPrinter.pp e.message
-          Pry::ColorPrinter.pp e.backtrace
+#          Pry::ColorPrinter.pp e.message
+#          Pry::ColorPrinter.pp e.backtrace
           raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
         end
         if subj

@@ -9,7 +9,7 @@ class IngestReport
     @terminal_error = ''
     @file_name = nil
     @error_rows = 0
-    Pry::ColorPrinter.pp "REPORT INITIALIZE: #{@error_rows}"
+#    Pry::ColorPrinter.pp "REPORT INITIALIZE: #{@error_rows}"
   end
 
   def add_errors(errors)
@@ -82,7 +82,7 @@ class IngestReport
     end
 
     def add_errors(errors)
-Pry::ColorPrinter.pp errors
+      #Pry::ColorPrinter.pp errors
       if errors.is_a? Array
         self.errors.concat(errors)
       else
