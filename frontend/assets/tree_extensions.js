@@ -1,11 +1,24 @@
+/*
+   Copyright 2017 Harvard Library
+   License: MIT license (https://opensource.org/licenses/MIT )
+   Author: Bobbi Fox
+   Version: 1.04
+
+   This script supports the ingest into ArchivesSpace of Excel Spreadsheet data.  It currently supports both
+   ArchivesSpace 1.* and ArchivesSpace 2.*
+ */
+
+
 $(function () {
 	var aspace_version = (typeof(TreeToolbarConfiguration) === 'undefined')? 1 : 2;
-	var bulk_btn_str = '<a class="btn btn-xs btn-default bulk-ingest" id="bulk-ingest" rel="archival_object" href="javascript:void(0);" data-record-label="Archival Object" title="Load via Spreadsheet">Load via Spreadsheet</a>';
 	var file_modal_html = '';
 	var $file_form_modal;
-	//	alert("we're in tree_extensions?? TreeToolbarConfiguration defined? "  + (typeof(TreeToolbarConfiguration) !== 'undefined'));
+
+	/* used in aspace v1.* */
+	var bulk_btn_str = '<a class="btn btn-xs btn-default bulk-ingest" id="bulk-ingest" rel="archival_object" href="javascript:void(0);" data-record-label="Archival Object" title="Load via Spreadsheet">Load via Spreadsheet</a>';
+
 	
-/* returns a hash with information about the selected archival object */
+/* returns a hash with information about the selected archival object or resource */
 	var get_object_info = function() {
 	    var ret_obj = new Object;
 	    var $tree = $("#archives_tree");
@@ -32,7 +45,7 @@ $(function () {
 	    return ret_obj;
 	}
    
-	/* adds the spreadsheet load button */
+	/* adds the spreadsheet load button in AS V1.* */
 	var add_bulk_button = function() {
 	    var $tmpBtn = $("#bulk-ingest");
 	    if ($tmpBtn.length == 1) {
@@ -44,8 +57,13 @@ $(function () {
 		    $next.parent().append(bulk_btn_str);
 		    //	alert("created!");
 		}
+		$("#bulk-ingest").on('click', function() {
+			file_modal_html = '';
+			fileSelection();
+		    });
 	    }
 	}
+
 	var initExcelFileUploadSection = function() {
 	    var handleExcelFileChange = function() {
 		var $input = $(this);
@@ -122,7 +140,7 @@ $(function () {
 	}
 
     
-	/* link switching in the tree means we have to do some initializing */
+	/* link switching in the tree in AS v1.*  means we have to do some initializing */
 	$(document).on('treesingleselected.aspace', function() { 
 		add_bulk_button();
 		file_modal_html = '';
@@ -222,6 +240,7 @@ $(function () {
 	    }
 	    toggleTreeSpinner();
 	};
+
       var bulkbtnArr = {
             label: 'Load via Spreadsheet',
             cssClasses: 'btn-default',
@@ -242,10 +261,7 @@ $(function () {
             },
         }
     
-      if (aspace_version === 1) {
-	    $(document).on('click', '#bulk-ingest', fileSelection());
-      }
-      else {
+      if (aspace_version !== 1) {
 	  var res = TreeToolbarConfiguration["resource"];
 	  TreeToolbarConfiguration["resource"] = [].concat(res).concat([bulkbtnArr]);
 	  var arch = [];
