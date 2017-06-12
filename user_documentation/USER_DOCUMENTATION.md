@@ -82,12 +82,12 @@ Date Certainty |String | | from the *Date Certainty* controlled value list
 
 ### <a name="extent">Extent Information</a>
 
-Please note the required fields.
+Extent information is not required, but if you are defining an extent, please note the required fields.
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
 Extent portion | String| whole| from the *Extent Portion* controlled value list
-Extent number | Number||**REQUIRED**
+Extent number | Number||**REQUIRED** 
 Extent type | String| |**REQUIRED** from the *Extent Extent Type* controlled value list
 Container Summary|String||
 Physical details |String||
