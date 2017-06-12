@@ -1,20 +1,34 @@
+/*
+   Copyright 2017 Harvard Library
+   License: MIT license (https://opensource.org/licenses/MIT )
+   Author: Bobbi Fox
+   Version: 1.04
+
+   This script supports the ingest into ArchivesSpace of Excel Spreadsheet data.  It currently supports both
+   ArchivesSpace 1.* and ArchivesSpace 2.*
+ */
+
 
 $(function () {
-	var bulk_btn_str = '<a class="btn btn-xs btn-default bulk-ingest" id="bulk-ingest" rel="archival_object" href="javascript:void(0);" data-record-label="Archival Object" title="Load via Spreadsheet">Load via Spreadsheet</a>';
+	var aspace_version = (typeof(TreeToolbarConfiguration) === 'undefined')? 1 : 2;
 	var file_modal_html = '';
 	var $file_form_modal;
 
-/* returns a hash with information about the selected archival object */
+	/* used in aspace v1.* */
+	var bulk_btn_str = '<a class="btn btn-xs btn-default bulk-ingest" id="bulk-ingest" rel="archival_object" href="javascript:void(0);" data-record-label="Archival Object" title="Load via Spreadsheet">Load via Spreadsheet</a>';
+
+	
+/* returns a hash with information about the selected archival object or resource */
 	var get_object_info = function() {
 	    var ret_obj = new Object;
 	    var $tree = $("#archives_tree");
-	    ret_obj.rid = $tree.attr("data-root-id"); 
 	    var $obj_form = $("#archival_object_form");
 	    if (typeof $obj_form.attr("action") !== 'undefined') {
 		ret_obj.type = "archival_object";
 		ret_obj.aoid = $obj_form.find("#id").val();
 		ret_obj.ref_id = $obj_form.find("#archival_object_ref_id_").val();
 		ret_obj.resource = $obj_form.find("#archival_object_resource_").val();
+		ret_obj.rid = (aspace_version === 1)? $tree.attr("data-root-id") : ret_obj.resource.split('/').pop();
 		ret_obj.position = $obj_form.find("#archival_object_position_").val();
 	    }
 	    else {
@@ -25,12 +39,13 @@ $(function () {
 		    ret_obj.aoid = '';
 		    ret_obj.ref_id = '';
 		    ret_obj.position = '';
+		    ret_obj.rid =  (aspace_version === 1)? $tree.attr("data-root-id"): $obj_form.find("#id").val();
 		}
 	    }
 	    return ret_obj;
 	}
-
-	/* adds the spreadsheet load button */
+   
+	/* adds the spreadsheet load button in AS V1.* */
 	var add_bulk_button = function() {
 	    var $tmpBtn = $("#bulk-ingest");
 	    if ($tmpBtn.length == 1) {
@@ -42,6 +57,10 @@ $(function () {
 		    $next.parent().append(bulk_btn_str);
 		    //	alert("created!");
 		}
+		$("#bulk-ingest").on('click', function() {
+			file_modal_html = '';
+			fileSelection();
+		    });
 	    }
 	}
 
@@ -53,7 +72,7 @@ $(function () {
 	    };
 	    $("#excel_file").on("change", handleExcelFileChange);
 	    
-	};
+	}; 
 
         /* submit the file for processing */
 	var handleFileUpload = function($modal) {
@@ -120,14 +139,14 @@ $(function () {
 		});
 	}
 
-
-	/* link switching in the tree means we have to do some initializing */
+    
+	/* link switching in the tree in AS v1.*  means we have to do some initializing */
 	$(document).on('treesingleselected.aspace', function() { 
 		add_bulk_button();
 		file_modal_html = '';
 	    });
 
-
+    
 
 	var openFileModal = function() {
 	    $file_form_modal = AS.openCustomModal("bulkIngestFileModal", "Load Spreadsheet",  file_modal_html, 'large', null, $("#bulkFileButton").get(0));
@@ -187,38 +206,81 @@ $(function () {
 		add_bulk_button();
 	    });
 
-	$(document).on('click', '#bulk-ingest', function(e) {
+    
+	var fileSelection = function() { 
+	    toggleTreeSpinner();
+	    obj = get_object_info();
+	    if ($.isEmptyObject(obj)) {
 		toggleTreeSpinner();
-		obj = get_object_info();
-		if ($.isEmptyObject(obj)) {
-		    toggleTreeSpinner();
-		    return;
-		}
-		/*console.log("we got rid: " + obj.rid + " "  + obj.aoid + " ref_id: " + obj.ref_id + " resource: " + obj.resource + " position: " + obj.position); */
-		if (file_modal_html  === '') {
-		    $.ajax({
+		return;
+	    }
+	    /*console.log("we got rid: " + obj.rid + " "  + obj.aoid + " ref_id: " + obj.ref_id + " resource: " + obj.resource + " position: " + obj.position); */
+	    if (file_modal_html  === '') {
+		$.ajax({
 			url: APP_PATH + "resources/" + obj.rid + "/getfile",
 			type: "POST",
-  		        data: {aoid: obj.aoid, type: obj.type, ref_id: obj.ref_id, resource: obj.resource, position: obj.position},
+			data: {aoid: obj.aoid, type: obj.type, ref_id: obj.ref_id, resource: obj.resource, position: obj.position},
 			dataType: "html",
 			success: function(data) {
-				file_modal_html = data;
-				openFileModal();
+			    file_modal_html = data;
+			    openFileModal();
 			},
 			error: function(xhr,status,err) {
 			    alert("ERROR: " + status + " " + err);
                         }
+		    });
+	    }
+	    else {
+		/*console.log("we have html already"); */
+		if (typeof($file_form_modal) !== 'undefined') {
+		    /* console.log("Remove"); */
+		    $file_form_modal.remove();
+		}
+		openFileModal();
+	    }
+	    toggleTreeSpinner();
+	};
 
-			});
-		}
-		else {
-		    /*console.log("we have html already"); */
-		    if (typeof($file_form_modal) !== 'undefined') {
-			/* console.log("Remove"); */
-			$file_form_modal.remove();
-		    }
-		    openFileModal();
-		}
-		toggleTreeSpinner();
-	    });
+      var bulkbtnArr = {
+            label: 'Load via Spreadsheet',
+            cssClasses: 'btn-default',
+            onClick: function(event, btn, node, tree, toolbarRenderer) {
+                fileSelection();
+            },
+            isEnabled: function(node, tree, toolbarRenderer) {
+                return true;
+            },
+            isVisible: function(node, tree, toolbarRenderer) {
+                return !tree.large_tree.read_only;
+            },
+            onFormLoaded: function(btn, form, tree, toolbarRenderer) {
+                $(btn).removeClass('disabled');
+            },
+            onToolbarRendered: function(btn, toolbarRenderer) {
+                $(btn).addClass('disabled');
+            },
+        }
+    
+      if (aspace_version !== 1) {
+	  var res = TreeToolbarConfiguration["resource"];
+	  TreeToolbarConfiguration["resource"] = [].concat(res).concat([bulkbtnArr]);
+	  var arch = [];
+	  var new_val;
+	  $.each(TreeToolbarConfiguration["archival_object"], function(index,value) {
+		  if ($.type(value) !== "array") {
+		       new_val = value ;
+		  }
+		  else {
+		      new_val = value;
+		      $.each(value,function(i, v){
+			      if (typeof(v['label']) !== 'undefined' && v['label'] === 'Add Child') {
+				  new_val = [].concat(value).concat([bulkbtnArr]);
+			      }
+			  });
+		  }
+		  arch.push(new_val);
+		      
+	      });
+	  TreeToolbarConfiguration["archival_object"] = arch;
+      }
     });
