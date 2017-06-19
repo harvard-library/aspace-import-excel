@@ -74,7 +74,7 @@ Column | Value | Default | Comment
 Dates Label | String | creation| from the *Date Label* controlled value list
 Date Begin | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
 Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
-Date Type | in column drop-down| *inclusive*| 
+Date Type | String| *inclusive*| from the *Date Type* controlled value list
 Date Expression |String||
 Date Certainty |String | | from the *Date Certainty* controlled value list
 
