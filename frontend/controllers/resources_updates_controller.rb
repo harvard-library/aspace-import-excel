@@ -33,6 +33,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     @first_level_aos = []
     @archival_levels = EnumList.new('archival_record_level')
     @container_types = EnumList.new('container_type')
+    @date_types = EnumList.new('date_type')
     @date_labels = EnumList.new('date_label')
     @date_certainty = EnumList.new('date_certainty')
     @extent_types = EnumList.new('extent_extent_type')
@@ -213,7 +214,13 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   end
   
   def create_date
-    date =  { 'date_type' => (@row_hash['date_type'] || 'inclusive').downcase,
+    date_type = 'inclusive'
+    begin
+      date_type = @date_types.value(@row_hash['date_type'] || 'inclusive')
+    rescue Exception => e
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.date_type', :what => @row_hash['date_type']))
+    end
+    date =  { 'date_type' => date_type,
       'label' =>  @date_labels.value((@row_hash['dates_label'] || 'creation')) }
     if @row_hash['date_certainty']
       begin
