@@ -11,7 +11,7 @@ The Excel template will be found in the templates/ folder as [**aspace_import_ex
 
 The intention is not to completely reproduce a Finding Aid as presented in an EAD XML, or to allow for every permutation of Archival Object creation within ArchivesSpace.  We are aiming for the "80% rule"; that is, at least 80% of the work that would be done interactively can be replaced by an excel spreadsheet; additional refinements to individual archival objects (such as addition of agents-as-subjects, assignment of locations to top-level containers, etc.) would take place interactively.
 
-## Installation
+## <a name="install">Installation</a>
 
 This is a regular  [ArchivesSpace Plug-in](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md).
 To install this plug-in:  
