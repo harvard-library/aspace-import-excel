@@ -1,5 +1,5 @@
 # aspace-import-excel
-An [ArchivesSpace ](http://archivesspace.org/ "ArchivesSpace") plugin to support the bulk uploading via Excel SpreadSheet of Archival Objects and (optionally) their associated Creator Agents, Top Containers, Subjects, Digital Objects etc.
+An [ArchivesSpace ](http://archivesspace.org/) [plugin](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md) to support the bulk uploading via Excel SpreadSheet of Archival Objects and (optionally) their associated Creator Agents, Top Containers, Subjects, Digital Objects etc.
 
 ## Initial development
 
@@ -10,6 +10,17 @@ The Excel template will be found in the templates/ folder as [**aspace_import_ex
 
 
 The intention is not to completely reproduce a Finding Aid as presented in an EAD XML, or to allow for every permutation of Archival Object creation within ArchivesSpace.  We are aiming for the "80% rule"; that is, at least 80% of the work that would be done interactively can be replaced by an excel spreadsheet; additional refinements to individual archival objects (such as addition of agents-as-subjects, assignment of locations to top-level containers, etc.) would take place interactively.
+
+## Installation
+
+This is a regular  [ArchivesSpace Plug-in](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md).
+To install this plug-in:  
+1. Download or clone the plug-in from this [GitHub repository](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md) into the ArchivesSpace **/plugin/** directory.
+2. Run the **scripts/initialize-plugin script**
+   * for Linux, that's `scripts/initialize-plugin.sh aspace-import-excel`
+   * for Windows, that's `scripts/initialize-plugin.bat aspace-import-excel`
+3. In the **common/config/config.rb** file, add 'aspace-import-excel' to the `AppConfig[:plugins]` array.
+4. Stop and restart ArchivesSpace
 
 ## User Documentation
 
