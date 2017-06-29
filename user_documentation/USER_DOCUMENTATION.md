@@ -1,5 +1,14 @@
 # Using the Excel Spreadsheet Template to add Archival Objects to a Resource
 
+## Workflow:
+
+1. Make sure the plug-in has been installed! See the installation instructions in the [main README document](../README.md)
+2. Download the [Excel Spreadsheet Template](https://github.com/harvard-library/aspace-import-excel/blob/master/templates/aspace_import_excel_template.xlsx).
+3. Identify your Resource EAD ID.  The Resource may already have Archival Objects associated with it, or be essentially empty.
+4. Add your Archival Objects to the spreadsheet; instructions are <a href="#spreadsheet">below</a>.
+5. Use the plug-in to <a href="ingest">ingest the spreadsheet</a>.
+
+
 **The Excel Spreadsheet Template is at** https://github.com/harvard-library/aspace-import-excel/blob/master/templates/aspace_import_excel_template.xlsx
 
 **We are also providing some example spreadsheets**. See <a href="examples/example.md">An Example of Using aspace-import-exel</a> .
@@ -7,7 +16,7 @@
 
 **Note** *that the Resource must already be defined.*
 
-## Initiating the ingest
+## <a name="ingest">Initiating the ingest</a>
 1. In ArchivesSpace, where you invoke the ingest depends on what you are trying to do.
    + **If** the resource has no Archival Objects, or you want your Archival Objects to be appended to the end of the list of first-level Archival Objects, locate the desired Resource record. </li>
    + **Otherwise**, if you want the first Archival Object in your list to be inserted as a sibling/child (see <a href="#hier">Hierarchical Relationship</a>, below) of an *already-existing* Archival Object, locate the Archival Object where you want to begin your insertion. You can either search for it or select it from the tree that displays on the Resource record. In the latter case, the page will reload to that Archival Object.
@@ -22,7 +31,11 @@
 7. Click to close the popup, and you will be presented with a report of the processing.
 8. You can click on "Copy to clipboard" to get a tabbed version of the report to examine and/or save.
 
-## Using the Template to Create a Spreadsheet
+*<a href="workflow">back to Workflow</a>* 
+
+## <a name="spreadsheet">Using the Template to Create a Spreadsheet</a>
+
+*<a href="workflow">back to Workflow</a>* 
 
 The Excel Spreadsheet template is at https://github.com/harvard-library/aspace-import-excel/blob/master/templates/aspace_import_excel_template.xlsx .
 
@@ -227,3 +240,5 @@ The following Notes fields are supported:
 + Use Restrictions
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+*<a href="workflow">back to Workflow</a>* 
