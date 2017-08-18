@@ -278,6 +278,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   end
 
   def handle_notes(ao)
+    publish = ao.publish
     errs = []
     notes_keys = @row_hash.keys.grep(/^n_/)
     notes_keys.each do |key|
@@ -287,6 +288,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
         note_type = @note_types[type]
 #        Pry::ColorPrinter.pp "content for #{key}: |#{content}|  type: #{type} note_type#{note_type}"
         note = JSONModel(note_type[:target]).new
+        note.publish = publish
         note.type = note_type[:value]
         begin 
           wellformed(content)
@@ -294,6 +296,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
           if note_type[:target] == :note_multipart
             inner_note = JSONModel(:note_text).new
             inner_note.content = content
+            inner_note.publish = publish
             note.subnotes.push inner_note
           else
             note.content.push content
