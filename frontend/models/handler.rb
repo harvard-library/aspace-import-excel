@@ -19,6 +19,7 @@ class Handler
 
   # returns nil, a hash of a jason model (if 1 found), or throws a multiples found error
   # if repo_id is nil, do a global search (subject and agent)
+  # this is using   archivesspace/frontend/app/models/search.rb
   def self.search(repo_id,params,jmsym, *type)
     obj = nil
     search = nil

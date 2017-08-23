@@ -186,8 +186,8 @@ module LinkedObjects
       clear(@@instance_types)
     end
 
-    def self.key_for(top_container)
-      key = "#{top_container[:type]}: #{top_container[:indicator]}"
+    def self.key_for(top_container, resource)
+      key = "'#{resource}' #{top_container[:type]}: #{top_container[:indicator]}"
       key += " #{top_container[:barcode]}" if top_container[:barcode]
       key
     end
@@ -205,7 +205,7 @@ module LinkedObjects
     def self.get_or_create(row, resource, report)
       begin
         top_container = build(row)
-        tc_key = key_for(top_container)
+        tc_key = key_for(top_container, resource)
 #        Pry::ColorPrinter.pp " tc key: #{tc_key}"
         # check to see if we already have fetched one from the db, or created one.
         existing_tc = @@top_containers.fetch(tc_key, false) ||  get_db_tc(top_container, resource)
