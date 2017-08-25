@@ -121,7 +121,10 @@ The ingester will try to find an already-created Top Container in the database.
    + Otherwise, a new Top Container will be created.
 
 
+**NOTE:** if you want the object in this spreadsheet to be in a Top Container shared with *another Resource*, you must either specify the container by *barcode* or else make sure that at least one archival object in the spreadsheet's Resource with that container has already been created via the usual ArchivesSpace interface.  
+
 If you are specifying container information, note that both **type** and **indicator** are required for each level (top, child, and grandchild) you want to specify.
+
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
