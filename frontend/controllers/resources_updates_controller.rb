@@ -106,7 +106,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   private  
 
   # look for all the required fields to make sure they are legit
-  # strip all the strings and turn publish into true/false
+  # strip all the strings and turn publish and restrictions_flaginto true/false
   def check_row
     err_arr = []
     begin
@@ -155,7 +155,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     if err_arr.blank?
       @row_hash.each do |k, v|
         @row_hash[k] = v.strip if !v.blank?
-        if k == 'publish'
+        if k == 'publish'  || k == 'restrictions_flag'
           @row_hash[k] = (v == '1')
         end
       end
@@ -184,6 +184,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     ao.repository_processing_note = @row_hash['processing_note'] if @row_hash['processing_note']
     ao.level =  @archival_levels.value(@row_hash['level'])
     ao.publish = @row_hash['publish']
+    ao.restrictions_apply = @row_hash['restrictions_flag']
     ao.parent = {'ref' => parent_uri} unless parent_uri.blank?
     begin
       ao.extents = create_extent unless [@row_hash['number'],@row_hash['extent_type'], @row_hash['portion']].compact.empty?
