@@ -183,6 +183,7 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     ao.component_id =  @row_hash['unit_id'] if @row_hash['unit_id']
     ao.repository_processing_note = @row_hash['processing_note'] if @row_hash['processing_note']
     ao.level =  @archival_levels.value(@row_hash['level'])
+    ao.other_level = @row_hash['other_level'] || 'unspecified' if ao.level == 'otherlevel'
     ao.publish = @row_hash['publish']
     ao.restrictions_apply = @row_hash['restrictions_flag']
     ao.parent = {'ref' => parent_uri} unless parent_uri.blank?

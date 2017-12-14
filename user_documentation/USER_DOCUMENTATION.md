@@ -46,7 +46,7 @@ The template is designed to be flexible enough to accommodate different workflow
 
 As long as you **don't edit** the **row** marked *"ArchivesSpace field code"*, you may hide, delete, or rearrange **columns** to suit your workflow.  Indeed, you will see that there are a few already-hidden columns; these are not currently used, but may be used in future enhancements.
 
-**Note**  that some columns already have in-column drop down data validation defined.  You may of course add more of these. See [The Excel help page](https://support.office.com/en-us/article/Apply-data-validation-to-cells-29FECBCC-D1B9-42C1-9D76-EFF3CE5F7249) to learn how to create these. 
+**Note**  that some columns already have in-column drop down data validation defined.  You may of course add more of these, or edit the ones that are already defined. See [The Excel help page](https://support.office.com/en-us/article/Apply-data-validation-to-cells-29FECBCC-D1B9-42C1-9D76-EFF3CE5F7249) to learn how to create these. 
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
@@ -72,6 +72,7 @@ Title  | String| |Title of the Archival Object; required if no Creation Date inf
 Component Unit Identifier| String | |
 Hierarchical Relationship| Number | | **REQUIRED**
 Description Level| in column drop-down || **REQUIRED** *from the Archival Record Level controlled value list*
+Other Level| String | **unspecified**| This is used if *Other Level* was specified in the **Description Level**
 Publish?| in column drop-down | **False** | This is applied to any information (such as subject, note) created with this Archival Object
 Restrictions Apply? | in column drop-down | **False** | 
 Processing Note | String | | No markup allowed
