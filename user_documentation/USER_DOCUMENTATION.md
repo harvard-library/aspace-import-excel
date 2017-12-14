@@ -72,7 +72,7 @@ Title  | String| |Title of the Archival Object; required if no Creation Date inf
 Component Unit Identifier| String | |
 Hierarchical Relationship| Number | | **REQUIRED**
 Description Level| in column drop-down || **REQUIRED** *from the Archival Record Level controlled value list*
-Other Level| String | **unspecified**| This is used if *Other Level* was specified in the **Description Level**
+Other Level| String | *unspecified*| This is used if *Other Level* was specified in the **Description Level**
 Publish?| in column drop-down | **False** | This is applied to any information (such as subject, note) created with this Archival Object
 Restrictions Apply? | in column drop-down | **False** | 
 Processing Note | String | | No markup allowed
