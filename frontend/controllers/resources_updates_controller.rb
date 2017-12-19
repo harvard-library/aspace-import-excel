@@ -3,7 +3,7 @@ class ResourcesUpdatesController < ApplicationController
 
 START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
 
-  set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file]
+  set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file, :get_do_file, :load_dos]
 
   require 'pry'
   require 'rubyXL'
@@ -13,6 +13,12 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
   include UpdatesUtils
   include LinkedObjects
   require 'ingest_report'
+
+  # create the file form for the digital object spreadsheet
+  def get_do_file
+    rid = params[:rid]
+    id = params[:id]
+  end
   
   # create the file form for the spreadsheet
   def get_file
@@ -23,6 +29,19 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     resource = params[:resource]
     position = params[:position] || '1'
     return render_aspace_partial :partial => "resources/bulk_file_form",  :locals => {:rid => rid, :aoid => aoid, :type => type, :ref_id => ref_id, :resource => resource, :position => position} 
+  end
+
+  # load the digital objects
+  def load_dos
+     #first time out of the box:
+Pry::ColorPrinter.pp "\t**** LOAD DOS ***"
+    get_uri = "/repositories/#{params[:rid]}/find_by_id/archival_objects"
+Pry::ColorPrinter.pp get_uri
+Pry::ColorPrinter.pp params
+    response = JSONModel::HTTP::get_json(URI(get_uri),{"ref_id[]" => params["ref_id"], "resolve[]" => "archival_objects"})
+Pry::ColorPrinter.pp "RESPONSE"
+Pry::ColorPrinter.pp response
+    response
   end
 
   # load in a spreadsheet
