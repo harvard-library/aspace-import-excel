@@ -5,6 +5,8 @@ en:
       add_file: Add File
       drag_drop: Drag and drop file here
       clip_btn: Copy to Clipboard
+      add_archival_objects: Import Archival Objects
+      add_digital_objects: Add Digital Objects to Archival Objects
       row: "Row %{row}"
       processing_row: "Processing row %{row}"
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
