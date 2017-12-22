@@ -33,7 +33,7 @@ en:
        file_name: File name cannot be determined
        system: "Some system error has occurred  [%{msg}]."
        initialize: "Processing is terminated [%{msg}]"
-       stopped: "Processing stopped at row %{row}"
+       stopped: "Processing stopped at row %{row} [%{msg}]"
        res_ead: This form's Resource is missing an EAD ID
        row_ead: This row is missing an EAD ID
        ead_mismatch:  "Form's EAD ID [%{res_ead}] does not match row's EAD ID [%{row_ead}]"
@@ -49,7 +49,7 @@ en:
        number: Missing Extent number
        extent_type:  Missing Extent type
        extent_validation: "Unable to validate extent: %{msg}" 
-       no_header: No header row found!
+       no_header: No header (field codes) row found; are you using the correct template?
        no_data: No processible data rows found!
        excel: "Error(s) parsing Excel File %{errs}"
        too_many: "Too many (%{count}) %{what} found for '%{value}'"
@@ -62,4 +62,8 @@ en:
        bad_note: "%{type} note is not wellformed: %{msg}"
        bad_relator: "Unable to create agent link: '%{label}' is not a valid relator"
        relator_invalid: "Unable to create agent link due to problem with relator '%{label}': %{why}" 
+       has_dig_obj: "Archival object %{ref_id} already has an associated digital object"
+       ref_id_miss: No Ref Id specified
+       dig_info_miss: Neither the Digital Object URN or the Thumbnail URN is specified
+
 

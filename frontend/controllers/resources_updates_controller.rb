@@ -1,8 +1,9 @@
 class ResourcesUpdatesController < ApplicationController
   require 'nokogiri'
+  require 'pp'
 
-START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
-
+START_MARKER = /ArchivesSpace field code/
+DO_START_MARKER = /ArchivesSpace digital object import field codes/
   set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file, :get_do_file, :load_dos]
 
   require 'pry'
@@ -28,51 +29,69 @@ START_MARKER = /ArchivesSpace field code \(please don't edit this row\)/
     ref_id = params[:ref_id] || ''
     resource = params[:resource]
     position = params[:position] || '1'
-    return render_aspace_partial :partial => "resources/bulk_file_form",  :locals => {:rid => rid, :aoid => aoid, :type => type, :ref_id => ref_id, :resource => resource, :position => position} 
+    @resource = Resource.find(params[:rid])
+    repo_id = @resource['repository']['ref'].split('/').last
+    return render_aspace_partial :partial => "resources/bulk_file_form",  :locals => {:rid => rid, :aoid => aoid, :type => type, :ref_id => ref_id, :resource => resource, :position => position, :repo_id => repo_id} 
   end
 
   # load the digital objects
   def load_dos
      #first time out of the box:
-Pry::ColorPrinter.pp "\t**** LOAD DOS ***"
-    get_uri = "/repositories/#{params[:rid]}/find_by_id/archival_objects"
-Pry::ColorPrinter.pp get_uri
-Pry::ColorPrinter.pp params
-    response = JSONModel::HTTP::get_json(URI(get_uri),{"ref_id[]" => params["ref_id"], "resolve[]" => "archival_objects"})
-Pry::ColorPrinter.pp "RESPONSE"
-Pry::ColorPrinter.pp response
-    response
+Rails.logger.info "\t**** LOAD DOS ***"
+    ao = fetch_archival_object(params)
+Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
+    if !ao['instances'].blank? 
+      digs = []
+      ao['instances'].each {|instance| digs.append(ao) if instance.dig("digital_object") != nil }
+      unless digs.blank?
+# add thrown exception here!
+        ao = nil
+      end
+    end
+    Rails.logger.info {ao.pretty_inspect}
   end
-
   # load in a spreadsheet
   def load_ss
     @report_out = []
     @report = IngestReport.new
-    @created_ao_refs = []
-    @first_level_aos = []
-    @archival_levels = EnumList.new('archival_record_level')
-    @container_types = EnumList.new('container_type')
-    @date_types = EnumList.new('date_type')
-    @date_labels = EnumList.new('date_label')
-    @date_certainty = EnumList.new('date_certainty')
-    @extent_types = EnumList.new('extent_extent_type')
-    @extent_portions = EnumList.new('extent_portion')
-    @instance_types ||= EnumList.new('instance_instance_type')
-    @parents = ParentTracker.new
+    @headers
+    @digital_load  = params.fetch(:digital_load,'') == 'true'
+Pry::ColorPrinter.pp "digital_load? #{@digital_load}"
+    if @digital_load
+      @find_uri =  "/repositories/#{params[:repo_id]}/find_by_id/archival_objects"
+      @resource_ref = "/repositories/#{params[:repo_id]}/resources/#{params[:id]}"
+      @repo_id = params[:repo_id]
+      @start_marker = DO_START_MARKER
+    else
+      @created_ao_refs = []
+      @first_level_aos = []
+      @archival_levels = EnumList.new('archival_record_level')
+      @container_types = EnumList.new('container_type')
+      @date_types = EnumList.new('date_type')
+      @date_labels = EnumList.new('date_label')
+      @date_certainty = EnumList.new('date_certainty')
+      @extent_types = EnumList.new('extent_extent_type')
+      @extent_portions = EnumList.new('extent_portion')
+      @instance_types ||= EnumList.new('instance_instance_type')
+      @parents = ParentTracker.new
+      @start_marker = START_MARKER
+    end
     @start_position
     @need_to_move = false
     begin
       rows = initialize_info(params)
       while @headers.nil? && (row = rows.next)
         @counter += 1
-        if row[0] && row[0].value =~ START_MARKER
+truth =  row[0] && (row[0].value.to_s =~ @start_marker) != nil
+Pry::ColorPrinter.pp "counter: #{@counter} first column: #{row[0].value}, match? #{truth} ROW[2]: #{row[2]}" if row[0] 
+        if (row[0] && (row[0].value.to_s =~ @start_marker) || row[2] &&  row[2].value == 'ead') #FIXME: TEMP FIX
+Pry::ColorPrinter.pp "Got the HEADERS!"
           @headers = row_values(row)
         # Skip the human readable header too
           rows.next
           @counter += 1 # for the skipping
         end
       end
-      raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_header')) if @headers.nil?
       begin
         while (row = rows.next)
           @counter += 1 
@@ -82,7 +101,14 @@ Pry::ColorPrinter.pp response
           ao = nil
           begin
             @report.new_row(@counter)
-            ao = process_row
+            if @digital_load
+Pry::ColorPrinter.pp "do DO row? "
+              ao = process_do_row(params)
+            else
+Pry::ColorPrinter.pp "do row?"
+
+              ao = process_row
+            end
             @rows_processed += 1
             @error_level = nil
 #            Pry::ColorPrinter.pp "no ao" if !ao
@@ -106,6 +132,8 @@ Pry::ColorPrinter.pp response
     rescue Exception => e
       if e.is_a?( ExcelImportException) || e.is_a?( StopExcelImportException)
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.excel', :errs => e.message), @counter)
+      elsif e.is_a?(StopIteration) && @headers.nil?
+        @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.no_header'), @counter)
       else # something else went wrong
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.system', :msg => e.message), @counter)
         Pry::ColorPrinter.pp "UNEXPECTED EXCEPTION!"
@@ -118,11 +146,22 @@ Pry::ColorPrinter.pp response
     end
     move_archival_objects if @need_to_move
     @report.end_row
-#    Pry::ColorPrinter.pp "Number of Archival Object created: #{@created_ao_refs.length}"
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report}
   end
 
   private  
+
+  # required fields for a digital object row: ead match, ao_ref_id and at least one of digital_object_link, thumbnail
+  def check_do_row
+    err_arr = []
+    begin
+      err_arr.push I18n.t('plugins.aspace-import-excel.error.ref_id_miss') if @row_hash['ao_ref_id'].blank?
+      obj_link = @row_hash['digital_object_link']
+      thumb = @row_hash['Thumbnail']
+      err_arr.push  I18n.t('plugins.aspace-import-excel.error.dig_info_miss') if @row_hash['digital_object_link'].blank? && @row_hash['Thumbnail'].blank?
+    end
+      err_arr.join('; ')
+  end
 
   # look for all the required fields to make sure they are legit
   # strip all the strings and turn publish and restrictions_flaginto true/false
@@ -298,6 +337,37 @@ Pry::ColorPrinter.pp response
     instance
   end
 
+  def fetch_archival_object(ref_id)
+    ao = nil
+Pry::ColorPrinter.pp "find: #{@find_uri} ref: #{ref_id}"
+Pry::ColorPrinter.pp URI(@find_uri)
+    response = JSONModel::HTTP::get_json(URI(@find_uri),{"ref_id[]" => ref_id, "resolve[]" => "archival_objects"})
+Pry::ColorPrinter.pp response
+    unless response["archival_objects"].blank?
+      Rails.logger.info "RESPONSE #{ response["archival_objects"].length}" 
+      aos = []
+      response["archival_objects"].each { |ao| 
+        Rails.logger.info "aodig: #{ao.dig('_resolved','resource','ref')}"
+        aos.append(ao["ref"]) if ao.dig('_resolved','resource','ref') == @resource_ref
+      }
+Rails.logger.info "length: #{aos.length}"
+Rails.logger.info {aos.pretty_inspect}
+      if aos.length == 1
+        parsed = JSONModel.parse_reference(aos[0])
+       Rails.logger.info "parsed reference"
+ Rails.logger.info {parsed.pretty_inspect}
+        begin
+         ao = JSONModel(:archival_object).find(parsed[:id], :repo_id => @repo_id)
+Rails.logger.info "ao JSONMODEL"
+Rails.logger.info {ao.pretty_inspect}
+        rescue Exception => e
+           Rails.logger.info {e.pretty_inspect}
+        end
+      end
+    end
+    ao 
+  end
+
   def handle_notes(ao)
     publish = ao.publish
     errs = []
@@ -344,29 +414,28 @@ Pry::ColorPrinter.pp response
     @orig_filename = dispatched_file.original_filename
     @report.set_file_name(@orig_filename)
     initialize_handler_enums
-    @note_types =  note_types_for(:archival_object)
-    tree = JSONModel(:resource_tree).find(nil, :resource_id => params[:rid]).to_hash
-#Pry::ColorPrinter.pp tree
     @resource = Resource.find(params[:rid])
     @repository = @resource['repository']['ref']
-    @ao = nil
     @hier = 1
-    aoid = params[:aoid] 
-    @resource_level = aoid.blank?
-    @first_one = false  # to determine whether we need to worry about positioning
-    if @resource_level
-      @parents.set_uri(0, nil)
-      @hier = 0
-    else
-      @ao = JSONModel(:archival_object).find(aoid, find_opts )
-      @start_position = @ao.position
-      parent = @ao.parent # we need this for sibling/child disabiguation later on 
-#       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(parent) if parent
-      @parents.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
-      @parents.set_uri(1, @ao.uri)
-      @first_one = true
-#      Pry::ColorPrinter.pp ['archival object','position', @position]
-#      test_exceptions(@ao, "BASE ARCHIVAL OBJECT")
+    # ingest archival objects needs this
+    unless @digital_load
+      @note_types =  note_types_for(:archival_object)
+      tree = JSONModel(:resource_tree).find(nil, :resource_id => params[:rid]).to_hash
+      @ao = nil
+      aoid = params[:aoid] 
+      @resource_level = aoid.blank?
+      @first_one = false  # to determine whether we need to worry about positioning
+      if @resource_level
+        @parents.set_uri(0, nil)
+        @hier = 0
+      else
+        @ao = JSONModel(:archival_object).find(aoid, find_opts )
+        @start_position = @ao.position
+        parent = @ao.parent # we need this for sibling/child disabiguation later on 
+        @parents.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
+        @parents.set_uri(1, @ao.uri)
+        @first_one = true
+      end
     end
 
     @input_file = dispatched_file.tempfile
@@ -375,7 +444,6 @@ Pry::ColorPrinter.pp response
     @error_rows = 0
     workbook = RubyXL::Parser.parse(@input_file)
     sheet = workbook[0]
- #   Pry::ColorPrinter.pp ["sheet size", sheet.sheet_data.size] 
     rows = sheet.enum_for(:each)
   end
 
@@ -414,8 +482,30 @@ Pry::ColorPrinter.pp response
     agent_links
   end
 
+
+  def process_do_row(params)
+     ret_str =  resource_match
+    # mismatch of resource stops all other processing
+    if ret_str.blank?
+      ret_str = check_do_row
+    end
+    raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
+    begin
+      ao = fetch_archival_object(@row_hash['ao_ref_id'])
+      raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.ref_id_notfound', :ref_id => @row_hash['ao_ref_id']))) if ao == nil
+      if !ao.instances
+        digs = []
+        ao.instances.each {|instance| digs.append(1) if instance.instance_type == "digital_object" }
+        unless digs.blank?
+          raise  ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.has_dig_obj', :ref_id =>  @row_hash['ao_ref_id'])))
+        end
+      end
+    end
+    
+  end
+
   def process_row
-#    Pry::ColorPrinter.pp @counter
+    Pry::ColorPrinter.pp @counter
     ret_str =  resource_match
     # mismatch of resource stops all other processing
     if ret_str.blank?
@@ -468,6 +558,7 @@ Pry::ColorPrinter.pp response
   # make sure that the resource ead id from the form matches that in the spreadsheet
   # throws an exception if the designated resource ead doesn't match the spreadsheet row ead
   def resource_match
+Pry::ColorPrinter.pp @resource['ead_id']
     ret_str = ''
     ret_str = I18n.t('plugins.aspace-import-excel.error.res_ead') if @resource['ead_id'].blank?
     ret_str =  ' ' +  I18n.t('plugins.aspace-import-excel.error.row_ead')  if @row_hash['ead'].blank?
