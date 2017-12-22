@@ -14,9 +14,8 @@
 	  <input type='hidden' name='digital_load' value='false'/>
 	<% else %>
 	   <div class="btn-group" data-toggle="buttons">
-           <label class="btn btn-primary active"><input type="radio" value="false" name="digital_load" checked="true"/><%= I18n.t('plugins.aspace-import-excel.add_archival_objects') %></label>
-&nbsp;&nbsp;
-	   <label class="btn btn-primary "><input type="radio" value="true" name="digital_load"/><%= I18n.t('plugins.aspace-import-excel.add_digital_objects') %></label>
+           <label class="btn btn-primary active" style="border-radius:4px;"><input type="radio" value="false" name="digital_load" checked="true"/><%= I18n.t('plugins.aspace-import-excel.add_archival_objects') %></label>
+	   <label class="btn btn-primary" style="border-radius:4px; margin-left:.5em"><input type="radio" value="true" name="digital_load"/><%= I18n.t('plugins.aspace-import-excel.add_digital_objects') %></label>
 	   </div>
         <% end %>
        </div>
