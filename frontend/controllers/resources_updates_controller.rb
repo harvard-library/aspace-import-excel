@@ -82,8 +82,6 @@ Pry::ColorPrinter.pp "digital_load? #{@digital_load}"
       rows = initialize_info(params)
       while @headers.nil? && (row = rows.next)
         @counter += 1
-truth =  row[0] && (row[0].value.to_s =~ @start_marker) != nil
-Pry::ColorPrinter.pp "counter: #{@counter} first column: #{row[0].value}, match? #{truth} ROW[2]: #{row[2]}" if row[0] 
         if (row[0] && (row[0].value.to_s =~ @start_marker) || row[2] &&  row[2].value == 'ead') #FIXME: TEMP FIX
 Pry::ColorPrinter.pp "Got the HEADERS!"
           @headers = row_values(row)
@@ -102,11 +100,8 @@ Pry::ColorPrinter.pp "Got the HEADERS!"
           begin
             @report.new_row(@counter)
             if @digital_load
-Pry::ColorPrinter.pp "do DO row? "
               ao = process_do_row(params)
             else
-Pry::ColorPrinter.pp "do row?"
-
               ao = process_row
             end
             @rows_processed += 1
@@ -339,10 +334,7 @@ Pry::ColorPrinter.pp "do row?"
 
   def fetch_archival_object(ref_id)
     ao = nil
-Pry::ColorPrinter.pp "find: #{@find_uri} ref: #{ref_id}"
-Pry::ColorPrinter.pp URI(@find_uri)
     response = JSONModel::HTTP::get_json(URI(@find_uri),{"ref_id[]" => ref_id, "resolve[]" => "archival_objects"})
-Pry::ColorPrinter.pp response
     unless response["archival_objects"].blank?
       Rails.logger.info "RESPONSE #{ response["archival_objects"].length}" 
       aos = []
@@ -354,8 +346,6 @@ Rails.logger.info "length: #{aos.length}"
 Rails.logger.info {aos.pretty_inspect}
       if aos.length == 1
         parsed = JSONModel.parse_reference(aos[0])
-       Rails.logger.info "parsed reference"
- Rails.logger.info {parsed.pretty_inspect}
         begin
          ao = JSONModel(:archival_object).find(parsed[:id], :repo_id => @repo_id)
 Rails.logger.info "ao JSONMODEL"
@@ -493,11 +483,12 @@ Rails.logger.info {ao.pretty_inspect}
     begin
       ao = fetch_archival_object(@row_hash['ao_ref_id'])
       raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.ref_id_notfound', :ref_id => @row_hash['ao_ref_id']))) if ao == nil
-      if !ao.instances
+      if ao.instances
         digs = []
-        ao.instances.each {|instance| digs.append(1) if instance.instance_type == "digital_object" }
+ao.instances.each {|instance| Pry::ColorPrinter.pp instance["instance_type"]}
+        ao.instances.each {|instance| digs.append(1) if instance["instance_type"] == "digital_object" }
         unless digs.blank?
-          raise  ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.has_dig_obj', :ref_id =>  @row_hash['ao_ref_id'])))
+          raise  ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.error.has_dig_obj', :ref_id =>  @row_hash['ao_ref_id'])))
         end
       end
     end
