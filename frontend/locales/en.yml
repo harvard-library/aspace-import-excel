@@ -12,10 +12,10 @@ en:
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
       no_ao: No Archival Object created
       created: "%{what} created: %{id}"
-      clip_created:  "\t%{what} created: \t%{nm}\t%{id}"
+      clip_created:  "\t%{what} created: \t%{nm}\t%{id}\t%{ref_id}"
       clip_info: "\t\t\t\t%{what}\n"
       clip_err: "\t\t\t\tERROR: %{err}\n"
-      clip_header: "Row\tStatus\tTitle\tURI\tInfo"
+      clip_header: "Row\tStatus\tTitle\tURI\tRef ID\tInfo"
       ao: Archival Object
       tc: Top Container
       subj: Subject
