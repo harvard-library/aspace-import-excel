@@ -153,10 +153,13 @@ Pry::ColorPrinter.pp "Got the HEADERS!"
     begin
       err_arr.push I18n.t('plugins.aspace-import-excel.error.ref_id_miss') if @row_hash['ao_ref_id'].blank?
       obj_link = @row_hash['digital_object_link']
-      thumb = @row_hash['Thumbnail']
-      err_arr.push  I18n.t('plugins.aspace-import-excel.error.dig_info_miss') if @row_hash['digital_object_link'].blank? && @row_hash['Thumbnail'].blank?
+      thumb = @row_hash['thumbnail']
+      err_arr.push  I18n.t('plugins.aspace-import-excel.error.dig_info_miss') if @row_hash['digital_object_link'].blank? && @row_hash['thumbnail'].blank?
     end
-      err_arr.join('; ')
+    v = @row_hash['publish']
+    v = v.strip if !v.blank?
+    @row_hash['publish'] = (v == 1)
+    err_arr.join('; ')
   end
 
   # look for all the required fields to make sure they are legit
@@ -491,6 +494,11 @@ Rails.logger.info {ao.pretty_inspect}
         unless digs.blank?
           raise  ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.error.has_dig_obj')))
         end
+      end
+      if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
+        ao.instances ||= []
+        ao.instances << dig_instance
+        saving = ao.save
       end
     end
     
