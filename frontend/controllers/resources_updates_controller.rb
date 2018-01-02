@@ -137,11 +137,12 @@ Pry::ColorPrinter.pp "Got the HEADERS!"
       end
       @report.end_row
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid],
-        :report =>  @report}
+        :report =>  @report, :do_load => @digital_load}
     end
     move_archival_objects if @need_to_move
     @report.end_row
-    return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report}
+    return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report,
+    :do_load => @digital_load}
   end
 
   private  
@@ -483,12 +484,12 @@ Rails.logger.info {ao.pretty_inspect}
     begin
       ao = fetch_archival_object(@row_hash['ao_ref_id'])
       raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.ref_id_notfound', :ref_id => @row_hash['ao_ref_id']))) if ao == nil
+      @report.add_archival_object(ao)
       if ao.instances
         digs = []
-ao.instances.each {|instance| Pry::ColorPrinter.pp instance["instance_type"]}
         ao.instances.each {|instance| digs.append(1) if instance["instance_type"] == "digital_object" }
         unless digs.blank?
-          raise  ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.error.has_dig_obj', :ref_id =>  @row_hash['ao_ref_id'])))
+          raise  ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.error.has_dig_obj')))
         end
       end
     end
