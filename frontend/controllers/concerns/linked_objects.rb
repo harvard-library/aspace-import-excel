@@ -158,6 +158,7 @@ module LinkedObjects
         dig_o.title = row['digital_object_title'].blank? ? archival_object.display_string : row['digital_object_title']
         dig_o.digital_object_id = osn
         dig_o.file_versions = files
+        dig_o.publish = row['publish']
         dig_o.save
         report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.dig'), :id => "'#{dig_o.title}' #{dig_o.uri} [#{dig_o.digital_object_id}]"))
         dig_instance = JSONModel(:instance).new._always_valid!

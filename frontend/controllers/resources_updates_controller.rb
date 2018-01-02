@@ -158,7 +158,7 @@ Pry::ColorPrinter.pp "Got the HEADERS!"
     end
     v = @row_hash['publish']
     v = v.strip if !v.blank?
-    @row_hash['publish'] = (v == 1)
+    @row_hash['publish'] = (v == '1')
     err_arr.join('; ')
   end
 
