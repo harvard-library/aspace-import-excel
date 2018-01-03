@@ -3,9 +3,9 @@ An [ArchivesSpace ](http://archivesspace.org/) [plugin](https://github.com/archi
 
 ## Current Version
 
-  For versions of ArchivesSpace **before** v2.2.2:  [v1.7.3](https://github.com/harvard-library/aspace-import-excel/releases/tag/v1.7.3)
+  For versions of ArchivesSpace **before** v2.2.2:  [v1.7.5](https://github.com/harvard-library/aspace-import-excel/releases/tag/v1.7.5)
 
-  For ArchivesSpace **v2.2.2**: [v2.0.0](https://github.com/harvard-library/aspace-import-excel/releases/tag/v2.0.0)
+  For ArchivesSpace **v2.2.2**: [v2.0.1](https://github.com/harvard-library/aspace-import-excel/releases/tag/v2.0.1)
 
 ## Initial development
 
