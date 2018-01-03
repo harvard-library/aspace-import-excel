@@ -153,8 +153,8 @@ Pry::ColorPrinter.pp "Got the HEADERS!"
     begin
       err_arr.push I18n.t('plugins.aspace-import-excel.error.ref_id_miss') if @row_hash['ao_ref_id'].blank?
       obj_link = @row_hash['digital_object_link']
-      thumb = @row_hash['thumbnail']
-      err_arr.push  I18n.t('plugins.aspace-import-excel.error.dig_info_miss') if @row_hash['digital_object_link'].blank? && @row_hash['thumbnail'].blank?
+      thumb = @row_hash['thumbnail'] || @row_hash['Thumbnail']
+      err_arr.push  I18n.t('plugins.aspace-import-excel.error.dig_info_miss') if @row_hash['digital_object_link'].blank? && thumb.blank?
     end
     v = @row_hash['publish']
     v = v.strip if !v.blank?

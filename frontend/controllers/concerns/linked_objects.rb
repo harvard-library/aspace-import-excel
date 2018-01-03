@@ -134,7 +134,8 @@ module LinkedObjects
     def self.create(row, archival_object, report)
       dig_o = nil
       dig_instance = nil
-      unless !row['thumbnail'] && !row['digital_object_link']
+      thumb = row['thumbnail'] || row['Thumbnail']
+      unless !thumb && !row['digital_object_link']
         files = []
         if !row['digital_object_link'].blank? && row['digital_object_link'].start_with?('http')
           fv = JSONModel(:file_version).new._always_valid!
@@ -144,9 +145,9 @@ module LinkedObjects
           fv.xlink_show_attribute = 'new'
           files.push fv
         end
-        if !row['thumbnail'].blank? && row['thumbnail'].start_with?('http')
+        if !thumb.blank? && thumb.start_with?('http')
           fv = JSONModel(:file_version).new._always_valid!
-          fv.file_uri = row['thumbnail']
+          fv.file_uri = thumb
           fv.publish = row['publish']
           fv.xlink_actuate_attribute = 'onLoad'
           fv.xlink_show_attribute = 'embed'
