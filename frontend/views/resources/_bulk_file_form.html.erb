@@ -11,7 +11,7 @@
 	<input  type='hidden' name='type' id='type' value='<%= type %>'/>
 	<input type='hidden' name='rid' id='rid' value='<%= rid %>' />
 	<input type='hidden' name='aoid' id='aoid' value='<%= aoid %>' />
-	<% if type != 'resource' %>
+	<% if AppConfig[:hide_do_load] || type != 'resource' %>
 	  <input type='hidden' name='digital_load' value='false'/>
 	<% else %>
 	   <div class="btn-group" data-toggle="buttons">
