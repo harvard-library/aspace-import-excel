@@ -4,13 +4,22 @@
     <%= form_tag('/resources/ssload', method: "post", id: "bulk_ingest_form", multipart: true) do |form| %>
 <!-- <%= "#{rid}  #{ref_id}" %> -->
     <div class="modal-body">
-      <div class="form-group">
 	 <input type='hidden' name='repo_id' id='repo_id' value='<%= repo_id %>'/>
 	<input type='hidden' name='ref_id' id='ref_id' value='<%= ref_id %>'/>
 	<input  type='hidden' name='position' id='position' value='<%= position %>'/>
 	<input  type='hidden' name='type' id='type' value='<%= type %>'/>
 	<input type='hidden' name='rid' id='rid' value='<%= rid %>' />
 	<input type='hidden' name='aoid' id='aoid' value='<%= aoid %>' />
+
+      <section id="bulk_filename_">
+	<span class="btn btn-success btn-sm fileinput-button bulkbtn">
+	  <span class="glyphicon glyphicon-plus icon-white"></span>
+	  <span><%= I18n.t("plugins.aspace-import-excel.add_file")%></span>
+	  <input name="file" type="file" id="excel_file"/>
+	</span>
+	<span id="excel_filename"></span>
+      </section>
+      <div class="form-group">
 	<% if AppConfig[:hide_do_load] || type != 'resource' %>
 	  <input type='hidden' name='digital_load' value='false'/>
 	<% else %>
@@ -20,14 +29,6 @@
 	   </div>
         <% end %>
        </div>
-      <section id="bulk_filename_">
-	<span class="btn btn-success btn-sm fileinput-button bulkbtn">
-	  <span class="glyphicon glyphicon-plus icon-white"></span>
-	  <span><%= I18n.t("plugins.aspace-import-excel.add_file")%></span>
-	  <input name="file" type="file" id="excel_file"/>
-	</span>
-	<span id="excel_filename"></span>
-      </section>
       <div id="bulk_messages">
       </div>
     </div>

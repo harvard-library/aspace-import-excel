@@ -2,7 +2,7 @@ en:
   plugins:
     aspace-import-excel:
       import: Import from SpreadSheet
-      add_file: Add File
+      add_file: Select File
       drag_drop: Drag and drop file here
       clip_btn: Copy to Clipboard
       add_archival_objects: Import Archival Objects
