@@ -1,3 +1,6 @@
+# set this to true if you don't want to allow the digital object loading functionality
+AppConfig[:hide_do_load] = false
+
 # handle the spreadsheet  load
 my_routes = File.join(File.dirname(__FILE__), "routes.rb")
 # ArchivesSpace::Application.config.paths['config/routes'].concat(my_routes)

@@ -5,6 +5,7 @@
 <ul style="list-style: none; ">
 <% report.rows.each do |row| %>
 <li><%= row.row %>
+
    <% unless row.errors.blank? %>
    <ul style="list-style: none; ">
      <% row.errors.each do |err| %>
@@ -22,9 +23,10 @@
    <% end %> <%# unless no info %>
 
    <% if row.archival_object_id.blank? %>
-     <%= t('plugins.aspace-import-excel.no_ao') %>
+     <%= t('plugins.aspace-import-excel.no_ao') if do_load.blank? %>
    <% else %>
-     <%= t('plugins.aspace-import-excel.created', :what =>t('plugins.aspace-import-excel.ao'), :id => "'#{row.archival_object_display}' (#{row.archival_object_id}" ) %>
+     <% key = do_load.blank? ? 'plugins.aspace-import-excel.created' : 'plugins.aspace-import-excel.updated' %>
+     <%= t(key, :what =>t('plugins.aspace-import-excel.ao'), :id => "'#{row.archival_object_display}' (#{row.archival_object_id}) [#{row.ref_id}]" ) %>
    <% end %> <%# of ao_id %>
 </li>
 <% end %><%# of row each %>
@@ -35,9 +37,17 @@
   <%= t('plugins.aspace-import-excel.clip_header') %>
   <% report.rows.each do |row| %>
   <%= row.row %>  <% if row.archival_object_id.blank? %>
-     <%= t('plugins.aspace-import-excel.no_ao') %>
-   <% else %>   <%= t('plugins.aspace-import-excel.clip_created', :what =>t('plugins.aspace-import-excel.ao'), :id => row.archival_object_id ,
-         :nm => "'#{row.archival_object_display}'" ) %>
+     <%= t('plugins.aspace-import-excel.no_ao') if do_load.blank?%>
+   <% else %>
+    <% if do_load %>
+     <%= t('plugins.aspace-import-excel.clip_what', :what =>t('plugins.aspace-import-excel.ao'), :id => row.archival_object_id ,
+         :nm => "'#{row.archival_object_display}'",
+         :ref_id =>  "#{row.ref_id}") %>
+    <% else %>
+     <%= t('plugins.aspace-import-excel.clip_created', :what =>t('plugins.aspace-import-excel.ao'), :id => row.archival_object_id ,
+         :nm => "'#{row.archival_object_display}'",
+         :ref_id =>  "#{row.ref_id}") %>
+    <% end %>
    <% end %>
    <% unless row.info.blank? %>
      <% row.info.each do |info| %> 

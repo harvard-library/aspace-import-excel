@@ -4,13 +4,13 @@
     <%= form_tag('/resources/ssload', method: "post", id: "bulk_ingest_form", multipart: true) do |form| %>
 <!-- <%= "#{rid}  #{ref_id}" %> -->
     <div class="modal-body">
-      <div class="form-group">
+	 <input type='hidden' name='repo_id' id='repo_id' value='<%= repo_id %>'/>
 	<input type='hidden' name='ref_id' id='ref_id' value='<%= ref_id %>'/>
 	<input  type='hidden' name='position' id='position' value='<%= position %>'/>
 	<input  type='hidden' name='type' id='type' value='<%= type %>'/>
 	<input type='hidden' name='rid' id='rid' value='<%= rid %>' />
 	<input type='hidden' name='aoid' id='aoid' value='<%= aoid %>' />
-      </div>
+
       <section id="bulk_filename_">
 	<span class="btn btn-success btn-sm fileinput-button bulkbtn">
 	  <span class="glyphicon glyphicon-plus icon-white"></span>
@@ -19,6 +19,16 @@
 	</span>
 	<span id="excel_filename"></span>
       </section>
+      <div class="form-group">
+	<% if AppConfig[:hide_do_load] || type != 'resource' %>
+	  <input type='hidden' name='digital_load' value='false'/>
+	<% else %>
+	   <div class="btn-group" data-toggle="buttons">
+           <label class="btn btn-primary active" style="border-radius:4px;"><input type="radio" value="false" name="digital_load" checked="true"/><%= I18n.t('plugins.aspace-import-excel.add_archival_objects') %></label>
+	   <label class="btn btn-primary" style="border-radius:4px; margin-left:.5em"><input type="radio" value="true" name="digital_load"/><%= I18n.t('plugins.aspace-import-excel.add_digital_objects') %></label>
+	   </div>
+        <% end %>
+       </div>
       <div id="bulk_messages">
       </div>
     </div>

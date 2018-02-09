@@ -214,30 +214,25 @@ $(function () {
 		toggleTreeSpinner();
 		return;
 	    }
+	    file_modal_html = '';
+	    if (typeof($file_form_modal) !== 'undefined') {
+                   /* console.log("Remove"); */
+                   $file_form_modal.remove();
+            }
 	    /*console.log("we got rid: " + obj.rid + " "  + obj.aoid + " ref_id: " + obj.ref_id + " resource: " + obj.resource + " position: " + obj.position); */
-	    if (file_modal_html  === '') {
-		$.ajax({
-			url: APP_PATH + "resources/" + obj.rid + "/getfile",
-			type: "POST",
-			data: {aoid: obj.aoid, type: obj.type, ref_id: obj.ref_id, resource: obj.resource, position: obj.position},
-			dataType: "html",
-			success: function(data) {
-			    file_modal_html = data;
-			    openFileModal();
-			},
-			error: function(xhr,status,err) {
-			    alert("ERROR: " + status + " " + err);
-                        }
-		    });
-	    }
-	    else {
-		/*console.log("we have html already"); */
-		if (typeof($file_form_modal) !== 'undefined') {
-		    /* console.log("Remove"); */
-		    $file_form_modal.remove();
-		}
-		openFileModal();
-	    }
+	    $.ajax({
+		url: APP_PATH + "resources/" + obj.rid + "/getfile",
+		type: "POST",
+		data: {aoid: obj.aoid, type: obj.type, ref_id: obj.ref_id, resource: obj.resource, position: obj.position},
+		dataType: "html",
+		success: function(data) {
+		    file_modal_html = data;
+		    openFileModal();
+		},
+		error: function(xhr,status,err) {
+		    alert("ERROR: " + status + " " + err);
+                }
+	    });
 	    toggleTreeSpinner();
 	};
 

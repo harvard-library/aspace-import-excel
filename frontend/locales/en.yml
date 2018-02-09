@@ -2,18 +2,22 @@ en:
   plugins:
     aspace-import-excel:
       import: Import from SpreadSheet
-      add_file: Add File
+      add_file: Select File
       drag_drop: Drag and drop file here
       clip_btn: Copy to Clipboard
+      add_archival_objects: Import Archival Objects
+      add_digital_objects: Add Digital Objects to Archival Objects
       row: "Row %{row}"
       processing_row: "Processing row %{row}"
       row_error: "Row %{row} will not be processed due to errors: %{errs}"
       no_ao: No Archival Object created
       created: "%{what} created: %{id}"
-      clip_created:  "\t%{what} created: \t%{nm}\t%{id}"
-      clip_info: "\t\t\t\t%{what}\n"
-      clip_err: "\t\t\t\tERROR: %{err}\n"
-      clip_header: "Row\tStatus\tTitle\tURI\tInfo"
+      updated: "%{what}: %{id}"
+      clip_created:  "\t%{what} created: \t%{nm}\t%{id}\t%{ref_id}"
+      clip_what: "\t%{what} : \t%{nm}\t%{id}\t%{ref_id}"
+      clip_info: "\t\t\t\t\t%{what}\n"
+      clip_err: "\t\t\t\t\tERROR: %{err}\n"
+      clip_header: "Row\tStatus\tTitle\tURI\tRef ID\tInfo"
       ao: Archival Object
       tc: Top Container
       subj: Subject
@@ -31,7 +35,7 @@ en:
        file_name: File name cannot be determined
        system: "Some system error has occurred  [%{msg}]."
        initialize: "Processing is terminated [%{msg}]"
-       stopped: "Processing stopped at row %{row}"
+       stopped: "Processing stopped at row %{row} [%{msg}]"
        res_ead: This form's Resource is missing an EAD ID
        row_ead: This row is missing an EAD ID
        ead_mismatch:  "Form's EAD ID [%{res_ead}] does not match row's EAD ID [%{row_ead}]"
@@ -47,7 +51,7 @@ en:
        number: Missing Extent number
        extent_type:  Missing Extent type
        extent_validation: "Unable to validate extent: %{msg}" 
-       no_header: No header row found!
+       no_header: No header (field codes) row found; are you using the correct template?
        no_data: No processible data rows found!
        excel: "Error(s) parsing Excel File %{errs}"
        too_many: "Too many (%{count}) %{what} found for '%{value}'"
@@ -60,4 +64,8 @@ en:
        bad_note: "%{type} note is not wellformed: %{msg}"
        bad_relator: "Unable to create agent link: '%{label}' is not a valid relator"
        relator_invalid: "Unable to create agent link due to problem with relator '%{label}': %{why}" 
+       has_dig_obj: "Archival object already has an associated digital object"
+       ref_id_miss: No Ref Id specified
+       dig_info_miss: Neither the Digital Object URN or the Thumbnail URN is specified
+
 

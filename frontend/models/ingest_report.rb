@@ -66,7 +66,7 @@ class IngestReport
     @terminal_error
   end
 
-  Row = Struct.new(:archival_object_id,:archival_object_display, :row, :errors, :info) do
+  Row = Struct.new(:archival_object_id,:archival_object_display,:ref_id, :row, :errors, :info) do
 
     def initialize(row_number)
       self.row = I18n.t('plugins.aspace-import-excel.row', :row => row_number)
@@ -74,6 +74,7 @@ class IngestReport
       self.info = []
       self.archival_object_id = nil
       self.archival_object_display = nil
+      self.ref_id = nil
     end
     
     # if other structures (top_container, agent, etc.) were created along the way
@@ -93,6 +94,7 @@ class IngestReport
     def archival_object(ao)
       self.archival_object_id = ao.uri
       self.archival_object_display = ao.display_string
+      self.ref_id = ao.ref_id
     end
   end
 end
