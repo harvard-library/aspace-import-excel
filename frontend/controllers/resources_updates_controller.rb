@@ -147,6 +147,20 @@ Pry::ColorPrinter.pp "Got the HEADERS!"
 
   private  
 
+  # save the archival object, then revive it
+  def ao_save(ao)
+    revived = nil
+    begin
+      id = ao.save
+      revived = JSONModel(:archival_object).find(id)
+    rescue  Exception => e
+      Pry::ColorPrinter.pp "UNEXPECTED save error: #{e.message}"
+      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao) if ao
+      raise e
+    end
+    revived
+  end  
+
   # required fields for a digital object row: ead match, ao_ref_id and at least one of digital_object_link, thumbnail
   def check_do_row
     err_arr = []
@@ -252,13 +266,7 @@ Pry::ColorPrinter.pp "Got the HEADERS!"
     errs =  handle_notes(ao)
     @report.add_errors(errs) if !errs.blank?
     # we have to save the ao for the display_string
-    begin
-      ao.save # if there's a problem, the exception flows upward...
-    rescue Exception => e
-      Pry::ColorPrinter.pp "UNEXPECTED save error: #{e.message}"
-      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao) if ao
-      raise e
-    end
+    ao = ao_save(ao)
     instance = create_top_container_instance
     ao.instances = [instance] if instance
     if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
@@ -498,7 +506,7 @@ Rails.logger.info {ao.pretty_inspect}
       if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
         ao.instances ||= []
         ao.instances << dig_instance
-        saving = ao.save
+        ao = ao_save(ao)
       end
     end
     
@@ -515,27 +523,27 @@ Rails.logger.info {ao.pretty_inspect}
     parent_uri = @parents.parent_for(@row_hash['hierarchy'].to_i)
     begin
       ao = create_archival_object(parent_uri)
-  #  test_exceptions(ao, "CREATED ARCHIVAL OBJECT")
-      saving = ao.save
-      @report.add_archival_object(ao)
-      @parents.set_uri(@hier, ao.uri)
-      @created_ao_refs.push ao.uri
-      if @hier == 1
-        @first_level_aos.push ao.uri 
-        if @first_one && @start_position
-          @need_to_move = (ao.position - @start_position) > 1
-          @first_one = false
-#          Pry::ColorPrinter.pp "Need to move: #{@need_to_move}"
-        end
-      end
+      ao = ao_save(ao)
     rescue JSONModel::ValidationException => ve
       # ao won't have been created
+      Pry::ColorPrinter.pp "VALIDATION ERROR ON SECOND SAVE: #{ve.message}"
       raise ExcelImportException.new(ve.message)
     rescue  Exception => e
       Pry::ColorPrinter.pp "UNEXPECTED #{e.message}"
       Pry::ColorPrinter.pp e.backtrace
       Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
       raise ExcelImportException.new(e.message)
+    end
+    @report.add_archival_object(ao)
+    @parents.set_uri(@hier, ao.uri)
+    @created_ao_refs.push ao.uri
+    if @hier == 1
+      @first_level_aos.push ao.uri 
+      if @first_one && @start_position
+        @need_to_move = (ao.position - @start_position) > 1
+        @first_one = false
+        #          Pry::ColorPrinter.pp "Need to move: #{@need_to_move}"
+      end
     end
   end
 
