@@ -23,7 +23,7 @@ As of version V2.1.0, the *aspace-import-excel* plugin supports both the **Impor
        + you want to create Archival Objects to be appended to the end of the list of first-level Archival Objects; or
        + you want to add Digital Objects to Archival Objects.
          
-     + **Otherwise**, if you want the first Archival Object in your list to be inserted as a sibling/child (see <a href="archival_objects_instructions.md#hier">Hierarchical Relationship</a>, below) of an *already-existing* Archival Object, locate the Archival Object where you want to begin your insertion. You can either search for it or select it from the tree that displays on the Resource record. In the latter case, the page will reload to that Archival Object.
+     + **Otherwise**, if you want the first Archival Object in your list to be inserted as a sibling/child (see <a href="archival_objects_instructions.md#hier">Hierarchical Relationship</a>) of an *already-existing* Archival Object, locate the Archival Object where you want to begin your insertion. You can either search for it or select it from the tree that displays on the Resource record. In the latter case, the page will reload to that Archival Object.
 
   2. When you have displayed the Resource or the Archival Object as appropriate, make sure you are in *edit* mode. A "Load via Spreadsheet" button will appear. <img src="EmptyResource.png" alt="Finding the Load via Spreadsheet button on an empty resource"/>
 
