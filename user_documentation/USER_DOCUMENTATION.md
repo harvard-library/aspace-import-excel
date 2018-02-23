@@ -4,7 +4,7 @@ As of version V2.1.0, the *aspace-import-excel* plugin supports both the **Impor
 
 ## Common Workflow:
   
-  1.  Make sure the plug-in has been installed! See the Installation Instructions in the [main README document](../README.md)
+  1.  Make sure the plug-in has been installed! See the [Installation instructions](../README.md#installation) in the main README document.
   1. Download the appropriate Excel Spreadsheet template.
      + For **Import Archival Objects**, use [aspace_import_excel_template.xlsx](https://github.com/harvard-library/aspace-import-excel/blob/master/templates/aspace_import_excel_template.xlsx)
      + For **Add Digital Objects to Archival Objects**, use [aspace_import_excel_DO_template.xlsx](https://github.com/harvard-library/aspace-import-excel/blob/master/templates/aspace_import_excel_DO_template.xlsx)
