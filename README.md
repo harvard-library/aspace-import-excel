@@ -28,8 +28,8 @@ See the [user documentation](user_documentation/USER_DOCUMENTATION.md) for more 
 The Excel template will be found in the templates/ folder as [**aspace_import_excel_DO_template.xlsx**](/templates/aspace_import_excel_DO_template.xlsx). 
 
 As with the original development, we are not completely reproducing all the functionality of ArchivesSpace: only one Digital Object, which can have either or both of one:
-    +  File with an *Xlink Actuate Attribute* of **onLoad** and an *Xlink Show Attribute* of **embed**
-    +  File with an Xlink Actuate Attribute of **onRequest** and an *Xlink Show Attribute* of **new**
+  + File with an *Xlink Actuate Attribute* of **onLoad** and an *Xlink Show Attribute* of **embed**
+  + File with an Xlink Actuate Attribute of **onRequest** and an *Xlink Show Attribute* of **new**
     
 See the [user documentation](user_documentation/USER_DOCUMENTATION.md) for more information. 
 
@@ -40,12 +40,14 @@ This is a regular  [ArchivesSpace Plug-in](https://github.com/archivesspace/arch
 To install this plug-in:  
 1. Download or clone the plug-in from this [GitHub repository](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md) into the ArchivesSpace **/plugin/** directory.
 
-2. (Optional) To turn **off** the functionality for creating Digital Objects associated with already-created Archival objects, you must edit **/plugin/aspace-import-excel/frontend/plugin_init.rb**. Change the line ```bash 
+2. (Optional) To turn **off** the functionality for creating Digital Objects associated with already-created Archival objects, you must edit **/plugin/aspace-import-excel/frontend/plugin_init.rb**. Change the line 
+```bash 
     AppConfig[:hide_do_load] = false
 ```
-to ```bash 
+to 
+```bash 
     AppConfig[:hide_do_load] = true
-    ```
+```
 3. Run the **scripts/initialize-plugin script**
    * for Linux, that's `scripts/initialize-plugin.sh aspace-import-excel`
    * for Windows, that's `scripts/initialize-plugin.bat aspace-import-excel`
