@@ -29,7 +29,7 @@ As of version V2.1.0, the *aspace-import-excel* plugin supports both the **Impor
 
   3. Click on the button.  You will see a Load Spreadsheet modal window, with the rest of the page "greyed out". 
      If you are at the Resource level, the modal window will look like this: <img src="load_on_resource.png" alt="modal window with two ingest choices"/>
-     If you at the Archival Object level, the modal window will look like this: <img src="load_on_object.png" alt="modal window with only Add Archival Object"/>
+     If you are at the Archival Object level, the modal window will look like this: <img src="load_on_object.png" alt="modal window with only Add Archival Object"/>
      
   4. Click on "Select File" to browse and locate a file on your system.  Select the Excel File.
   5. Click on either the **Import Archival Objects** or **Add Digital Objects to Archival Objects** button, if you are given the choice.
