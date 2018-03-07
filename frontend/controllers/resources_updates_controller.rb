@@ -108,7 +108,7 @@ Pry::ColorPrinter.pp "Got the HEADERS!"
             @error_level = nil
 #            Pry::ColorPrinter.pp "no ao" if !ao
           rescue StopExcelImportException => se
-            @report.add_errors([se.message, I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter)])
+            @report.add_errors(I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter, :msg => se.message))
             raise StopIteration.new
           rescue ExcelImportException => e
             @error_rows += 1
