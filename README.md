@@ -2,7 +2,7 @@
 An [ArchivesSpace ](http://archivesspace.org/) [plugin](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md) to support the bulk uploading via Excel SpreadSheet of Archival Objects and (optionally) their associated Creator Agents, Top Containers, Subjects, Digital Objects etc.
 
 ## Current Version
-{Branch **support_ASpace_1**} **[v1.7.5](https://github.com/harvard-library/aspace-import-excel/releases/tag/v1.7.5)**  This supports ArchivesSpaces versions **before** 2.2.2
+{Branch **support_ASpace_1**} **[v1.7.7](https://github.com/harvard-library/aspace-import-excel/releases/tag/v1.7.7)**  This supports ArchivesSpaces versions **before** 2.2.2
 
 ## Initial development
 
