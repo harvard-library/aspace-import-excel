@@ -408,6 +408,7 @@ Rails.logger.info {ao.pretty_inspect}
     ContainerInstanceHandler.renew
     DigitalObjectHandler.renew
     SubjectHandler.renew
+    AgentHandler.renew
   end
   
   # set up all the @ variables (except for @header)
