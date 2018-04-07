@@ -367,7 +367,7 @@ module LinkedObjects
         end
         begin
           unless subj || (subj = get_db_subj(subject))
-            subj = create_subj(subject)
+            subj = create_subj(subject, num)
             report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')}[#{subject[:term]}]", :id => subj.uri))
           end
         rescue Exception => e
@@ -387,7 +387,7 @@ module LinkedObjects
       subj
     end
 
-    def self.create_subj(subject)
+    def self.create_subj(subject, num)
       begin
         term = JSONModel(:term).new._always_valid!
         term.term =  subject[:term]
