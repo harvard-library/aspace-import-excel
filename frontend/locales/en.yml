@@ -54,7 +54,7 @@ en:
        no_header: No header (field codes) row found; are you using the correct template?
        no_data: No processible data rows found!
        excel: "Error(s) parsing Excel File %{errs}"
-       no_agent: "Unable to create Agent [%{why}]"
+       no_agent: "Unable to create Agent %{num}: [%{why}]"
        no_tc: "Unable to create Top Container: [%{why}]"
        missing_instance_type: Missing instance type
        no_container_instance: "Unable to create Container Instance: [%{why}]"
