@@ -56,7 +56,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     @report = IngestReport.new
     @headers
     @digital_load  = params.fetch(:digital_load,'') == 'true'
-Pry::ColorPrinter.pp "digital_load? #{@digital_load}"
+
     if @digital_load
       @find_uri =  "/repositories/#{params[:repo_id]}/find_by_id/archival_objects"
       @resource_ref = "/repositories/#{params[:repo_id]}/resources/#{params[:id]}"
@@ -83,7 +83,7 @@ Pry::ColorPrinter.pp "digital_load? #{@digital_load}"
       while @headers.nil? && (row = rows.next)
         @counter += 1
         if (row[0] && (row[0].value.to_s =~ @start_marker) || row[2] &&  row[2].value == 'ead') #FIXME: TEMP FIX
-Pry::ColorPrinter.pp "Got the HEADERS!"
+
           @headers = row_values(row)
         # Skip the human readable header too
           rows.next
@@ -514,7 +514,7 @@ Rails.logger.info {ao.pretty_inspect}
   end
 
   def process_row
-    Pry::ColorPrinter.pp @counter
+#    Pry::ColorPrinter.pp @counter
     ret_str =  resource_match
     # mismatch of resource stops all other processing
     if ret_str.blank?
@@ -567,7 +567,7 @@ Rails.logger.info {ao.pretty_inspect}
   # make sure that the resource ead id from the form matches that in the spreadsheet
   # throws an exception if the designated resource ead doesn't match the spreadsheet row ead
   def resource_match
-Pry::ColorPrinter.pp @resource['ead_id']
+# Pry::ColorPrinter.pp @resource['ead_id']
     ret_str = ''
     ret_str = I18n.t('plugins.aspace-import-excel.error.res_ead') if @resource['ead_id'].blank?
     ret_str =  ' ' +  I18n.t('plugins.aspace-import-excel.error.row_ead')  if @row_hash['ead'].blank?
