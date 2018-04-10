@@ -43,13 +43,13 @@ module LinkedObjects
          rescue Exception => e
            if e.message != 'RecordNotFound'
 #             Pry::ColorPrinter.pp e
-             raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :why => e.message)) 
+             raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
            end
          end
        end
        begin
-       unless agent_obj || (agent_obj = get_db_agent(agent, resource_uri))
-         agent_obj = create_agent(agent)
+       unless agent_obj || (agent_obj = get_db_agent(agent, resource_uri, num))
+         agent_obj = create_agent(agent, num)
          report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.agent')}[#{agent[:name]}]", :id => agent_obj.uri))
        end
        rescue Exception => e
@@ -80,19 +80,19 @@ module LinkedObjects
      agent_link
    end
 
-  def self.create_agent(agent)
+  def self.create_agent(agent, num)
     begin
       ret_agent = JSONModel("agent_#{agent[:type]}".to_sym).new._always_valid!
       ret_agent.names = [name_obj(agent)]
       ret_agent.publish = !agent[:id_but_no_name]
       ret_agent.save
     rescue Exception => e
-       raise Exception.new(I18n.t('plugins.aspace-import-excel.error.no_agent',  :why => e.message))
+       raise Exception.new(I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
     end
     ret_agent
   end
 
-  def self.get_db_agent(agent, resource_uri)
+  def self.get_db_agent(agent, resource_uri, num)
     ret_ag = nil
     if agent[:id]
       begin
@@ -101,7 +101,7 @@ module LinkedObjects
         if e.message != 'RecordNotFound' 
 #          Pry::ColorPrinter.pp e.message
 #          Pry::ColorPrinter.pp e.backtrace
-          raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :why => e.message)) 
+          raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
         end
       end
     end
@@ -367,7 +367,7 @@ module LinkedObjects
         end
         begin
           unless subj || (subj = get_db_subj(subject))
-            subj = create_subj(subject)
+            subj = create_subj(subject, num)
             report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')}[#{subject[:term]}]", :id => subj.uri))
           end
         rescue Exception => e
@@ -387,7 +387,7 @@ module LinkedObjects
       subj
     end
 
-    def self.create_subj(subject)
+    def self.create_subj(subject, num)
       begin
         term = JSONModel(:term).new._always_valid!
         term.term =  subject[:term]
