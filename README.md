@@ -63,5 +63,5 @@ User documentation is [available](user_documentation/USER_DOCUMENTATION.md)
 * Bobbi Fox: https://github.com/bobbi-SMR (maintainer)
 * Robin Wendler: https://github.com/rwendler
 * Julie Wetherill: https://github.com/juliewetherill
-* h/t to @cdesai-qi for catching inconsistencies
+* h/t to Chintan Desai: https://github.com/cdesai-qi for catching inconsistencies
 
