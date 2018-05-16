@@ -48,7 +48,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         ao = nil
       end
     end
-    Rails.logger.info {ao.pretty_inspect}
+#    Rails.logger.info {ao.pretty_inspect}
   end
   # load in a spreadsheet
   def load_ss
@@ -347,15 +347,15 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
   def fetch_archival_object(ref_id)
     ao = nil
     response = JSONModel::HTTP::get_json(URI(@find_uri),{"ref_id[]" => ref_id, "resolve[]" => "archival_objects"})
-    unless response["archival_objects"].blank?
-      Rails.logger.info "RESPONSE #{ response["archival_objects"].length}" 
-      aos = []
+#    Rails.logger.info("response: #{response} for ref_id: #{ref_id}")
+    unless response.blank? || response["archival_objects"].blank?
+       aos = []
       response["archival_objects"].each { |ao| 
         Rails.logger.info "aodig: #{ao.dig('_resolved','resource','ref')}"
         aos.append(ao["ref"]) if ao.dig('_resolved','resource','ref') == @resource_ref
       }
-Rails.logger.info "length: #{aos.length}"
-Rails.logger.info {aos.pretty_inspect}
+#Rails.logger.info "length: #{aos.length}"
+#Rails.logger.info {aos.pretty_inspect}
       if aos.length == 1
         parsed = JSONModel.parse_reference(aos[0])
         begin
@@ -495,7 +495,7 @@ Rails.logger.info {ao.pretty_inspect}
     raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => ret_str )) if !ret_str.blank?
     begin
       ao = fetch_archival_object(@row_hash['ao_ref_id'])
-      raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.ref_id_notfound', :ref_id => @row_hash['ao_ref_id']))) if ao == nil
+      raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.row_error', :row => @counter, :errs => I18n.t('plugins.aspace-import-excel.ref_id_notfound', :refid => @row_hash['ao_ref_id']))) if ao == nil
       @report.add_archival_object(ao)
       if ao.instances
         digs = []

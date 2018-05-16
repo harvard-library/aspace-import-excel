@@ -154,7 +154,7 @@ module LinkedObjects
           fv.is_representative = true
           files.push fv
         end
-        osn = row['digital_object_id'] || archival_object.ref_id + 'd'
+        osn = row['digital_object_id'].blank? ? (archival_object.ref_id + 'd') : row['digital_object_id']
         dig_o = JSONModel(:digital_object).new._always_valid!
         dig_o.title = row['digital_object_title'].blank? ? archival_object.display_string : row['digital_object_title']
         dig_o.digital_object_id = osn
