@@ -6,7 +6,6 @@ START_MARKER = /ArchivesSpace field code/
 DO_START_MARKER = /ArchivesSpace digital object import field codes/
   set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file, :get_do_file, :load_dos]
 
-  require 'pry'
   require 'rubyXL'
   require 'asutils'
   require 'enum_list'
@@ -106,7 +105,6 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
             end
             @rows_processed += 1
             @error_level = nil
-#            Pry::ColorPrinter.pp "no ao" if !ao
           rescue StopExcelImportException => se
             @report.add_errors(I18n.t('plugins.aspace-import-excel.error.stopped', :row => @counter, :msg => se.message))
             raise StopIteration.new
@@ -114,7 +112,6 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
             @error_rows += 1
             @report.add_errors( e.message)
             @error_level = @hier
-#            Pry::ColorPrinter.pp "Error level: #{@error_level}"
           end
           @report.end_row
         end
@@ -131,9 +128,9 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.no_header'), @counter)
       else # something else went wrong
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.system', :msg => e.message), @counter)
-        Pry::ColorPrinter.pp "UNEXPECTED EXCEPTION!"
-        Pry::ColorPrinter.pp e.message
-        Pry::ColorPrinter.pp e.backtrace
+        Rails.logger.error("UNEXPECTED EXCEPTION!")
+        Rails.logger.error(e.message)
+        Rails.logger.error( e.backtrace.pretty_inspect)
       end
       @report.end_row
       return render_aspace_partial :status => 400,  :partial => "resources/bulk_response", :locals => {:rid => params[:rid],
@@ -154,8 +151,8 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       id = ao.save
       revived = JSONModel(:archival_object).find(id)
     rescue  Exception => e
-      Pry::ColorPrinter.pp "UNEXPECTED save error: #{e.message}"
-      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao) if ao
+      Rails.logger.error("UNEXPECTED save error: #{e.message}")
+      Rails.logger.error(ASUtils.jsonmodels_to_hashes(ao).pretty_inspect) if ao
       raise e
     end
     revived
@@ -221,7 +218,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     rescue StopExcelImportException => se
       raise
     rescue Exception => e
-      Pry::ColorPrinter.pp ["UNEXPLAINED EXCEPTION", e.message, e.backtrace, @row_hash]
+      Rails.logger.error(["UNEXPLAINED EXCEPTION", e.message, e.backtrace, @row_hash].pretty_inspect)
     end
     if err_arr.blank?
       @row_hash.each do |k, v|
@@ -242,7 +239,6 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       begin
         ao.dates = create_date 
       rescue Exception => e
-#        Pry::ColorPrinter.pp "We gots a date exception! #{e.message}"
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message))
       end
     end
@@ -336,11 +332,8 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why =>ee.message))
       rescue Exception => e
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
-#        Pry::ColorPrinter.pp e.message
       end
     end
-#Pry::ColorPrinter.pp "instance"
-#Pry::ColorPrinter.pp instance
     instance
   end
 
@@ -379,7 +372,6 @@ Rails.logger.info {ao.pretty_inspect}
         content = @row_hash[key]
         type = key.match(/n_(.+)$/)[1]
         note_type = @note_types[type]
-#        Pry::ColorPrinter.pp "content for #{key}: |#{content}|  type: #{type} note_type#{note_type}"
         note = JSONModel(note_type[:target]).new
         note.publish = publish
         note.type = note_type[:value]
@@ -453,13 +445,11 @@ Rails.logger.info {ao.pretty_inspect}
   def move_archival_objects
     unless @first_level_aos.empty?
       uri = (@ao && @ao.parent) ? @ao.parent['ref'] : @resource.uri
-#      Pry::ColorPrinter.pp "moving: URI: #{uri}"
       response = JSONModel::HTTP.post_form("#{uri}/accept_children",
                                            "children[]" => @first_level_aos,
                                            "position" => @start_position + 1)
       unless response.code == '200'
-        Pry::ColorPrinter.pp "UNEXPECTED BAD MOVE! #{response.code}"
-        Pry::ColorPrinter.pp response.body
+        Rails.logger.error( "UNEXPECTED BAD MOVE on #{uri}/accept_children! #{response.code}")
         @report.errors(I18n.t('plugins.aspace-import-excel.error.no_move', :code => response.code))
       end
     end
@@ -514,7 +504,6 @@ Rails.logger.info {ao.pretty_inspect}
   end
 
   def process_row
-#    Pry::ColorPrinter.pp @counter
     ret_str =  resource_match
     # mismatch of resource stops all other processing
     if ret_str.blank?
@@ -527,12 +516,12 @@ Rails.logger.info {ao.pretty_inspect}
       ao = ao_save(ao)
     rescue JSONModel::ValidationException => ve
       # ao won't have been created
-      Pry::ColorPrinter.pp "VALIDATION ERROR ON SECOND SAVE: #{ve.message}"
+      Rails.logger.error("VALIDATION ERROR ON SECOND SAVE: #{ve.message}")
       raise ExcelImportException.new(ve.message)
     rescue  Exception => e
-      Pry::ColorPrinter.pp "UNEXPECTED #{e.message}"
-      Pry::ColorPrinter.pp e.backtrace
-      Pry::ColorPrinter.pp ASUtils.jsonmodels_to_hashes(ao)
+      Rails.logger.error("UNEXPECTED #{e.message}")
+      Rails.logger.error(e.backtrace.pretty_inspect)
+      Rails.logger.error( ASUtils.jsonmodels_to_hashes(ao).pretty_inspect)
       raise ExcelImportException.new(e.message)
     end
     @report.add_archival_object(ao)
@@ -543,7 +532,6 @@ Rails.logger.info {ao.pretty_inspect}
       if @first_one && @start_position
         @need_to_move = (ao.position - @start_position) > 1
         @first_one = false
-        #          Pry::ColorPrinter.pp "Need to move: #{@need_to_move}"
       end
     end
   end
@@ -567,7 +555,6 @@ Rails.logger.info {ao.pretty_inspect}
   # make sure that the resource ead id from the form matches that in the spreadsheet
   # throws an exception if the designated resource ead doesn't match the spreadsheet row ead
   def resource_match
-# Pry::ColorPrinter.pp @resource['ead_id']
     ret_str = ''
     ret_str = I18n.t('plugins.aspace-import-excel.error.res_ead') if @resource['ead_id'].blank?
     ret_str =  ' ' +  I18n.t('plugins.aspace-import-excel.error.row_ead')  if @row_hash['ead'].blank?
@@ -594,7 +581,6 @@ Rails.logger.info {ao.pretty_inspect}
 
  
   def row_values(row)
-#    Pry::ColorPrinter.pp "ROW!"
     (1...row.size).map {|i| (row[i] && row[i].value) ? row[i].value.to_s.strip : nil}
   end
 end

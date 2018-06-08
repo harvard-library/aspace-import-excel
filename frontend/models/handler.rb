@@ -9,7 +9,7 @@
 
 class Handler
   require 'enum_list'
-  require 'pry'
+  require 'pp'
 
   # centralize the checking for an already-found object
   def self.stored(hash, id, key)

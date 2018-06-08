@@ -208,11 +208,9 @@ module LinkedObjects
       begin
         top_container = build(row)
         tc_key = key_for(top_container, resource)
-#        Pry::ColorPrinter.pp " tc key: #{tc_key}"
         # check to see if we already have fetched one from the db, or created one.
         existing_tc = @@top_containers.fetch(tc_key, false) ||  get_db_tc(top_container, resource)
         if !existing_tc
-#          Pry::ColorPrinter.pp  "no existing tc!"
           tc = JSONModel(:top_container).new._always_valid!
           tc.type = top_container[:type]
           tc.indicator = top_container[:indicator]
@@ -225,9 +223,6 @@ module LinkedObjects
         end
       rescue Exception => e
         report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
-#        Pry::ColorPrinter.pp tc
-#        Pry::ColorPrinter.pp e.message
-#        Pry::ColorPrinter.pp e.backtrace
         existing_tc = nil
       end
       @@top_containers[tc_key] = existing_tc if existing_tc
@@ -242,10 +237,8 @@ module LinkedObjects
         tc_params = {}
         tc_params["type[]"] = 'top_container'
         tc_params["q"] = "display_string:\"#{tc_str}\" AND collection_uri_u_sstr:\"#{resource_uri}\""
-#        Pry::ColorPrinter.pp "Q: #{tc_params['q']}"
         ret_tc = search(repo_id,tc_params, :top_container)
       end
-#      Pry::ColorPrinter.pp "FOUND NADA in the DB" if !ret_tc
       ret_tc
     end
     
@@ -256,8 +249,6 @@ module LinkedObjects
         tc_params["type[]"] = 'top_container'
         tc_params["q"] = "barcode_u_sstr:#{barcode}"
         ret_tc = search(repo_id,tc_params, :top_container)
-#      Pry::ColorPrinter.pp "looked for barcode"
-#        Pry::ColorPrinter.pp ret_tc
       end
       ret_tc
     end
@@ -269,8 +260,6 @@ module LinkedObjects
       if row['type_1']
         begin
           tc = get_or_create(row, resource_uri, report)
-#Pry::ColorPrinter.pp "got or created tc"
-#Pry::ColorPrinter.pp tc
           sc = {'top_container' => {'ref' => tc.uri},
             'jsonmodeltype' => 'sub_container'}
           %w(2 3).each do |num|
@@ -283,12 +272,9 @@ module LinkedObjects
           instance.instance_type = @@instance_types.value(row['cont_instance_type'])
           instance.sub_container = JSONModel(:sub_container).from_hash(sc)
         rescue ExcelImportException => ee
-#          Pry::ColorPrinter.pp "Excel Except: #{ee.message}"
           instance = nil
           raise ee
         rescue Exception => e
-#          Pry::ColorPrinter.pp "Exception: #{e.message}"
-#          Pry::ColorPrinter.pp e.backtrace
           msg = e.message #+ "\n" + e.backtrace()[0]
           instance = nil
           raise ExcelImportException.new(msg)
@@ -301,7 +287,7 @@ module LinkedObjects
 
   #shamelessly stolen (and adapted from HM's nla_staff_spreadsheet plugin :-)
   class ParentTracker
-    require 'pry'
+    require 'pp'
     def set_uri(hier, uri)
       @current_hierarchy ||= {}
       @current_hierarchy = Hash[@current_hierarchy.map {|k, v|
@@ -353,14 +339,12 @@ module LinkedObjects
     def self.get_or_create(row, num, repo_id, report)
       subject = build(row, num)
       subject_key = key_for(subject)
-#      Pry::ColorPrinter.pp "Subject key: #{subject_key}"
       if !(subj = stored(@@subjects, subject[:id], subject_key))
         unless subject[:id].blank?
           begin
             subj = JSONModel(:subject).find( subject[:id])
           rescue Exception => e
              if e.message != 'RecordNotFound'
-#               Pry::ColorPrinter.pp e
                raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
              end
           end
@@ -371,8 +355,6 @@ module LinkedObjects
             report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')}[#{subject[:term]}]", :id => subj.uri))
           end
         rescue Exception => e
-#          Pry::ColorPrinter.pp e.message
-#          Pry::ColorPrinter.pp e.backtrace
           raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
         end
         if subj

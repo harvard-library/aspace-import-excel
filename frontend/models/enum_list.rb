@@ -1,6 +1,5 @@
 class EnumList
-  require 'pry'
-  #Pry::ColorPrinter.pp "we required the EnumList"
+  require 'pp'
   @list = []
   @list_hash = {}
   @which = ''
@@ -8,7 +7,6 @@ class EnumList
   def initialize(which)
     @which = which
     renew
-#    Pry::ColorPrinter.pp "Initialized #{@which} #{@list.length}"
   end
 
   def value(label)
