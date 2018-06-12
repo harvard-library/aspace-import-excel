@@ -93,7 +93,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         while (row = rows.next)
           @counter += 1 
           values = row_values(row)
-          next if values.compact.empty?
+          next if values.reject(&:blank?).empty?
           @row_hash = Hash[@headers.zip(values)]
           ao = nil
           begin
@@ -199,7 +199,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       end 
       missing_title = @row_hash['title'].blank?
       #date stuff: if already missing the title, we have to make sure the date label is valid
-      missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty? 
+      missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].reject(&:blank?).empty?
       if !missing_date
         begin
           label = @date_labels.value((@row_hash['dates_label'] || 'creation'))
@@ -235,7 +235,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
   def create_archival_object(parent_uri)
     ao = JSONModel(:archival_object).new._always_valid!
     ao.title = @row_hash['title'] if  @row_hash['title']
-    unless [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].compact.empty?
+    unless  [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].reject(&:blank?).empty?
       begin
         ao.dates = create_date 
       rescue Exception => e
@@ -255,7 +255,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     ao.restrictions_apply = @row_hash['restrictions_flag']
     ao.parent = {'ref' => parent_uri} unless parent_uri.blank?
     begin
-      ao.extents = create_extent unless [@row_hash['number'],@row_hash['extent_type'], @row_hash['portion']].compact.empty?
+      ao.extents = create_extent unless @row_hash['number'].blank? && @row_hash['extent_type'].blank? && @row_hash['portion'].blank?
     rescue Exception => e
       @report.add_errors(e.message)
     end
