@@ -57,8 +57,8 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     @digital_load  = params.fetch(:digital_load,'') == 'true'
 
     if @digital_load
-      @find_uri =  "/repositories/#{params[:repo_id]}/find_by_id/archival_objects"
-      @resource_ref = "/repositories/#{params[:repo_id]}/resources/#{params[:id]}"
+      @find_uri =  "#{AppConfig[:frontend_proxy_prefix]}repositories/#{params[:repo_id]}/find_by_id/archival_objects"
+      @resource_ref = "#{AppConfig[:frontend_proxy_prefix]}repositories/#{params[:repo_id]}/resources/#{params[:id]}"
       @repo_id = params[:repo_id]
       @start_marker = DO_START_MARKER
     else
