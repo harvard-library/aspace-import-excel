@@ -1,7 +1,7 @@
 <div id="bulk_ingest_file_template">
   <div class="bulk_ingest_wrapper">
 <!-- <%= "/resources/#{rid}/ssload" %> -->
-    <%= form_tag('/resources/ssload', method: "post", id: "bulk_ingest_form", multipart: true) do |form| %>
+    <%= form_tag url_for("#{AppConfig[:frontend_proxy_prefix]}resources/ssload"), :method => "post", multipart: true, :id => 'bulk_ingest_form' do %>
 <!-- <%= "#{rid}  #{ref_id}" %> -->
     <div class="modal-body">
 	 <input type='hidden' name='repo_id' id='repo_id' value='<%= repo_id %>'/>

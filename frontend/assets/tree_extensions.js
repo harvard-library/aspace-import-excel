@@ -85,7 +85,7 @@ $(function () {
 	    $form = $("#bulk_ingest_form");
 	    rid = $form.find("#rid").val();
 	    /* I do this because ajaxSubmit doesn't like the URL property? */
-	    $form.attr("action", "/resources/" + rid + "/ssload");
+	    $form.attr("action", APP_PATH + "resources/" + rid + "/ssload");
 	    $form.ajaxSubmit({
 	       type: "POST",
 	       beforeSubmit:  function(arr, $form, options) {
