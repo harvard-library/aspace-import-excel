@@ -48,6 +48,8 @@ Processing Note | String | | No markup allowed
 
 A Date must have **at least** either a *begin date* or a *date expression.*
 
+**NOTE:**  The cell format for cells containing values for *Date Begin* and *Date End* **MUST** be **Text**, not some date format like `yyyy-mm-dd`, if you don't want the hours, minutes, seconds appended (e.g.: *1969-17-17T00:00:00+00.00*).  Some versions of Excel will "helpfully" convert the cell to a date format if you are not watching.
+
 Column | Value | Default | Comment
 -------|-------|---------|---------
 Dates Label | String | creation| from the *Date Label* controlled value list
