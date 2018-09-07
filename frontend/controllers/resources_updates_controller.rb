@@ -463,7 +463,7 @@ Rails.logger.info {ao.pretty_inspect}
   def process_agents
     agent_links = []
     %w(people corporate_entities families).each do |type|
-      (1..3).each do |num|
+      (1..10).each do |num|
         id_key = "#{type}_agent_record_id_#{num}"
         header_key = "#{type}_agent_header_#{num}"
         unless @row_hash[id_key].blank? && @row_hash[header_key].blank?
@@ -544,7 +544,7 @@ Rails.logger.info {ao.pretty_inspect}
 
   def process_subjects
     ret_subjs = []
-    (1..2).each do |num|
+    (1..10).each do |num|
       unless @row_hash["subject_#{num}_record_id"].blank? && @row_hash["subject_#{num}_term"].blank?
         subj = nil
         begin
