@@ -36,7 +36,7 @@ DO_START_MARKER = /ArchivesSpace digital object import field codes/
   # load the digital objects
   def load_dos
      #first time out of the box:
-Rails.logger.info "\t**** LOAD DOS ***"
+#Rails.logger.info "\t**** LOAD DOS ***"
     ao = fetch_archival_object(params)
 Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     if !ao['instances'].blank? 
@@ -262,7 +262,12 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     errs =  handle_notes(ao)
     @report.add_errors(errs) if !errs.blank?
     # we have to save the ao for the display_string
-    ao = ao_save(ao)
+    begin
+      ao = ao_save(ao)
+    rescue Exception => e
+      msg = I18n.t('plugins.aspace-import-excel.error.initial_save_error', :title =>ao.title, :msg => e.message)
+      raise ExcelImportException.new(msg)
+    end
     instance = create_top_container_instance
     ao.instances = [instance] if instance
     if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
@@ -517,7 +522,8 @@ Rails.logger.info {ao.pretty_inspect}
     rescue JSONModel::ValidationException => ve
       # ao won't have been created
       Rails.logger.error("VALIDATION ERROR ON SECOND SAVE: #{ve.message}")
-      raise ExcelImportException.new(ve.message)
+      msg = I18n.t('plugins.aspace-import-excel.error.second_save_error', :what => ve.message, :title => ao.title, :pos => ao.position)
+      raise ExcelImportException.new(msg)
     rescue  Exception => e
       Rails.logger.error("UNEXPECTED #{e.message}")
       Rails.logger.error(e.backtrace.pretty_inspect)
