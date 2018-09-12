@@ -523,14 +523,14 @@ Rails.logger.info {ao.pretty_inspect}
       # ao won't have been created
       Rails.logger.error("VALIDATION ERROR ON SECOND SAVE: #{ve.message}")
       msg = I18n.t('plugins.aspace-import-excel.error.second_save_error', :what => ve.message, :title => ao.title, :pos => ao.position)
-      raise ExcelImportException.new(msg)
+      @report.add_errors(msg)
     rescue  Exception => e
       Rails.logger.error("UNEXPECTED #{e.message}")
       Rails.logger.error(e.backtrace.pretty_inspect)
       Rails.logger.error( ASUtils.jsonmodels_to_hashes(ao).pretty_inspect)
       raise ExcelImportException.new(e.message)
     end
-    @report.add_archival_object(ao)
+    @report.add_archival_object(ao) if !ao.blank?
     @parents.set_uri(@hier, ao.uri)
     @created_ao_refs.push ao.uri
     if @hier == 1

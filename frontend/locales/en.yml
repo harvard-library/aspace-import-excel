@@ -68,4 +68,4 @@ en:
        ref_id_miss: No Ref Id specified
        dig_info_miss: Neither the Digital Object URN or the Thumbnail URN is specified
        initial_save_error: "Problem with initial save of %{title} -- %{msg}"
-       second_save_error: "Error on attempt to re-save archival object with 'instances' %{title} position: %{pos} -- %{what}"
+       second_save_error: "Error on attempt to re-save archival object with 'instances' %{title} position: %{pos}.This means that the archival object has been created, but possibly not linked to its associated instances (digital object, top container, subject, etc.) [%{what}]"
