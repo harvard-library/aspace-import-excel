@@ -128,7 +128,8 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.no_header'), @counter)
       else # something else went wrong
         @report.add_terminal_error(I18n.t('plugins.aspace-import-excel.error.system', :msg => e.message), @counter)
-        Rails.logger.error("UNEXPECTED EXCEPTION!")
+        Rails.logger.error("UNEXPECTED EXCEPTION on load_ss!")
+        Rails.logger.debug(e.pretty_inspect)
         Rails.logger.error(e.message)
         Rails.logger.error( e.backtrace.pretty_inspect)
       end
@@ -150,8 +151,11 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     begin
       id = ao.save
       revived = JSONModel(:archival_object).find(id)
+    rescue ValidationException => ve
+      raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.ao_validation', :err=>ve.errors))
     rescue  Exception => e
-      Rails.logger.error("UNEXPECTED save error: #{e.message}")
+      Rails.logger.error("UNEXPECTED ao save error: #{e.message}")
+      Rails.logger.error(e.pretty_inspect)
       Rails.logger.error(ASUtils.jsonmodels_to_hashes(ao).pretty_inspect) if ao
       raise e
     end
@@ -218,7 +222,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     rescue StopExcelImportException => se
       raise
     rescue Exception => e
-      Rails.logger.error(["UNEXPLAINED EXCEPTION", e.message, e.backtrace, @row_hash].pretty_inspect)
+      Rails.logger.error(["UNEXPLAINED EXCEPTION on check row", e.message, e.backtrace, @row_hash].pretty_inspect)
     end
     if err_arr.blank?
       @row_hash.each do |k, v|
@@ -502,7 +506,12 @@ Rails.logger.info {ao.pretty_inspect}
       if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
         ao.instances ||= []
         ao.instances << dig_instance
-        ao = ao_save(ao)
+        begin
+          ao = ao_save(ao)
+          @report.add_info(I18n.t('plugins.aspace-import-excel.dig_assoc'))
+        rescue ExcelImportException => ee
+          @report.add_errors(I18n.t('plugins.aspace-import-excel.error.dig_unassoc', :msg =>ee.message))
+        end
       end
     end
     
@@ -522,10 +531,10 @@ Rails.logger.info {ao.pretty_inspect}
     rescue JSONModel::ValidationException => ve
       # ao won't have been created
       Rails.logger.error("VALIDATION ERROR ON SECOND SAVE: #{ve.message}")
-      msg = I18n.t('plugins.aspace-import-excel.error.second_save_error', :what => ve.message, :title => ao.title, :pos => ao.position)
+      msg = I18n.t('plugins.aspace-import-excel.error.second_save_error', :what => ve.errors, :title => ao.title, :pos => ao.position)
       @report.add_errors(msg)
     rescue  Exception => e
-      Rails.logger.error("UNEXPECTED #{e.message}")
+      Rails.logger.error("UNEXPECTED ON SECOND SAVE#{e.message}")
       Rails.logger.error(e.backtrace.pretty_inspect)
       Rails.logger.error( ASUtils.jsonmodels_to_hashes(ao).pretty_inspect)
       raise ExcelImportException.new(e.message)

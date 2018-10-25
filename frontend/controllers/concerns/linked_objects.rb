@@ -160,7 +160,14 @@ module LinkedObjects
         dig_o.digital_object_id = osn
         dig_o.file_versions = files
         dig_o.publish = row['publish']
-        dig_o.save
+        begin
+          dig_o.save
+        rescue ValidationException => ve
+          report.add_errors(I18n.t('plugins.aspace-import-excel.error.dig_validation', :err => ve.errors))
+          return  nil
+        rescue Exception => e
+          raise e
+        end
         report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>I18n.t('plugins.aspace-import-excel.dig'), :id => "'#{dig_o.title}' #{dig_o.uri} [#{dig_o.digital_object_id}]"))
         dig_instance = JSONModel(:instance).new._always_valid!
         dig_instance.instance_type = 'digital_object'
@@ -222,7 +229,7 @@ module LinkedObjects
           existing_tc = tc
         end
       rescue Exception => e
-        report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
+        report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message + " in linked_objects"))
         existing_tc = nil
       end
       @@top_containers[tc_key] = existing_tc if existing_tc

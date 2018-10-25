@@ -19,6 +19,19 @@ end
 class StopExcelImportException < Exception
 end
 
+# override the editable? method so errors end up rescued as ValidationExceptions
+Rails.application.config.after_initialize do
+  class ClientEnumSource
+    def editable?(name)
+      begin
+        MemoryLeak::Resources.get(:enumerations).fetch(name).editable?
+      rescue Exception => e
+        Rails.logger.error("Blowup for #{name}! #{e.message}")
+      end
+    end
+  end
+end
+   
 
 # Work around small difference in rubyzip API (from https://github.com/hudmol/nla_staff_spreadsheet_importer/blob/2a28e6379a6748877ab433735153bba96be09b12/backend/plugin_init.rb)
 module Zip
