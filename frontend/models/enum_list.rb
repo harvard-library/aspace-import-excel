@@ -10,10 +10,10 @@ class EnumList
   end
 
   def value(label)
-    if @list.index(label)
+    if @list_hash[label]
+      v =  @list_hash[label]
+    elsif @list.index(label)
       v = label
-    else
-      v = @list_hash[label]
     end
     raise Exception.new(I18n.t('plugins.aspace-import-excel.error.enum',:label =>label,:which => @which)) if !v
     v
