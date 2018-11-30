@@ -1,11 +1,12 @@
 class ResourcesUpdatesController < ApplicationController
   require 'nokogiri'
   require 'pp'
+  require 'csv'
+  require 'asutils'
 
 START_MARKER = /ArchivesSpace field code/
 DO_START_MARKER = /ArchivesSpace digital object import field codes/
-  set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file, :get_do_file, :load_dos]
-
+  set_access_control "update_resource_record" => [:new, :edit, :create, :update, :rde, :add_children, :publish, :accept_children, :load_ss, :get_file, :get_do_file, :load_dos, :download_csv]
   require 'rubyXL'
   require 'asutils'
   require 'enum_list'
@@ -13,6 +14,85 @@ DO_START_MARKER = /ArchivesSpace digital object import field codes/
   include UpdatesUtils
   include LinkedObjects
   require 'ingest_report'
+
+  # download a csv
+  def download_csv
+    job_data || {}
+    job_data['repo_id'] ||= session[:repo_id]
+    job = Job.new("download_resource_csv_job", JSONModel(:download_resource_csv_job).from_hash(job_data), [])
+    response = job.upload
+    resolver = Resolver.new(response[:uri])
+    redirect_to resolver.view_uri
+  end
+#  def download_csv_orig
+#    @find_uri =  "/repositories/#{params[:repo_id]}/find_by_id/archival_objects"
+#
+#    Rails.logger.debug("DOWNLOAD CSV: #{__FILE__}")
+#    header_path = File.expand_path('../../data/ao_headers.csv', __FILE__)
+#    Rails.logger.debug("expanded path? #{header_path}")
+#    rows = []
+#    CSV.foreach(header_path) do |row|
+#      rows.append(row)
+#    end
+#    resource_id = params[:id]
+#    begin
+#      resource_uri = JSONModel(:resource).uri_for(params[:id])
+#      js = pass_through_json("#{resource_uri}/ordered_records")
+#      ordered_aos = JSON.parse(js)
+#      Rails.logger.debug("JSON: #{ordered_aos.class.name}  #{ordered_aos.pretty_inspect}")
+#      js = pass_through_json("#{resource_uri}/tree/root")
+#      if !js.nil?
+#        tree = JSON.parse(js)
+#        Rails.logger.debug("TREE? #{tree.pretty_inspect}")
+#         Rails.logger.debug("precompute: #{tree['precomputed_waypoints'].pretty_inspect}")
+#         Rails.logger.debug("empty key:  #{tree['precomputed_waypoints'][''].pretty_inspect}")
+#        childs = tree['precomputed_waypoints']['']['0']
+#        Rails.logger.debug("childs? #{childs.pretty_inspect}")
+#        if childs.instance_of? Array
+#          Rails.logger.debug("Hurray, Array!")
+#          if childs.length > 0
+#            js =  pass_through_json("#{resource_uri}/tree/node", {:node_uri => childs[0]["uri"] })
+#            child_0 = JSON.parse(js)
+#            Rails.logger.debug("CHILD 0's node: #{child_0.pretty_inspect}")
+#            if child_0.dig('precomputed_waypoints')
+#              Rails.logger.debug(child_0.dig('precomputed_waypoints').keys.pretty_inspect) if child_0.dig('precomputed_waypoints').instance_of? Hash
+#            end
+#          end
+#        end
+#        js = pass_through_json("#{resource_uri}/tree/waypoint", {:offset=>0})
+#        Rails.logger.debug("WAYPOINT? #{JSON.parse(js).pretty_inspect}")
+#      end
+#      aos_ref_list = ordered_aos["uris"].map{|u| u['ref']}
+# Rails.logger.debug(aos_ref_list)
+#      js = pass_through_json("/search/records", {"uri[]" => [aos_ref_list[4]]})
+#      ao = ASUtils.json_parse(js)
+#Rails.logger.debug("ao_json: #{ASUtils.json_parse(ao["results"][0]["json"]).pretty_inspect}")
+#      if ao.length > 0
+ #      ao_j=JSON.parse(ao[0]["json"])
+#Rails.logger.debug(ao_j.pretty_inspect)
+#      end
+      
+#    rescue Exception => e
+#      Rails.logger.debug("blew up on tree stuff #{e.pretty_inspect}")
+#       Rails.logger.debug(e.backtrace.join("\n"))
+#    end
+
+#    file_name = "resource_#{resource_id}"
+    
+    # convert to csv and output
+#    @data = CSV.generate do |csv|
+#      rows.each do |row|
+#        csv << row
+#      end
+#    end
+# output the CSV
+#    respond_to do |format|
+#      format.csv {
+#        headers['Content-Disposition'] = "attachment; filename=\"#{file_name}.csv\""
+#        headers['Content-Type'] ||= 'text/csv'
+#        render plain: @data}
+#    end
+#  end
 
   # create the file form for the digital object spreadsheet
   def get_do_file
@@ -142,6 +222,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     return render_aspace_partial :partial => "resources/bulk_response", :locals => {:rid => params[:rid], :report => @report,
     :do_load => @digital_load}
   end
+
 
   private  
 
@@ -347,8 +428,9 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
   end
 
   def fetch_archival_object(ref_id)
+Rails.logger.debug("fetch archival object: #{ref_id}")
     ao = nil
-    response = JSONModel::HTTP::get_json(URI(@find_uri),{"ref_id[]" => ref_id, "resolve[]" => "archival_objects"})
+    response = JSONModel::HTTP::get_json(URI(@find_uri),{"ref_id[]" => ref_id, "resolve[]" => ["archival_objects", "top_containers"]})
 #    Rails.logger.info("response: #{response} for ref_id: #{ref_id}")
     unless response.blank? || response["archival_objects"].blank?
        aos = []
@@ -371,6 +453,13 @@ Rails.logger.info {ao.pretty_inspect}
     end
     ao 
   end
+
+  # the 'header' line of the csv
+  def get_csv_header
+    
+
+  end
+
 
   def handle_notes(ao)
     publish = ao.publish
@@ -463,7 +552,14 @@ Rails.logger.info {ao.pretty_inspect}
       end
     end
   end
-
+  def pass_through_json(uri, params = {})
+Rails.logger.debug("URI: #{uri}")
+    json = "{}"
+    JSONModel::HTTP.stream(uri, params) do |response|
+      json = response.body
+    end
+    json
+  end
   def process_agents
     agent_links = []
     %w(people corporate_entities families).each do |type|

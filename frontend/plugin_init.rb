@@ -19,8 +19,12 @@ end
 class StopExcelImportException < Exception
 end
 
-# override the editable? method so errors end up rescued as ValidationExceptions
+
 Rails.application.config.after_initialize do
+  # add the csv download as a job
+  JSONModel(:download_resource_csv_job)
+
+# override the editable? method so errors end up rescued as ValidationExceptions
   class ClientEnumSource
     def editable?(name)
       begin

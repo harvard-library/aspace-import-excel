@@ -9,5 +9,6 @@ ArchivesSpace::Application.routes.draw do
     match 'resources/:id/getdofile' => 'resources_updates#get_do_file', :via => [:post]
     match 'resources/:id/digital_load' => 'resources_updates#load_dos', :via => [:get]
     match 'resources/:id/digital_load' => 'resources_updates#load_dos', :via => [:post]
+    match 'resources/:id/ssunload'  => 'resources_updates#download_csv', :via => [:get], defaults: { format: 'csv' }
   end
 end

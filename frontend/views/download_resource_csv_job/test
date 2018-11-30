@@ -1,0 +1,13 @@
+
+ <div class="form-group">
+      <label class="col-sm-3 control-label"><%= I18n.t("actions.resource_to_download")  %></label>
+      <div class="col-sm-9 controls label-only"><%= job['source'] %></div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-sm-3 control-label"><%= I18n.t("print_to_pdf_job.include_unpublished")  %></label>
+      <div class="col-sm-9 controls label-only"><%= I18n.t("boolean.#{job['include_unpublished']}") %></div>
+</div>
+    <%= render_aspace_partial :partial => "resources/linker", :locals => { :form => form, :field_label => I18n.t("actions.resource_to_download") }%>
+    <input id="download_resource_to_csv_jsonmodel_type_" name="download_resource_to_csv_job[jsonmodel_type]" type="hidden" value="download_resource_to_csv_job">
+
