@@ -30,7 +30,10 @@ Below is a discussion of each used column in the spreadsheet.
 
 For columns where the value is from a Controlled Value List, you can fill in either the controlled list's **Value** *or* the **Translation**.  It must be entered **exactly** as it is written (lower case, title case, etc.). As an example (for English), in the *Extent Extent Type* controlled list, "cubic feet" is represented as the **value** `cubic_feet` or the **translation** `Cubic Feet`.  Entering `cubic feet` would result in an error message.
 
-**Note** that the application compares the input first against the **Translation**, then, failing that, against the **Value**.
+**Notes:** 
+1. The application compares the input first against the **Translation**, then, failing that, against the **Value**.
+2. In the case that your list has more than one entry with the same **Translation**, the **Value** for the first (lowest position) entry is used.  A **WARN** message will appear in the frontend log file when this application encounters this situation.
+
 
 Column | Value | Default | Comment
 -------|-------|---------|---------

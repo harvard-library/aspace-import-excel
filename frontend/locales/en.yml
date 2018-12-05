@@ -26,6 +26,8 @@ en:
       dig: Digital Object
       unfound_id: "PLACEHOLDER FOR %{type} ID %{id} NOT FOUND"
       ref_id_notfound: "Ref Id %{refid} not found"
+      warn:
+       dup: "Managed Controlled Value List %{which} has multiple instances for the Translation '%{trans}'. '%{used}' will be used as the value."
       error:
        date_type: "Date type [%{what}] invalid. Defaulting to 'inclusive'"
        certainty: "Invalid 'date certainty' ignored: (%{what})"

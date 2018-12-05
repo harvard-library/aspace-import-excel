@@ -32,8 +32,13 @@ class EnumList
       if enum['name'] == @which
         enum['values'].each do |v|
           if v
-            list_hash[I18n.t("enumerations.#{@which}.#{v}", default: v)] = v
-            @list.push v
+            trans = I18n.t("enumerations.#{@which}.#{v}", default: v)
+            if !list_hash[trans]
+              list_hash[trans] = v
+              @list.push v
+            else
+              Rails.logger.warn(I18n.t('plugins.aspace-import-excel.warn.dup', :which => @which, :trans => trans,  :used => list_hash[trans]))
+            end
           end
         end
         break
@@ -41,5 +46,4 @@ class EnumList
     end
     @list_hash = list_hash
   end
-
 end
