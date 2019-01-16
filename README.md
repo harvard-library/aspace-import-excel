@@ -1,13 +1,15 @@
 # aspace-import-excel
-An [ArchivesSpace ](http://archivesspace.org/) [plugin](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md) to support the bulk uploading via Excel SpreadSheet of Archival Objects and (optionally) their associated Creator Agents, Top Containers, Subjects, Digital Objects etc.
+An [ArchivesSpace ](http://archivesspace.org/) [plugin](https://github.com/archivesspace/tech-docs/blob/master/customization/plugins.md) to support the bulk uploading via Excel SpreadSheet of Archival Objects and (optionally) their associated Creator Agents, Top Containers, Subjects, Digital Objects etc.
 
 Also supports the inport of spreadsheets that will allow for the creation of Digital Objects to be associated with already-created Archival Objects for **Version  2.2.2 and higher** of ArchiveSpace.
 
 ## Current Version
 
-  For versions of ArchivesSpace **before** v2.2.2:  [v1.7.8](https://github.com/harvard-library/aspace-import-excel/releases/tag/v1.7.8)  **Note:** This version does *not* support the creation of Digital Objects to be associated with already-created Archival Objects.
+  For versions of ArchivesSpace **before** v2.2.2:  [v1.7.8](https://github.com/harvard-library/aspace-import-excel/releases/tag/v1.7.8) 
+  
+    NOTE: This version does *not* support the creation of Digital Objects to be associated with already-created Archival Objects.
 
-  For ArchivesSpace **v2.2.2 and higher**: [v2.1.15](https://github.com/harvard-library/aspace-import-excel/releases/tag/v2.1.15)
+  For ArchivesSpace **v2.2.2 and higher**: [v2.1.18](https://github.com/harvard-library/aspace-import-excel/releases/tag/v2.1.18)
 
 ## Development
 
@@ -35,10 +37,12 @@ See the [user documentation](user_documentation/USER_DOCUMENTATION.md) for more 
 
 ## <a name="install">Installation</a>
 
-This is a regular  [ArchivesSpace Plug-in](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md).
+This is a regular  [ArchivesSpace Plug-in](https://github.com/archivesspace/tech-docs/blob/master/customization/plugins.md).
 
 To install this plug-in:  
-1. Download or clone the plug-in from this [GitHub repository](https://github.com/archivesspace/archivesspace/blob/master/plugins/PLUGINS_README.md) into the ArchivesSpace **/plugin/** directory.
+1.  Either clone this plugin, or download the latest version:
+    - Clone the plug-in from this [GitHub repository](https://github.com/harvard-library/aspace-import-excel) into the ArchivesSpace **/plugins/** directory.
+    - Download the zipfile of the  appropriate version: see [Current Versions](#current_versions) for links to the appropriate release download. Unzip the download into the **/plugins/** directory.  You will probably need to rename the top folder/directory to **aspace-import-excel**. 
 
 2. (Optional) To turn **off** the functionality for creating Digital Objects associated with already-created Archival objects, you must edit **/plugin/aspace-import-excel/frontend/plugin_init.rb**. Change the line 
 ```bash 
@@ -48,11 +52,28 @@ to
 ```bash 
     AppConfig[:hide_do_load] = true
 ```
-3. Run the **scripts/initialize-plugin script**
-   * for Linux, that's `scripts/initialize-plugin.sh aspace-import-excel`
-   * for Windows, that's `scripts/initialize-plugin.bat aspace-import-excel`
-4. In the **common/config/config.rb** file, add 'aspace-import-excel' to the `AppConfig[:plugins]` array.
-5. Stop and restart ArchivesSpace
+3. **IF** you are running ArchivesSpace on Windows:
+     
+     There currently is a problem with Bundler versioning.  Until a new version of ArchivesSpace is released that contains a fix to the *initialize-plugin.bat* script, copy 
+```
+archivesspace\aspace-import-excel\extras\modified_initialize-plugin.bat 
+```
+to
+```
+archivesspace\scripts
+```
+
+4. Run the initializer script:
+   * for Linux, that's 
+   ```bash
+   scripts/initialize-plugin.sh aspace-import-excel
+   ```
+   * for Windows, that's 
+   ```
+   scripts\modified_initialize-plugin.bat aspace-import-excel
+   ```
+5. In the **common/config/config.rb** file, add 'aspace-import-excel' to the `AppConfig[:plugins]` array.
+6. Stop and restart ArchivesSpace
 
 ## User Documentation
 
