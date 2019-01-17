@@ -35,6 +35,8 @@ As with the original development, we are not completely reproducing all the func
     
 See the [user documentation](user_documentation/USER_DOCUMENTATION.md) for more information. 
 
+
+
 ## <a name="install">Installation</a>
 
 This is a regular  [ArchivesSpace Plug-in](https://github.com/archivesspace/tech-docs/blob/master/customization/plugins.md).
@@ -72,8 +74,21 @@ archivesspace\scripts
    ```
    scripts\modified_initialize-plugin.bat aspace-import-excel
    ```
+
 5. In the **common/config/config.rb** file, add 'aspace-import-excel' to the `AppConfig[:plugins]` array.
 6. Stop and restart ArchivesSpace
+
+### Why we don't include a Gemfile.lock in this repository
+
+We have found that when we include a `Gemfile.lock` file in our plugin, some sites have found that, after initializing the plugin and trying to restart ArchivesSpace, they get errors like this:
+```bash
+[!] There was an error parsing Gemfile: You cannot specify the same gem twice with different version requirements.
+You specified: rubyzip (~> 1.2.2) and rubyzip (= 1.0.0). Bundler cannot continue.
+```
+
+This problem does not seem to occur when the `Gemfile.lock` is created through the initialization instead.
+
+
 
 ## User Documentation
 
