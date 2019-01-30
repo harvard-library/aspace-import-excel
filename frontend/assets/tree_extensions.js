@@ -17,7 +17,7 @@ $(function () {
 	/* used in aspace v1.* */
 	var bulk_btn_str = '<a class="btn btn-xs btn-default bulk-ingest" id="bulk-ingest" rel="archival_object" href="javascript:void(0);" data-record-label="Archival Object" title="Load via Spreadsheet">Load via Spreadsheet</a>';
 
-	
+
 /* returns a hash with information about the selected archival object or resource */
 	var get_object_info = function() {
 	    var ret_obj = new Object;
@@ -44,7 +44,7 @@ $(function () {
 	    }
 	    return ret_obj;
 	}
-   
+
 	/* adds the spreadsheet load button in AS V1.* */
 	var add_bulk_button = function() {
 	    var $tmpBtn = $("#bulk-ingest");
@@ -71,8 +71,8 @@ $(function () {
 		$("#excel_filename").html(filename);
 	    };
 	    $("#excel_file").on("change", handleExcelFileChange);
-	    
-	}; 
+
+	};
 
         /* submit the file for processing */
 	var handleFileUpload = function($modal) {
@@ -94,10 +94,10 @@ $(function () {
 			var missingFile = 'You have not added a file';
 			for (var i=0; i < arr.length; i++) {
 			    if (arr[i].type === "file") {
-				fileObj = arr[i].value; 
+				fileObj = arr[i].value;
 				if  (typeof(fileObj) === "object") {
-				    if (typeof(fileObj.type) !== "undefined" && fileObj.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ) {
-					hasFile = true; 
+				    if (typeof(fileObj.type) !== "undefined" && (fileObj.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileObj.name.endsWith(".xlsx"))) {
+					hasFile = true;
 				    }
 				    else {
 					missingFile = 'The file you have chosen is not an Excel Spreadsheet';
@@ -112,7 +112,7 @@ $(function () {
 			}
 			$(".bulkbtn").addClass('disabled');
 			return true;
-		    },		
+		    },
 			/*		uploadProgress:  function(event, position, total, percentComplete) {
 			var percentVal = percentComplete + '%';
                         console.log("Percent: " + percentVal);
@@ -139,14 +139,14 @@ $(function () {
 		});
 	}
 
-    
+
 	/* link switching in the tree in AS v1.*  means we have to do some initializing */
-	$(document).on('treesingleselected.aspace', function() { 
+	$(document).on('treesingleselected.aspace', function() {
 		add_bulk_button();
 		file_modal_html = '';
 	    });
 
-    
+
 
 	var openFileModal = function() {
 	    $file_form_modal = AS.openCustomModal("bulkIngestFileModal", "Load Spreadsheet",  file_modal_html, 'large', null, $("#bulkFileButton").get(0));
@@ -177,7 +177,7 @@ $(function () {
             $(".bulkbtn.btn-cancel").text("Close").removeClass("disabled").addClass("close")
 	    $(".clip-btn").removeClass("disabled");
 	    $modal.find(".close").click(function(event) {
-		    $("input").each(function() { 
+		    $("input").each(function() {
 			    /*console.log($(this).val()); */
 			    $(this).val("");
 			});
@@ -195,19 +195,19 @@ $(function () {
 		    window.location.reload(true);
 		});
 	}
-	
+
 	var toggleTreeSpinner = function(){
 	    $(".archives-tree-container .spinner").toggle();
 	}
-	
- 
+
+
 	$(document).on('loadedrecordform.aspace', function () {
 	/* adding the button to the tree on the resource page */
 		add_bulk_button();
 	    });
 
-    
-	var fileSelection = function() { 
+
+	var fileSelection = function() {
 	    toggleTreeSpinner();
 	    obj = get_object_info();
 	    if ($.isEmptyObject(obj)) {
@@ -255,7 +255,7 @@ $(function () {
                 $(btn).addClass('disabled');
             },
         }
-    
+
       if (aspace_version !== 1) {
 	  var res = TreeToolbarConfiguration["resource"];
 	  TreeToolbarConfiguration["resource"] = [].concat(res).concat([bulkbtnArr]);
@@ -274,7 +274,7 @@ $(function () {
 			  });
 		  }
 		  arch.push(new_val);
-		      
+
 	      });
 	  TreeToolbarConfiguration["archival_object"] = arch;
       }
