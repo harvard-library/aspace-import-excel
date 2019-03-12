@@ -2,12 +2,13 @@ module LinkedObjects
   extend ActiveSupport::Concern
 
 
-# This module incorporates all the classes needed to handle objects that must be linked to
-# Archival Objects, such as Subjects, Top Containers, etc.
-
+# This module originally incorporated all the classes needed to handle objects that must be linked to
+# Archival Objects, such as Subjects, Top Containers, etc.  These classes have be refactored out, and
+# can be found in aspace-import-excel/frontend/models
 # a lot of this is adapted from Hudson Mlonglo's Arrearage plugin:
-#https://github.com/hudmol/nla_staff_spreadsheet_importer/blob/master/backend/converters/arrearage_converter.rb
+# https://github.com/hudmol/nla_staff_spreadsheet_importer/blob/master/backend/converters/arrearage_converter.rb
 
+# ParentTracker, used to keep track of hierarchy, remains in this module
 
 
   #shamelessly stolen (and adapted from HM's nla_staff_spreadsheet plugin :-)
