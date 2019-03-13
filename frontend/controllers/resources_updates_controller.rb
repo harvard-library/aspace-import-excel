@@ -382,7 +382,13 @@ Rails.logger.info {ao.pretty_inspect}
         type = key.match(/n_(.+)$/)[1]
         note_type = @note_types[type]
         note = JSONModel(note_type[:target]).new
-        note.publish = publish
+        pubnote = @row_hash["p_#{type}"]
+        if pubnote.blank?
+          pubnote = publish
+        else
+          pubnote = (pubnote == '1')
+        end
+        note.publish = pubnote
         note.type = note_type[:value]
         begin
           wellformed(content)
@@ -390,7 +396,7 @@ Rails.logger.info {ao.pretty_inspect}
           if note_type[:target] == :note_multipart
             inner_note = JSONModel(:note_text).new
             inner_note.content = content
-            inner_note.publish = publish
+            inner_note.publish = pubnote
             note.subnotes.push inner_note
           else
             note.content.push content
