@@ -2,14 +2,20 @@
 
 ## <a name="spreadsheet">Using the Template to Create a Spreadsheet</a>
 
-The Excel Spreadsheet template for importing Archival Objects is at https://github.com/harvard-library/aspace-import-excel/blob/master/templates/aspace_import_excel_template.xlsx .
+**aspace-import-excel v3.0** introduces an [expanded Excel Spreadsheet template](../templates/extended_aspace_import_excel_template.xlsx) with new functionality for importing Archival Objects.  
 
-Use **Save as**  *(your new filename}*.xlsx to begin creating your spreadsheet.
+The new functionality consists of support for:
+
+* Individually setting the publish/unpublish flags for <a href="#note">Notes</a>.
+
+The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
+
+Once you've opened the tempate, use **Save as**  *(your new filename}*.xlsx to begin filling in your spreadsheet.
 
 
-The template is designed to be flexible enough to accommodate different workflows.  The first row is the place where you can put identifying information, such as "Foo Collection".
+The template is designed to be flexible enough to accommodate different workflows.  The *first row* is the place where you can put identifying information, such as "Foo Collection".
 
-As long as you **don't edit** the **row** marked *"ArchivesSpace field code"*, you may hide, delete, or rearrange **columns** to suit your workflow.  Indeed, you will see that there are a few already-hidden columns; these are not currently used, but may be used in future enhancements.
+As long as you **don't edit** the **row** marked *"ArchivesSpace field code"*, you may hide, delete, or rearrange **columns** to suit your workflow.  Indeed, you will see that there are a few already-hidden columns; these are not currently used, but may be used in future enhancements. **_DO NOT_** hide required columns.
 
 **Note**  that some columns already have in-column drop down data validation defined.  You may of course add more of these, or edit the ones that are already defined. See [The Excel help page](https://support.office.com/en-us/article/Apply-data-validation-to-cells-29FECBCC-D1B9-42C1-9D76-EFF3CE5F7249) to learn how to create these. 
 
@@ -191,6 +197,12 @@ Subject (2) Source | String| ingest| from the *Subject Source* controlled value 
 You may specify a variety of notes fields.
 
 If the note type allows for subfields, what you specify will be put in the first subfield.
+
+<span style="color:rebeccapurple">New in version 3.0:</span>
+Each Note column is accompanied by a "Publish" column, which has in-column drop down data validation (TRUE/FALSE).  The publish flag will be set for that note (and any associated subnote) as follows:
+* if the field is left blank, use the value of the Publish field for that Archival Object
+* Otherwise, set to True or False as specified.
+
 
 As does ArchivesSpace, you may used Mixed Content (EAD/XML markup).  The Ingester will check to make sure that the entry is "well formed" -- that is, that the opening and closing elements match -- but will **not** validate the text to make sure you're using the proper markup.
 
