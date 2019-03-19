@@ -1,9 +1,11 @@
   class AgentHandler < Handler
     @@agents = {} 
+    @@agent_role ||= EnumList.new('linked_agent_role')
     @@agent_relators ||= EnumList.new('linked_agent_archival_record_relators')
     AGENT_TYPES = { 'families' => 'family', 'corporate_entities' => 'corporate_entity', 'people' => 'person'}
     def self.renew
       clear(@@agent_relators)
+      clear(@@agent_role)
     end
     def self.key_for(agent)
       key = "#{agent[:type]} #{agent[:name]}"
@@ -13,11 +15,14 @@
    def self.build(row, type, num)
      id = row.fetch("#{type}_agent_record_id_#{num}", nil)
      input_name = row.fetch("#{type}_agent_header_#{num}",nil)
+     role = row.fetch("#{type}_agent_role_#{num}", nil)
+     role ='creator' if role.blank?
      {
        :type => AGENT_TYPES[type],
        :id => id,
        :name => input_name || (id ? I18n.t('plugins.aspace-import-excel.unfound_id', :id => id, :type => 'Agent') : nil),
-       :relator => row.fetch("#{type}_agent_relator_#{num}", nil),
+       :role => role,
+       :relator => row.fetch("#{type}_agent_relator_#{num}", nil) ,
        :id_but_no_name => id && !input_name
      }
    end
@@ -55,7 +60,17 @@
          @@agents[agent_obj.id.to_s] = agent_obj
        end
        @@agents[agent_key] = agent_obj
-       agent_link = {"ref" => agent_obj.uri, "role" => 'creator'}
+       agent_link = {"ref" => agent_obj.uri}
+       begin
+        agent_link["role"] = @@agent_role.value(agent[:role])
+       rescue Exception => e
+        if e.message.start_with?("NOT FOUND")
+          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.bad_role', :label => agent[:role]))
+        else
+          raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.role_invalid', :label => agent[:role], :why => e.message))
+        end
+       end 
+       
        begin
          agent_link["relator"] =  @@agent_relators.value(agent[:relator]) if !agent[:relator].blank?
        rescue Exception => e
