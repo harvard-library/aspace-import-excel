@@ -144,32 +144,38 @@ If for some reason you enter a Record ID and **not** the header string, and that
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Agent/Creator (1) Record ID  | Number||
-Agent/Creator (1) header string  |String|| must be the entire header, including punctuation & capitalization
-Agent/Creator (1) Relator|String|| If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
-Agent/Creator (2) Record ID  | Number||
-Agent/Creator (2) header string  |String|| must be the entire header, including punctuation & capitalization
-Agent/Creator (2) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
-Agent/Creator (3) Record ID  | Number||
-Agent/Creator (3) header string  |String|| must be the entire header, including punctuation & capitalization
-Agent/Creator (3) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Agent (1) Record ID  | Number||
+Agent (1) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent Role(1)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Agent (1) Relator|String|| If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.  The default list provided by ArchivesSpace maps to the [MARC Relator Code and Term List](http://www.loc.gov/marc/relators/relaterm.html).
+Agent (2) Record ID  | Number||
+Agent (2) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent Role(2)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Agent (2) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Agent (3) Record ID  | Number||
+Agent (3) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent Role(3)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Agent (3) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
 
 #### Family Agent:
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Family Agent/Creator  Record ID  | Number||
-Family Agent/Creator header string  |String|| must be the entire header, including punctuation & capitalization
-Family Agent/Creator Relator|String|| If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Family Agent  Record ID  | Number||
+Family Agent header string  |String|| must be the entire header, including punctuation & capitalization
+Family Agent Role|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Family Agent Relator|String|| If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
 
 #### Corporate Agents:
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Corporate Agent/Creator  Record ID  | Number||
-Corporate Agent/Creator header string  |String|| must be the entire header, including punctuation & capitalization
-Corporate Agent/Creator Relator|string||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
-Corporate Agent/Creator  Record ID (2)  | Number||
-Corporate Agent/Creator header string (2)  |String|| must be the entire header, including punctuation & capitalization
-Corporate Agent/Creator Relator (2)|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Corporate Agent  Record ID  | Number||
+Corporate Agent header string  |String|| must be the entire header, including punctuation & capitalization
+Corporate Agent Role|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Corporate Agent Relator|string||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Corporate Agent  Record ID (2)  | Number||
+Corporate Agent header string (2)  |String|| must be the entire header, including punctuation & capitalization
+Corporate Agent Role(2)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Corporate Agent Relator (2)|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
 
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
