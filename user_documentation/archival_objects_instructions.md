@@ -133,7 +133,7 @@ URL of thumbnail| URL String ||  if defined, this becomes the File version with 
 
 ### <a name="agent">Agent Objects</a>
 
-The ingester allows you to link Agents (*CREATOR role only!*) to Archival objects.  You can specify up to 3 Person Agents, up to 2 Corporate Agents, and one Family Agent per Archival object.
+The ingester allows you to link Agents to Archival objects.  You can specify up to 3 Person Agents, up to 2 Corporate Agents, and one Family Agent per Archival object.
 
 If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header header string, with all capitalization and punctuation.
 
