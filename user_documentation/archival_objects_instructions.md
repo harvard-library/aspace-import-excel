@@ -7,6 +7,7 @@
 The new functionality consists of support for:
 
 * Individually setting the publish/unpublish flags for <a href="#note">Notes</a>.
+* Ability to add Agents as Source and Subject, not just Creator.
 
 The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
 
@@ -132,44 +133,54 @@ URL of thumbnail| URL String ||  if defined, this becomes the File version with 
 
 ### <a name="agent">Agent Objects</a>
 
-The ingester allows you to link Agents (*CREATOR role only!*) to Archival objects.  You can specify up to 3 Person Agents, up to 2 Corporate Agents, and one Family Agent per Archival object.
+The ingester allows you to link Agents to Archival objects.  You can specify up to 3 Person Agents, up to 2 Corporate Agents, and one Family Agent per Archival object.
 
-If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header header string, with all capitalization and punctuation.
+If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header string, with all capitalization and punctuation.
 
 Either the Record ID *or* the header string is **required**; if you include both, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  otherwise.
 
-If for some reason you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it. In this case, the new Agent would be marked publish=false. When you correct the record, change publish to true if appropriate.
+If you **only** enter the header string, and a record isn't found in the database, a new Agent will be created, with its Linked Agent Role of **Creator**.
+
+If you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it. In this case, the new Agent would be marked publish=false. When you correct the record, change publish to true if appropriate.
+
+
 
 #### Person agents:
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Agent/Creator (1) Record ID  | Number||
-Agent/Creator (1) header string  |String|| must be the entire header, including punctuation & capitalization
-Agent/Creator (1) Relator|String|| If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
-Agent/Creator (2) Record ID  | Number||
-Agent/Creator (2) header string  |String|| must be the entire header, including punctuation & capitalization
-Agent/Creator (2) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
-Agent/Creator (3) Record ID  | Number||
-Agent/Creator (3) header string  |String|| must be the entire header, including punctuation & capitalization
-Agent/Creator (3) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Agent (1) Record ID  | Number||
+Agent (1) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent Role(1)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Agent (1) Relator|String|| If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.  The default list provided by ArchivesSpace maps to the [MARC Relator Code and Term List](http://www.loc.gov/marc/relators/relaterm.html).
+Agent (2) Record ID  | Number||
+Agent (2) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent Role(2)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Agent (2) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Agent (3) Record ID  | Number||
+Agent (3) header string  |String|| must be the entire header, including punctuation & capitalization
+Agent Role(3)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Agent (3) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
 
 #### Family Agent:
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Family Agent/Creator  Record ID  | Number||
-Family Agent/Creator header string  |String|| must be the entire header, including punctuation & capitalization
-Family Agent/Creator Relator|String|| If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Family Agent  Record ID  | Number||
+Family Agent header string  |String|| must be the entire header, including punctuation & capitalization
+Family Agent Role|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Family Agent Relator|String|| If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
 
 #### Corporate Agents:
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Corporate Agent/Creator  Record ID  | Number||
-Corporate Agent/Creator header string  |String|| must be the entire header, including punctuation & capitalization
-Corporate Agent/Creator Relator|string||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
-Corporate Agent/Creator  Record ID (2)  | Number||
-Corporate Agent/Creator header string (2)  |String|| must be the entire header, including punctuation & capitalization
-Corporate Agent/Creator Relator (2)|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Corporate Agent  Record ID  | Number||
+Corporate Agent header string  |String|| must be the entire header, including punctuation & capitalization
+Corporate Agent Role|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Corporate Agent Relator|string||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
+Corporate Agent  Record ID (2)  | Number||
+Corporate Agent header string (2)  |String|| must be the entire header, including punctuation & capitalization
+Corporate Agent Role(2)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
+Corporate Agent Relator (2)|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
 
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>

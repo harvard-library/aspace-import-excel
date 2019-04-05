@@ -362,8 +362,8 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         parsed = JSONModel.parse_reference(aos[0])
         begin
          ao = JSONModel(:archival_object).find(parsed[:id], :repo_id => @repo_id)
-Rails.logger.info "ao JSONMODEL"
-Rails.logger.info {ao.pretty_inspect}
+# Rails.logger.info "ao JSONMODEL"
+# Rails.logger.info {ao.pretty_inspect}
         rescue Exception => e
            Rails.logger.info {e.pretty_inspect}
         end
