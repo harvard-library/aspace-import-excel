@@ -133,8 +133,7 @@ URL of thumbnail| URL String ||  if defined, this becomes the File version with 
 
 ### <a name="agent">Agent Objects</a>
 
-The ingester allows you to link Agents to Archival objects.  You can specify up to 3 Person Agents, up to 2 Corporate Agents, and one Family Agent per Archival object.
-
+The ingester allows you to link Agents to Archival objects.  The [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx), as provided, allows for up to **5** Person Agents, up to **2** Family Agents, and up to **3** Corporate Agents per Archival object.  If you need more of any of these types, you can follow the <a href="#increase_agent">directions</a> for adding more agents.
 If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header string, with all capitalization and punctuation.
 
 Either the Record ID *or* the header string is **required**; if you include both, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  otherwise.
@@ -162,7 +161,7 @@ Agent (3) header string  |String|| must be the entire header, including punctuat
 Agent Role(3)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
 Agent (3) Relator|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
 
-#### Family Agent:
+#### Family Agents:
 Column | Value | Default | Comment
 -------|-------|---------|---------
 Family Agent  Record ID  | Number||
@@ -182,6 +181,18 @@ Corporate Agent header string (2)  |String|| must be the entire header, includin
 Corporate Agent Role(2)|String|Creator|<span style="color:rebeccapurple">New in v3.0</span>: from the *Linked Agent Role* controlled value list.
 Corporate Agent Relator (2)|String||  If supplying relator, term must be from the *Linked Agent Archival Record Relators*  controlled value list.
 
+### <a name="increase_agent">Adding more agents to the spreadsheet</a>
+
+The plugin supports your associating with an Archival Object even more agents of each type.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the last set of columns of the particular type, inserting them into the template, and editing the labels in Row 4 to reflect the next integer number.
+
+For example, if you were to want *3* Family Agents, you would:
+ * insert four blank columns next to the second Family Agent columns
+ * copy the four columns of the second Family Agent, and paste them into the blank columns
+ * edit the labels in Row 4, incrementing the number. For example, you would edit the label **families_agent_record_id_2** in the _copied_ column to **families_agent_record_id_2**.
+ * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5, to avoid confusion.
+
+ **Note:** The plugin stops at the first set of columns that are blank.  This means that, if you've filled in the columns for Person Agent 1, and Person Agent 3, leaving Person Agent 2 blank, the plugin *will not*
+ process Person Agent 3.
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
