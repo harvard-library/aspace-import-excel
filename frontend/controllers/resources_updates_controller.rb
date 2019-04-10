@@ -473,18 +473,19 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
   def process_agents
     agent_links = []
     %w(people corporate_entities families).each do |type|
-      (1..10).each do |num|
+      num = 1
+      while true
         id_key = "#{type}_agent_record_id_#{num}"
         header_key = "#{type}_agent_header_#{num}"
-        unless @row_hash[id_key].blank? && @row_hash[header_key].blank?
-          link = nil
-          begin
-            link = AgentHandler.get_or_create(@row_hash, type, num.to_s, @resource['uri'], @report)
-            agent_links.push link if link
-          rescue ExcelImportException => e
-            @report.add_errors(e.message)
-          end
+        break if @row_hash[id_key].blank? && @row_hash[header_key].blank?
+        link = nil
+        begin
+          link = AgentHandler.get_or_create(@row_hash, type, num.to_s, @resource['uri'], @report)
+          agent_links.push link if link
+        rescue ExcelImportException => e
+           @report.add_errors(e.message)
         end
+        num += 1
       end
     end
     agent_links
