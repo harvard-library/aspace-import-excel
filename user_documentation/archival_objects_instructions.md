@@ -7,7 +7,8 @@
 The new functionality consists of support for:
 
 * Individually setting the publish/unpublish flags for <a href="#note">Notes</a>.
-* Ability to add Agents as Source and Subject, not just Creator.
+* Ability to add <a href="#agent">Agents</a>  as Source and Subject, not just Creator.
+* Expanded the number of <a href="#agent">Agents</a>  for each type, including <a href="#increase_agent">directions</a> for adding even more agents.
 
 The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
 
