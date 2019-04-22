@@ -189,7 +189,7 @@ The plugin supports your associating with an Archival Object even more agents of
 For example, if you were to want *3* Family Agents, you would:
  * insert four blank columns next to the second Family Agent columns
  * copy the four columns of the second Family Agent, and paste them into the blank columns
- * edit the labels in Row 4, incrementing the number. For example, you would edit the label **families_agent_record_id_2** in the _copied_ column to **families_agent_record_id_2**.
+ * edit the labels in Row 4, incrementing the number. For example, you would edit the label **families_agent_record_id_2** in the _copied_ column to **families_agent_record_id_3**.
  * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5, to avoid confusion.
 
  **Note:** The plugin stops at the first set of columns that are blank.  This means that, if you've filled in the columns for Person Agent 1, and Person Agent 3, leaving Person Agent 2 blank, the plugin *will not*
