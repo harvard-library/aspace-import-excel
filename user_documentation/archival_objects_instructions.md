@@ -184,13 +184,14 @@ Corporate Agent Relator (2)|String||  If supplying relator, term must be from th
 
 ### <a name="increase_agent">Adding more agents to the spreadsheet</a>
 
-The plugin supports your associating with an Archival Object even more agents of each type.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the last set of columns of the particular type, inserting them into the template, and editing the labels in Row 4 to reflect the next integer number.
+The plugin supports your associating with an Archival Object even more agents of each type.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the last set of columns of the particular type, inserting them into the template, and editing the labels in Rows 4 and 5 to reflect the next integer number.
 
 For example, if you were to want *3* Family Agents, you would:
  * insert four blank columns next to the second Family Agent columns
  * copy the four columns of the second Family Agent, and paste them into the blank columns
  * edit the labels in Row 4, incrementing the number. For example, you would edit the label **families_agent_record_id_2** in the _copied_ column to **families_agent_record_id_3**.
- * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5, to avoid confusion.
+ * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5, to avoid confusion. For example, you would edit the label **Agent(5) header string** to **Agent(6) header string**
+
 
  **Note:** The plugin stops at the first set of columns that are blank.  This means that, if you've filled in the columns for Person Agent 1, and Person Agent 3, leaving Person Agent 2 blank, the plugin *will not*
  process Person Agent 3.
