@@ -239,12 +239,11 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
   def create_archival_object(parent_uri)
     ao = JSONModel(:archival_object).new._always_valid!
     ao.title = @row_hash['title'] if  @row_hash['title']
-    unless  [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].reject(&:blank?).empty?
-      begin
-        ao.dates = create_date 
-      rescue Exception => e
-        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message))
-      end
+    # if we don't have the first date, we don't bother
+    begin
+      ao.dates = create_dates
+    rescue Exception => e
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message))
     end
     #because the date may have been invalid, we should check if there's a title, otherwise bail
     if ao.title.blank? && ao.dates.blank?
@@ -267,6 +266,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     @report.add_errors(errs) if !errs.blank?
     # we have to save the ao for the display_string
     begin
+      #Rails.logger.debug(ao.pretty_inspect)
       ao = ao_save(ao)
     rescue Exception => e
       msg = I18n.t('plugins.aspace-import-excel.error.initial_save_error', :title =>ao.title, :msg => e.message)
@@ -284,25 +284,38 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     ao.linked_agents = links
     ao
   end
+
+  def create_dates
+    dates = []
+    cntr = 1
+    substr = ''
+    until [@row_hash["begin#{substr}"],@row_hash["end#{substr}"],@row_hash["expression#{substr}"]].reject(&:blank?).empty?
+      date = create_date(substr)
+      dates << date
+      cntr +=1
+      substr = "_#{cntr}"
+    end
+    return dates
+  end
   
-  def create_date
+  def create_date(substr)
     date_type = 'inclusive'
     begin
-      date_type = @date_types.value(@row_hash['date_type'] || 'inclusive')
+      date_type = @date_types.value(@row_hash["date_type#{substr}"] || 'inclusive')
     rescue Exception => e
       @report.add_errors(I18n.t('plugins.aspace-import-excel.error.date_type', :what => @row_hash['date_type']))
     end
     date =  { 'date_type' => date_type,
-      'label' =>  @date_labels.value((@row_hash['dates_label'] || 'creation')) }
-    if @row_hash['date_certainty']
+      'label' =>  @date_labels.value((@row_hash["dates_label#{substr}"] || 'creation')) }
+    if @row_hash["date_certainty#{substr}"]
       begin
-        date['certainty'] = @date_certainty.value(@row_hash['date_certainty'])
+        date['certainty'] = @date_certainty.value(@row_hash["date_certainty#{substr}"])
       rescue Exception => e
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.certainty', :what => e.message))
       end
     end
     %w(begin end expression).each do |w|
-      date[w] = @row_hash[w] if @row_hash[w]
+      date[w] = @row_hash["#{w}#{substr}"] if @row_hash["#{w}#{substr}"]
     end
     invalids = JSONModel::Validations.check_date(date)
     unless invalids.blank?
@@ -313,7 +326,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       raise Exception.new(err_msg)
     end
     d = JSONModel(:date).new(date)
-    [d]
+    #[d]
   end
 
   def create_extent
