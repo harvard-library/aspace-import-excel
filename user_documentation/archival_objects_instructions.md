@@ -9,6 +9,7 @@ The new functionality consists of support for:
 * Individually setting the publish/unpublish flags for <a href="#note">Notes</a>.
 * Ability to add <a href="#agent">Agents</a>  as Source and Subject, not just Creator.
 * Expanded the number of <a href="#agent">Agents</a>  for each type, including <a href="#increase_agent">directions</a> for adding even more agents.
+* Support for more than one <a href="#dates">Date</a>
 
 The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
 
@@ -59,6 +60,8 @@ Processing Note | String | | No markup allowed
 
 ### <a name="dates">Dates</a>
 
+<span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one Date.  The spreadsheet provides for two date; you can add more by following the <a href="increase_dates">instructions</a> for adding additional dates.
+
 A Date must have **at least** either a *begin date* or a *date expression.*
 
 **NOTE:**  The cell format for cells containing values for *Date Begin* and *Date End* **MUST** be **Text**, not some date format like `yyyy-mm-dd`, if you don't want the hours, minutes, seconds appended (e.g.: *1969-17-17T00:00:00+00.00*).  Some versions of Excel will "helpfully" convert the cell to a date format if you are not watching.
@@ -71,6 +74,15 @@ Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM
 Date Type | String| *inclusive*| from the *Date Type* controlled value list
 Date Expression |String||
 Date Certainty |String | | from the *Date Certainty* controlled value list
+
+### <a name="increase_dates">Adding more dates to the spreadsheet</a>
+
+<span style="color:rebeccapurple">New in version 3.0:</span> 
+The plugin supports your adding more than the two dates supplied on the spreadsheet.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the set of columns for the second date, inserting them into the template, and editing the labels in Rows 4 and 5 to reflect the next integer number:
+  * insert 6 columns next to the second date 
+  * copy the six columns of the second date, then paste them into the blank colums
+  * edit the labels in Row 4 to increment the number.  For example, for the first added date, you'd edit **dates_label_2** to **dates_label_3**
+  * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5 to avoid confusion.  For example, edit **Date (2) Label** to  **Date (3) Label**. 
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
