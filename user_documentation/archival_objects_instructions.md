@@ -60,7 +60,7 @@ Processing Note | String | | No markup allowed
 
 ### <a name="dates">Dates</a>
 
-<span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one Date.  The spreadsheet provides for two date; you can add more by following the <a href="increase_dates">instructions</a> for adding additional dates.
+<span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one Date.  The spreadsheet provides for two dates; you can add more by following the <a href="#increase_dates">instructions</a> for adding additional dates.
 
 A Date must have **at least** either a *begin date* or a *date expression.*
 
