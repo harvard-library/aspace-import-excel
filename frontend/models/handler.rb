@@ -20,16 +20,17 @@ class Handler
   # returns nil, a hash of a jason model (if 1 found), or throws a multiples found error
   # if repo_id is nil, do a global search (subject and agent)
   # this is using   archivesspace/frontend/app/models/search.rb
-  def self.search(repo_id,params,jmsym, *type)
+  def self.search(repo_id,params,jmsym, type = '', match = '')
     obj = nil
     search = nil
+    matches = match.split(':')
     if repo_id
       search  = Search.all(repo_id, params)
     else
       begin
-        search = Search.global(params,type[0])
+        search = Search.global(params,type)
       rescue Exception => e
-        s = JSONModel::HTTP::get_json("/search/#{type[0]}", params)
+        s = JSONModel::HTTP::get_json("/search/#{type}", params)
         raise e if !e.message.match('<h1>Not Found</h1>')  # global search doesn't handle this gracefully :-(
         search = {'total_hits' => 0}
       end
@@ -39,7 +40,19 @@ class Handler
     if total_hits == 1 && !search['results'].blank? # for some reason, you get a hit of '1' but still have empty results??
       obj = JSONModel(jmsym).find_by_uri(search['results'][0]['id'])
     elsif  total_hits > 1
-      raise Exception.new(I18n.t('plugins.aspace-import-excel.error.too_many'))
+      if matches.length == 2
+        search['results'].each do |result|
+          if result[matches[0]] == matches[1]
+            # if we have more than one exact match, then bail!
+            if obj
+              raise  Exception.new(I18n.t('plugins.aspace-import-excel.error.too_many'))
+            end
+            obj = JSONModel(jmsym).find_by_uri(result['id'])
+          end
+        end
+      else
+       raise Exception.new(I18n.t('plugins.aspace-import-excel.error.too_many'))
+      end
     elsif total_hits == 0
 #      Pry::ColorPrinter.pp search
     end

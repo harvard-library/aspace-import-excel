@@ -48,13 +48,23 @@ module LinkedObjects
          end
        end
        begin
-       unless agent_obj || (agent_obj = get_db_agent(agent, resource_uri, num))
-         agent_obj = create_agent(agent, num)
-         report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.agent')}[#{agent[:name]}]", :id => agent_obj.uri))
-       end
+          if !agent_obj
+            begin
+              agent_obj = get_db_agent(agent, resource_uri, num)
+            rescue Exception => e
+              if e.message == 'More than one match found in the database'
+                agent[:name] = agent[:name] + " DISAMBIGUATE ME!"
+                report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => agent[:name]))
+              else
+                raise e
+              end
+            end
+          end
+          if !agent_obj
+            agent_obj = create_agent(agent, num)
+            report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.agent')}[#{agent[:name]}]", :id => agent_obj.uri))
+          end
        rescue Exception => e
-#         Pry::ColorPrinter.pp e.message
-#         Pry::ColorPrinter.pp e.backtrace
          raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num =>  num,  :why => e.message))
        end
      end
@@ -108,7 +118,7 @@ module LinkedObjects
     if !ret_ag
       a_params = {"q" => "title:\"#{agent[:name]}\" AND primary_type:agent_#{agent[:type]}"}
       repo = resource_uri.split('/')[2]
-      ret_ag = search(repo, a_params, "agent_#{agent[:type]}".to_sym)
+      ret_ag = search(repo, a_params, "agent_#{agent[:type]}".to_sym,'', "title:#{agent[:name]}")
     end
     ret_ag
   end
@@ -244,7 +254,7 @@ module LinkedObjects
         tc_params = {}
         tc_params["type[]"] = 'top_container'
         tc_params["q"] = "display_string:\"#{tc_str}\" AND collection_uri_u_sstr:\"#{resource_uri}\""
-        ret_tc = search(repo_id,tc_params, :top_container)
+        ret_tc = search(repo_id,tc_params, :top_container,'', "display_string:#{tc_str}")
       end
       ret_tc
     end
@@ -254,7 +264,7 @@ module LinkedObjects
       if barcode
         tc_params = {}
         tc_params["type[]"] = 'top_container'
-        tc_params["q"] = "barcode_u_sstr:#{barcode}"
+        tc_params["q"] = "barcode_u_sstr:\"#{barcode}\""
         ret_tc = search(repo_id,tc_params, :top_container)
       end
       ret_tc
@@ -397,7 +407,7 @@ module LinkedObjects
       s_params = {}
       s_params["q"] = "title:\"#{subject[:term]}\" AND first_term_type:#{subject[:type]}"
 
-      ret_subj = search(nil, s_params, :subject, 'subjects')
+      ret_subj = search(nil, s_params, :subject, 'subjects',"title:#{subject[:term]}" )
     end
   end
 end
