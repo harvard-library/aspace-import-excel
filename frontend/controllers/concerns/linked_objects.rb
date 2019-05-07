@@ -36,13 +36,13 @@ module LinkedObjects
    def self.get_or_create(row, type, num, resource_uri, report)
      agent = build(row, type, num)
      agent_key = key_for(agent)
+     Rails.logger.error("Created Agent: #{agent.pretty_inspect} key: #{agent_key}")
      if !(agent_obj = stored(@@agents, agent[:id], agent_key))
        unless agent[:id].blank?
          begin
            agent_obj = JSONModel("agent_#{agent[:type]}".to_sym).find(agent[:id])
          rescue Exception => e
            if e.message != 'RecordNotFound'
-#             Pry::ColorPrinter.pp e
              raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
            end
          end
@@ -87,6 +87,7 @@ module LinkedObjects
          end
        end
      end
+     Rails.logger.error("AGENTS: #{@@agents.pretty_inspect}")
      agent_link
    end
 
