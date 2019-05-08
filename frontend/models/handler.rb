@@ -36,25 +36,32 @@ class Handler
       end
     end
     total_hits = search['total_hits'] || 0
-#    Pry::ColorPrinter.pp "Total hits: #{total_hits}"
     if total_hits == 1 && !search['results'].blank? # for some reason, you get a hit of '1' but still have empty results??
       obj = JSONModel(jmsym).find_by_uri(search['results'][0]['id'])
     elsif  total_hits > 1
       if matches.length == 2
+        match_ct = 0
+        disam = matches[1] + " DISAMBIGUATE ME!"
+        disam_obj = nil
         search['results'].each do |result|
-          if result[matches[0]] == matches[1]
-            # if we have more than one exact match, then bail!
-            if obj
-              raise  Exception.new(I18n.t('plugins.aspace-import-excel.error.too_many'))
-            end
+          # if we have a disambiguate result get it
+          if result[matches[0]] == disam
+            disam_obj = JSONModel(jmsym).find_by_uri(result['id'])
+          elsif result[matches[0]] == matches[1]
+            match_ct += 1           
             obj = JSONModel(jmsym).find_by_uri(result['id'])
           end
+        end
+        # if we have more than one exact match, then return disam_obj if we have one, or bail!
+        if match_ct > 1
+          return disam_obj if disam_obj
+          raise  Exception.new(I18n.t('plugins.aspace-import-excel.error.too_many'))
         end
       else
        raise Exception.new(I18n.t('plugins.aspace-import-excel.error.too_many'))
       end
     elsif total_hits == 0
-#      Pry::ColorPrinter.pp search
+#      Rails.logger.info("No hits found")
     end
     obj
   end

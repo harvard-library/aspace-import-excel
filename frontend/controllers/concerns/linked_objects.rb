@@ -15,6 +15,7 @@ module LinkedObjects
     AGENT_TYPES = { 'families' => 'family', 'corporate_entities' => 'corporate_entity', 'people' => 'person'}
     def self.renew
       clear(@@agent_relators)
+      @@agents = {}
     end
     def self.key_for(agent)
       key = "#{agent[:type]} #{agent[:name]}"
@@ -36,7 +37,6 @@ module LinkedObjects
    def self.get_or_create(row, type, num, resource_uri, report)
      agent = build(row, type, num)
      agent_key = key_for(agent)
-     Rails.logger.error("Created Agent: #{agent.pretty_inspect} key: #{agent_key}")
      if !(agent_obj = stored(@@agents, agent[:id], agent_key))
        unless agent[:id].blank?
          begin
@@ -87,7 +87,6 @@ module LinkedObjects
          end
        end
      end
-     Rails.logger.error("AGENTS: #{@@agents.pretty_inspect}")
      agent_link
    end
 
@@ -110,8 +109,6 @@ module LinkedObjects
         ret_ag = JSONModel("agent_#{agent[:type]}".to_sym).find(agent[:id])
       rescue Exception => e
         if e.message != 'RecordNotFound' 
-#          Pry::ColorPrinter.pp e.message
-#          Pry::ColorPrinter.pp e.backtrace
           raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
         end
       end
@@ -336,6 +333,7 @@ module LinkedObjects
     def self.renew
       clear(@@subject_term_types)
       clear(@@subject_sources)
+      @@subjects = {}
     end
 
     def self.key_for(subject)
@@ -368,11 +366,24 @@ module LinkedObjects
           end
         end
         begin
-          unless subj || (subj = get_db_subj(subject))
+          if !subj
+            begin
+              subj = get_db_subj(subject)
+            rescue Exception => e
+              if e.message == 'More than one match found in the database'
+                subject[:term] = subject[:term] + " DISAMBIGUATE ME!"
+                report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => subject[:term]))
+              else
+                raise e
+              end
+            end
+          end
+          if !subj
             subj = create_subj(subject, num)
             report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')}[#{subject[:term]}]", :id => subj.uri))
           end
         rescue Exception => e
+          Rails.logger.error(e.backtrace)
           raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
         end
         if subj
