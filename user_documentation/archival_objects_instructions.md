@@ -128,11 +128,21 @@ URL of thumbnail| URL String ||  if defined, this becomes the File version with 
 
 The ingester allows you to link Agents (*CREATOR role only!*) to Archival objects.  You can specify up to 3 Person Agents, up to 2 Corporate Agents, and one Family Agent per Archival object.
 
-If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header header string, with all capitalization and punctuation.
+If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header string, with all capitalization and punctuation.
 
-Either the Record ID *or* the header string is **required**; if you include both, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  otherwise.
+Either the Record ID *or* the header string is **required**.
 
-If for some reason you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it. In this case, the new Agent would be marked publish=false. When you correct the record, change publish to true if appropriate.
+If you include both, or only the header, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  
+otherwise.
+
+If you enter the header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two agents with identical headers, but different sources):
+
+  * The ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a person agent with a header of 'George Washington', a new person agent would be created with a primary name of 'George Washington DISAMBIGUATE ME!'.  
+  * After ingest, you can  use the *merge* functionality to resolve the ambiguities.
+
+If you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it. In this case, the new Agent would be marked publish=false. When you correct the record, change publish to true if appropriate.
+
+
 
 #### Person agents:
 
@@ -171,6 +181,11 @@ Corporate Agent/Creator Relator (2)|String||  If supplying relator, term must be
 ### <a name="subject">Subjects</a>
 
 As with <a href="#agent">Agents</a>, you may associate Subjects with the Archival Object.  You may associate up to two Subject records.  If you know the Record ID, you may use that instead of the **term**, **type**, and **source** in a manner similar to the way that Agent specifications are made, with the same database lookup and handling done there.  Again, if you want the ingest to look up the **term** in the database, you must use the entire Subject header, including any punctuation or capitalization.
+
+If you enter the subject header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two subjects with identical headers, but different sources):
+
+  * The ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a subject with a header of 'Black Lives Matter', a new subject  would be created with the header  'Black Lives Matter DISAMBIGUATE ME!'.  
+  * After ingest, you can  use the *merge* functionality to resolve the ambiguities.* 
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
