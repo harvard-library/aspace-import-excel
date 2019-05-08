@@ -11,6 +11,8 @@ class Handler
   require 'enum_list'
   require 'pp'
 
+  DISAMB_STR = ' DISAMBIGUATE ME!'
+
   # centralize the checking for an already-found object
   def self.stored(hash, id, key)
     ret_obj = hash.fetch(id, nil) || hash.fetch(key, nil)
@@ -41,7 +43,7 @@ class Handler
     elsif  total_hits > 1
       if matches.length == 2
         match_ct = 0
-        disam = matches[1] + " DISAMBIGUATE ME!"
+        disam = matches[1] + DISAMB_STR
         disam_obj = nil
         search['results'].each do |result|
           # if we have a disambiguate result get it

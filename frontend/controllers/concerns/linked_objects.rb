@@ -53,7 +53,7 @@ module LinkedObjects
               agent_obj = get_db_agent(agent, resource_uri, num)
             rescue Exception => e
               if e.message == 'More than one match found in the database'
-                agent[:name] = agent[:name] + " DISAMBIGUATE ME!"
+                agent[:name] = agent[:name] + DISAMB_STR
                 report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => agent[:name]))
               else
                 raise e
@@ -94,7 +94,7 @@ module LinkedObjects
     begin
       ret_agent = JSONModel("agent_#{agent[:type]}".to_sym).new._always_valid!
       ret_agent.names = [name_obj(agent)]
-      ret_agent.publish = !agent[:id_but_no_name]
+      ret_agent.publish = !(agent[:id_but_no_name] || agent[:name].ends_with?(DISAMB_STR))
       ret_agent.save
     rescue Exception => e
        raise Exception.new(I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
@@ -371,7 +371,7 @@ module LinkedObjects
               subj = get_db_subj(subject)
             rescue Exception => e
               if e.message == 'More than one match found in the database'
-                subject[:term] = subject[:term] + " DISAMBIGUATE ME!"
+                subject[:term] = subject[:term] + DISAMB_STR
                 report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => subject[:term]))
               else
                 raise e
@@ -408,6 +408,7 @@ module LinkedObjects
         subj.terms.push term
         subj.source = subject[:source]
         subj.vocabulary = '/vocabularies/1'  # we're making a gross assumption here
+        subj.publish = !(subject[:id_but_no_term] || subject[:term].ends_with?(DISAMB_STR))
         subj.save
       rescue Exception => e
         raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
