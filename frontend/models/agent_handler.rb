@@ -47,7 +47,7 @@
             agent_obj = get_db_agent(agent, resource_uri, num)
           rescue Exception => e
             if e.message == 'More than one match found in the database'
-              agent[:name] = agent[:name] + Handler::DISAMB_STR
+              agent[:name] = agent[:name] + DISAMB_STR
               report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => agent[:name]))
             else
               raise e
@@ -97,7 +97,7 @@
     begin
       ret_agent = JSONModel("agent_#{agent[:type]}".to_sym).new._always_valid!
       ret_agent.names = [name_obj(agent)]
-      ret_agent.publish = !(agent[:id_but_no_name] || agent[:name].ends_with?(Handler::DISAMB_STR))
+      ret_agent.publish = !(agent[:id_but_no_name] || agent[:name].ends_with?(DISAMB_STR))
       ret_agent.save
     rescue Exception => e
        raise Exception.new(I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
