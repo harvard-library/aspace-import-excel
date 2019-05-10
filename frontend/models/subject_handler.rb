@@ -44,7 +44,7 @@
               subj = get_db_subj(subject)
             rescue Exception => e
               if e.message == 'More than one match found in the database'
-                subject[:term] = subject[:term] + Handler::DISAMB_STR
+                subject[:term] = subject[:term] + DISAMB_STR
                 report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => subject[:term]))
               else
                 raise e
