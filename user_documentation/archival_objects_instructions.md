@@ -147,9 +147,22 @@ URL of thumbnail| URL String ||  if defined, this becomes the File version with 
 ### <a name="agent">Agent Objects</a>
 
 The ingester allows you to link Agents to Archival objects.  The [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx), as provided, allows for up to **5** Person Agents, up to **2** Family Agents, and up to **3** Corporate Agents per Archival object.  If you need more of any of these types, you can follow the <a href="#increase_agent">directions</a> for adding more agents.
+
 If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header string, with all capitalization and punctuation.
 
-Either the Record ID *or* the header string is **required**; if you include both, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  otherwise.
+Either the Record ID *or* the header string is **required**.
+
+If you include both, or only the header, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  
+otherwise.
+
+If you enter the header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two agents with identical headers, but different sources):
+
+  * The ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a person agent with a header of 'George Washington', a new person agent would be created with a primary name of 'George Washington DISAMBIGUATE ME!'.  
+  * After ingest, you can  use the *merge* functionality to resolve the ambiguities.
+
+If you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it. In this case, the new Agent would be marked publish=false. When you correct the record, change publish to true if appropriate.
+
+
 
 If you **only** enter the header string, and a record isn't found in the database, a new Agent will be created, with its Linked Agent Role of **Creator**.
 
@@ -213,6 +226,11 @@ For example, if you were to want *3* Family Agents, you would:
 ### <a name="subject">Subjects</a>
 
 As with <a href="#agent">Agents</a>, you may associate Subjects with the Archival Object.  You may associate up to two Subject records.  If you know the Record ID, you may use that instead of the **term**, **type**, and **source** in a manner similar to the way that Agent specifications are made, with the same database lookup and handling done there.  Again, if you want the ingest to look up the **term** in the database, you must use the entire Subject header, including any punctuation or capitalization.
+
+If you enter the subject header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two subjects with identical headers, but different sources):
+
+  * The ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a subject with a header of 'Black Lives Matter', a new subject  would be created with the header  'Black Lives Matter DISAMBIGUATE ME!'.  
+  * After ingest, you can  use the *merge* functionality to resolve the ambiguities.
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
