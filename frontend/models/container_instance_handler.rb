@@ -61,7 +61,7 @@
         tc_params = {}
         tc_params["type[]"] = 'top_container'
         tc_params["q"] = "display_string:\"#{tc_str}\" AND collection_uri_u_sstr:\"#{resource_uri}\""
-        ret_tc = search(repo_id,tc_params, :top_container)
+        ret_tc = search(repo_id,tc_params, :top_container,'', "display_string:#{tc_str}")
       end
       ret_tc
     end
@@ -71,7 +71,7 @@
       if barcode
         tc_params = {}
         tc_params["type[]"] = 'top_container'
-        tc_params["q"] = "barcode_u_sstr:#{barcode}"
+        tc_params["q"] = "barcode_u_sstr:\"#{barcode}\""
         ret_tc = search(repo_id,tc_params, :top_container)
       end
       ret_tc
