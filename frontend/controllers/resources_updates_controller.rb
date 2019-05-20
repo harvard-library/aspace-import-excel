@@ -303,7 +303,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     begin
       date_type = @date_types.value(@row_hash["date_type#{substr}"] || 'inclusive')
     rescue Exception => e
-      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.date_type', :what => @row_hash['date_type']))
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.date_type', :what => @row_hash["date_type#{substr}"]))
     end
     date =  { 'date_type' => date_type,
       'label' =>  @date_labels.value((@row_hash["dates_label#{substr}"] || 'creation')) }
