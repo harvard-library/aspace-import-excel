@@ -68,7 +68,7 @@ A Date must have **at least** either a *begin date* or a *date expression.*
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Dates Label | String | creation| from the *Date Label* controlled value list. **Note:**: If the value given is *not* on the controlled value list, this Archival Object will not be loaded.
+Dates Label | String | creation| from the *Date Label* controlled value list. **Note**: If the value given is *not* on the controlled value list, this Archival Object will not be loaded.
 Date Begin | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
 Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
 Date Type | String| *inclusive*| from the *Date Type* controlled value list. **Note**: If the given value is *not* on the controlled value list, it will be overridden with the value 'inclusive'.
