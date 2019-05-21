@@ -305,6 +305,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     rescue Exception => e
       @report.add_errors(I18n.t('plugins.aspace-import-excel.error.date_type', :what => @row_hash["date_type#{substr}"]))
     end
+    # don't need to try/catch label, because it was tested in the missing_date fxn
     date =  { 'date_type' => date_type,
       'label' =>  @date_labels.value((@row_hash["dates_label#{substr}"] || 'creation')) }
     if @row_hash["date_certainty#{substr}"]
