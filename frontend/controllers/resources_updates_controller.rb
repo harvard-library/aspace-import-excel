@@ -208,7 +208,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         begin
           label = @date_labels.value((@row_hash['dates_label'] || 'creation'))
         rescue Exception => e
-          err_arr.push I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message)
+          err_arr.push I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message) if missing_title
           missing_date = true
         end
       end
@@ -291,7 +291,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     substr = ''
     until [@row_hash["begin#{substr}"],@row_hash["end#{substr}"],@row_hash["expression#{substr}"]].reject(&:blank?).empty?
       date = create_date(substr)
-      dates << date
+      dates << date if date
       cntr +=1
       substr = "_#{cntr}"
     end
@@ -305,9 +305,16 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     rescue Exception => e
       @report.add_errors(I18n.t('plugins.aspace-import-excel.error.date_type', :what => @row_hash["date_type#{substr}"]))
     end
-    # don't need to try/catch label, because it was tested in the missing_date fxn
-    date =  { 'date_type' => date_type,
-      'label' =>  @date_labels.value((@row_hash["dates_label#{substr}"] || 'creation')) }
+    begin
+      date =  { 'date_type' => date_type,
+        'label' =>  @date_labels.value((@row_hash["dates_label#{substr}"] || 'creation')) }
+    rescue Exception => e
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.date_label',
+        :what => @row_hash["dates_label#{substr}"]))
+      #don't bother processsing if the label mis-matches
+      return nil
+    end
+
     if @row_hash["date_certainty#{substr}"]
       begin
         date['certainty'] = @date_certainty.value(@row_hash["date_certainty#{substr}"])
