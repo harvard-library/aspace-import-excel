@@ -31,7 +31,7 @@ There are very few columns that _must_ be filled in:
 * **EAD ID**  - of the resource to which you're adding Archival Objects. This will be used to confirm that you are trying to add your spreadsheet information to the correct resource. 
 * The **<a name="hier">Hierarchical Relationship</a>** of the new Archival Object to the selected resource or selected Archival Object: If you've selected a Resource, **1** indicates that this is the first level of Archival Objects.  If you have selected an Archival Object, use **1** if you're adding a sibling to a selected Archival Object, **2** if a child, etc. You can therefore describe several levels of Archival Objects in a single spreadsheet.
 * **The Description Level**  This is an in-column drop-down. <img src="descriptionLevelDropDown.png" alt="The Description Level in-column drop down"/>
-* EITHER the **Title** OR a **Creation Date** that must have at least a  begin date  or a date expression.
+* EITHER the **Title** OR a **valid Date** having at least a begin date or a date expression.
 
 ## <a name="defs">Column Definitions</a>
 
@@ -62,13 +62,13 @@ Processing Note | String | | No markup allowed
 
 <span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one Date.  The spreadsheet provides for two dates; you can add more by following the <a href="#increase_dates">instructions</a> for adding additional dates.
 
-A Date must have **at least** either a *begin date* or a *date expression.*
+A Date must have **a valid label** and **at least** either a *begin date* or a *date expression.*
 
 **NOTE:**  The cell format for cells containing values for *Date Begin* and *Date End* **MUST** be **Text**, not some date format like `yyyy-mm-dd`, if you don't want the hours, minutes, seconds appended (e.g.: *1969-17-17T00:00:00+00.00*).  Some versions of Excel will "helpfully" convert the cell to a date format if you are not watching.
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Dates Label | String | creation| from the *Date Label* controlled value list. **Note**: If the value given is *not* on the controlled value list, this Archival Object will not be loaded.
+Dates Label | String | | from the *Date Label* controlled value list. **Note**: If the value given is *not* on the controlled value list, this date will not be processed.
 Date Begin | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
 Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
 Date Type | String| *inclusive*| from the *Date Type* controlled value list. **Note**: If the given value is *not* on the controlled value list, it will be overridden with the value 'inclusive'.
