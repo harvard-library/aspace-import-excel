@@ -9,7 +9,7 @@ The new functionality consists of support for:
 * Individually setting the publish/unpublish flags for <a href="#note">Notes</a>.
 * Ability to add <a href="#agent">Agents</a>  as Source and Subject, not just Creator.
 * Expanded the number of <a href="#agent">Agents</a>  for each type, including <a href="#increase_agent">directions</a> for adding even more agents.
-* Support for more than one <a href="#dates">Date</a>
+* Support for more than one <a href="#dates">Date</a>, with the ability to <a href="#increase_dates">add more dates</a>.
 
 The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
 
@@ -81,7 +81,7 @@ Date Certainty |String | | from the *Date Certainty* controlled value list
 The plugin supports your adding more than the two dates supplied on the spreadsheet.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the set of columns for the second date, inserting them into the template, and editing the labels in Rows 4 and 5 to reflect the next integer number:
   * insert 6 columns next to the second date 
   * copy the six columns of the second date, then paste them into the blank colums
-  * edit the labels in Row 4 to increment the number.  For example, for the first added date, you'd edit **dates_label_2** to **dates_label_3**
+  * edit the labels in Row 4 to increment the number.  For example, for the first added date, you'd edit **dates_label_2** to **dates_label_3** . **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
   * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5 to avoid confusion.  For example, edit **Date (2) Label** to  **Date (3) Label**. 
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
@@ -214,7 +214,7 @@ The plugin supports your associating with an Archival Object even more agents of
 For example, if you were to want *3* Family Agents, you would:
  * insert four blank columns next to the second Family Agent columns
  * copy the four columns of the second Family Agent, and paste them into the blank columns
- * edit the labels in Row 4, incrementing the number. For example, you would edit the label **families_agent_record_id_2** in the _copied_ column to **families_agent_record_id_3**.
+ * edit the labels in Row 4, incrementing the number. For example, you would edit the label **families_agent_record_id_2** in the _copied_ column to **families_agent_record_id_3**.  **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
  * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5, to avoid confusion. For example, you would edit the label **Family Agent(2) header string** to **Family Agent(3) header string**
 
 
