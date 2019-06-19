@@ -9,6 +9,7 @@ The new functionality consists of support for:
 * Individually setting the publish/unpublish flags for <a href="#note">Notes</a>.
 * Ability to add <a href="#agent">Agents</a>  as Source and Subject, not just Creator.
 * Expanded the number of <a href="#agent">Agents</a>  for each type, including <a href="#increase_agent">directions</a> for adding even more agents.
+* Support for more than one <a href="#dates">Date</a>, with the ability to <a href="#increase_dates">add more dates</a>.
 
 The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
 
@@ -30,7 +31,7 @@ There are very few columns that _must_ be filled in:
 * **EAD ID**  - of the resource to which you're adding Archival Objects. This will be used to confirm that you are trying to add your spreadsheet information to the correct resource. 
 * The **<a name="hier">Hierarchical Relationship</a>** of the new Archival Object to the selected resource or selected Archival Object: If you've selected a Resource, **1** indicates that this is the first level of Archival Objects.  If you have selected an Archival Object, use **1** if you're adding a sibling to a selected Archival Object, **2** if a child, etc. You can therefore describe several levels of Archival Objects in a single spreadsheet.
 * **The Description Level**  This is an in-column drop-down. <img src="descriptionLevelDropDown.png" alt="The Description Level in-column drop down"/>
-* EITHER the **Title** OR a **Creation Date** that must have at least a  begin date  or a date expression.
+* EITHER the **Title** OR a **valid Date** having at least a begin date or a date expression.
 
 ## <a name="defs">Column Definitions</a>
 
@@ -59,18 +60,29 @@ Processing Note | String | | No markup allowed
 
 ### <a name="dates">Dates</a>
 
-A Date must have **at least** either a *begin date* or a *date expression.*
+<span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one Date.  The spreadsheet provides for two dates; you can add more by following the <a href="#increase_dates">instructions</a> for adding additional dates.
+
+A Date must have **a valid label** and **at least** either a *begin date* or a *date expression.*
 
 **NOTE:**  The cell format for cells containing values for *Date Begin* and *Date End* **MUST** be **Text**, not some date format like `yyyy-mm-dd`, if you don't want the hours, minutes, seconds appended (e.g.: *1969-17-17T00:00:00+00.00*).  Some versions of Excel will "helpfully" convert the cell to a date format if you are not watching.
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Dates Label | String | creation| from the *Date Label* controlled value list
+Dates Label | String | *creation* | from the *Date Label* controlled value list. **Note**: If the value given is *not* on the controlled value list, this date will not be processed.
 Date Begin | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
-Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
-Date Type | String| *inclusive*| from the *Date Type* controlled value list
+Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**  **Note**: If you choose a Date Type of *'single'*, any value in this column will be ignored.
+Date Type | String| *inclusive*| from the *Date Type* controlled value list. **Note**: If the given value is *not* on the controlled value list, it will be overridden with the value 'inclusive'.
 Date Expression |String||
 Date Certainty |String | | from the *Date Certainty* controlled value list
+
+### <a name="increase_dates">Adding more dates to the spreadsheet</a>
+
+<span style="color:rebeccapurple">New in version 3.0:</span> 
+The plugin supports your adding more than the two dates supplied on the spreadsheet.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the set of columns for the second date, inserting them into the template, and editing the labels in Rows 4 and 5 to reflect the next integer number:
+  * insert 6 columns next to the second date 
+  * copy the six columns of the second date, then paste them into the blank colums
+  * edit the labels in Row 4 to increment the number.  For example, for the first added date, you'd edit **dates_label_2** to **dates_label_3** . **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
+  * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5 to avoid confusion.  For example, edit **Date (2) Label** to  **Date (3) Label**. 
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
@@ -135,9 +147,22 @@ URL of thumbnail| URL String ||  if defined, this becomes the File version with 
 ### <a name="agent">Agent Objects</a>
 
 The ingester allows you to link Agents to Archival objects.  The [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx), as provided, allows for up to **5** Person Agents, up to **2** Family Agents, and up to **3** Corporate Agents per Archival object.  If you need more of any of these types, you can follow the <a href="#increase_agent">directions</a> for adding more agents.
+
 If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header string, with all capitalization and punctuation.
 
-Either the Record ID *or* the header string is **required**; if you include both, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  otherwise.
+Either the Record ID *or* the header string is **required**.
+
+If you include both, or only the header, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  
+otherwise.
+
+If you enter the header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two agents with identical headers, but different sources):
+
+  * The ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a person agent with a header of 'George Washington', a new person agent would be created with a primary name of 'George Washington DISAMBIGUATE ME!'.  
+  * After ingest, you can  use the *merge* functionality to resolve the ambiguities.
+
+If you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it. In this case, the new Agent would be marked publish=false. When you correct the record, change publish to true if appropriate.
+
+
 
 If you **only** enter the header string, and a record isn't found in the database, a new Agent will be created, with its Linked Agent Role of **Creator**.
 
@@ -189,7 +214,7 @@ The plugin supports your associating with an Archival Object even more agents of
 For example, if you were to want *3* Family Agents, you would:
  * insert four blank columns next to the second Family Agent columns
  * copy the four columns of the second Family Agent, and paste them into the blank columns
- * edit the labels in Row 4, incrementing the number. For example, you would edit the label **families_agent_record_id_2** in the _copied_ column to **families_agent_record_id_3**.
+ * edit the labels in Row 4, incrementing the number. For example, you would edit the label **families_agent_record_id_2** in the _copied_ column to **families_agent_record_id_3**.  **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
  * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5, to avoid confusion. For example, you would edit the label **Family Agent(2) header string** to **Family Agent(3) header string**
 
 
@@ -201,6 +226,11 @@ For example, if you were to want *3* Family Agents, you would:
 ### <a name="subject">Subjects</a>
 
 As with <a href="#agent">Agents</a>, you may associate Subjects with the Archival Object.  You may associate up to two Subject records.  If you know the Record ID, you may use that instead of the **term**, **type**, and **source** in a manner similar to the way that Agent specifications are made, with the same database lookup and handling done there.  Again, if you want the ingest to look up the **term** in the database, you must use the entire Subject header, including any punctuation or capitalization.
+
+If you enter the subject header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two subjects with identical headers, but different sources):
+
+  * The ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a subject with a header of 'Black Lives Matter', a new subject  would be created with the header  'Black Lives Matter DISAMBIGUATE ME!'.  
+  * After ingest, you can  use the *merge* functionality to resolve the ambiguities.
 
 Column | Value | Default | Comment
 -------|-------|---------|---------

@@ -6,6 +6,7 @@
     def self.renew
       clear(@@subject_term_types)
       clear(@@subject_sources)
+      @@subjects = {}
     end
 
     def self.key_for(subject)
@@ -38,11 +39,24 @@
           end
         end
         begin
-          unless subj || (subj = get_db_subj(subject))
+          if !subj
+            begin
+              subj = get_db_subj(subject)
+            rescue Exception => e
+              if e.message == 'More than one match found in the database'
+                subject[:term] = subject[:term] + DISAMB_STR
+                report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => subject[:term]))
+              else
+                raise e
+              end
+            end
+          end
+          if !subj
             subj = create_subj(subject, num)
             report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')}[#{subject[:term]}]", :id => subj.uri))
           end
         rescue Exception => e
+          Rails.logger.error(e.backtrace)
           raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
         end
         if subj
@@ -77,7 +91,6 @@
     def self.get_db_subj(subject)
       s_params = {}
       s_params["q"] = "title:\"#{subject[:term]}\" AND first_term_type:#{subject[:type]}"
-
-      ret_subj = search(nil, s_params, :subject, 'subjects')
+      ret_subj = search(nil, s_params, :subject, 'subjects',"title:#{subject[:term]}" )
     end
   end

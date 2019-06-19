@@ -28,12 +28,15 @@ en:
       ref_id_notfound: "Ref Id %{refid} not found"
       warn:
        dup: "Managed Controlled Value List %{which} has multiple instances for the Translation '%{trans}'. '%{used}' will be used as the value."
+       disam: "Multiple match(es) found. Creating %{name} for disabiguation."
       error:
-       date_type: "Date type [%{what}] invalid. Defaulting to 'inclusive'"
-       certainty: "Invalid 'date certainty' ignored: (%{what})"
+       date_type: "Date type [%{what}] invalid for %{date_str}. Defaulting to 'inclusive'"
+       date_label: "Date label [%{what}] invalid for %{date_str}. The date will not be processed."
+       certainty: "Invalid 'date certainty' ignored for %{date_str}: (%{what})"
        below_bad_ao: Cannot process because it's a child of the bad archival object
        enum: "NOT FOUND: '%{label}' not found in list %{which}"
-       invalid_date: "Invalid date definition (%{what})"
+       invalid_date: "Invalid date definition (%{what}) for %{date_str}. The date will not be processed."
+       invalid_date_label: "Invalid date label definition in first date (%{what})"
        too_many: More than one match found in the database
        type_undef: Unable to determine type
        file_name: File name cannot be determined
