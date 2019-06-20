@@ -1,7 +1,7 @@
 # aspace-import-excel
 An [ArchivesSpace ](http://archivesspace.org/) [plugin](https://github.com/archivesspace/tech-docs/blob/master/customization/plugins.md) to support the bulk uploading via Excel SpreadSheet of Archival Objects and (optionally) their associated Creator Agents, Top Containers, Subjects, Digital Objects etc.
 
-Also supports the inport of spreadsheets that will allow for the creation of Digital Objects to be associated with already-created Archival Objects for **Version  2.2.2 and higher** of ArchiveSpace.
+Also supports the import of spreadsheets that will allow for the creation of Digital Objects to be associated with already-created Archival Objects for **Version  2.2.2 and higher** of ArchiveSpace.
 
 ## Current Version
 
@@ -9,7 +9,7 @@ Also supports the inport of spreadsheets that will allow for the creation of Dig
   
     NOTE: This version does *not* support the creation of Digital Objects to be associated with already-created Archival Objects.
 
-  For ArchivesSpace **v2.2.2 and higher**: [v2.1.19](https://github.com/harvard-library/aspace-import-excel/releases/tag/v2.1.19)
+  For ArchivesSpace **v2.2.2 and higher**: [v2.1.20](https://github.com/harvard-library/aspace-import-excel/releases/tag/v2.1.20)
 
 ## Development
 
@@ -54,9 +54,11 @@ to
 ```bash 
     AppConfig[:hide_do_load] = true
 ```
-3. **IF** you are running ArchivesSpace on Windows:
+3. **IF** you are running, on Windows, a version of ArchivesSpace that is *lower* than version **2.6.0**:
      
-     There currently is a problem with Bundler versioning.  Until a new version of ArchivesSpace is released that contains a fix to the *initialize-plugin.bat* script, copy 
+     There was a problem with Bundler versioning. 
+     
+Copy 
 ```
 archivesspace\aspace-import-excel\extras\modified_initialize-plugin.bat 
 ```
@@ -65,14 +67,20 @@ to
 archivesspace\scripts
 ```
 
+  **UPDATE**: You no longer need to use this modified .bat script **if** you are running ArchivesSpace 2.6.0 or higher.
+  
 4. Run the initializer script:
    * for Linux, that's 
    ```bash
    scripts/initialize-plugin.sh aspace-import-excel
    ```
-   * for Windows, that's 
+   * for Windows, running an ArchivesSpace version **lower than 2.6.0** ,that's 
    ```
    scripts\modified_initialize-plugin.bat aspace-import-excel
+   ```
+   Otherwise, for Windows running ArchivesSpace version **2.6.0** and higher:
+   ```
+   scripts\initialize-plugin.bat aspace-import-excel
    ```
 
 5. In the **common/config/config.rb** file, add 'aspace-import-excel' to the `AppConfig[:plugins]` array.
