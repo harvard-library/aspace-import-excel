@@ -56,7 +56,9 @@ to
 ```
 3. **IF** you are running, on Windows, a version of ArchivesSpace that is *lower* than version **2.6.0**:
      
-     There currently is a problem with Bundler versioning.  Until a new version of ArchivesSpace is released that contains a fix to the *initialize-plugin.bat* script, copy 
+     There was a problem with Bundler versioning. 
+     
+Copy 
 ```
 archivesspace\aspace-import-excel\extras\modified_initialize-plugin.bat 
 ```
