@@ -54,9 +54,11 @@ to
 ```bash 
     AppConfig[:hide_do_load] = true
 ```
-3. **IF** you are running ArchivesSpace on Windows:
+3. **IF** you are running, on Windows, a version of ArchivesSpace that is *lower* than version **2.6.0**:
      
-     There currently is a problem with Bundler versioning.  Until a new version of ArchivesSpace is released that contains a fix to the *initialize-plugin.bat* script, copy 
+     There was a problem with Bundler versioning. 
+     
+Copy 
 ```
 archivesspace\aspace-import-excel\extras\modified_initialize-plugin.bat 
 ```
@@ -65,15 +67,23 @@ to
 archivesspace\scripts
 ```
 
+  **UPDATE**: You no longer need to use this modified .bat script **if** you are running ArchivesSpace 2.6.0 or higher.
+
+
 4. Run the initializer script:
    * for Linux, that's 
    ```bash
    scripts/initialize-plugin.sh aspace-import-excel
    ```
-   * for Windows, that's 
+   * for Windows, running an ArchivesSpace version **lower than 2.6.0** ,that's 
    ```
    scripts\modified_initialize-plugin.bat aspace-import-excel
    ```
+   Otherwise, for Windows running ArchivesSpace version **2.6.0** and higher:
+   ```
+   scripts\initialize-plugin.bat aspace-import-excel
+   ```
+
 
 5. In the **common/config/config.rb** file, add 'aspace-import-excel' to the `AppConfig[:plugins]` array.
 6. Stop and restart ArchivesSpace
