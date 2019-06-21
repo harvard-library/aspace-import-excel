@@ -84,6 +84,11 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         if (row[0] && (row[0].value.to_s =~ @start_marker) || row[2] &&  row[2].value == 'ead') #FIXME: TEMP FIX
 
           @headers = row_values(row)
+          begin
+            check_for_code_dups
+          rescue Exception => e
+            raise StopExcelImportException.new(e.message)
+          end
         # Skip the human readable header too
           rows.next
           @counter += 1 # for the skipping
@@ -235,6 +240,22 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     err_arr.join('; ')
   end
 
+  def check_for_code_dups
+    test = {}
+    dups = ""
+    @headers.each do |head|
+      if test[head]
+        dups = "#{dups} #{head},"
+      else
+        test[head] = true
+      end
+    end
+    if !dups.blank?
+      raise Exception.new( I18n.t('plugins.aspace-import-excel.error.duplicates', :codes => dups))
+    end
+    return (dups.blank?)
+  end
+
   # create an archival_object
   def create_archival_object(parent_uri)
     ao = JSONModel(:archival_object).new._always_valid!
@@ -329,6 +350,9 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       end
       @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => err_msg,:date_str => date_str))
       return nil
+    end
+    if date_type == "single" && !date["end"].blank?
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.warn.single_date_end', :date_str => date_str))
     end
     d = JSONModel(:date).new(date)
     #[d]
