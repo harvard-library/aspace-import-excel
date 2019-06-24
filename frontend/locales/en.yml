@@ -29,7 +29,7 @@ en:
       warn:
        dup: "Managed Controlled Value List %{which} has multiple instances for the Translation '%{trans}'. '%{used}' will be used as the value."
        disam: "Multiple match(es) found. Creating %{name} for disabiguation."
-       single_date_end: "Single date [%{date_str}] has end date that will be ignored."
+       single_date_end: "Single date %{date_str} has end date that will be ignored."
       error:
        date_type: "Date type [%{what}] invalid for %{date_str}. Defaulting to 'inclusive'"
        date_label: "Date label [%{what}] invalid for %{date_str}. The date will not be processed."
@@ -59,7 +59,7 @@ en:
        date: "Date must have at least one of: Date begin; Date end; or Date expression"
        number: Missing Extent number
        extent_type:  Missing Extent type
-       extent_validation: "Unable to validate extent: %{msg}" 
+       extent_validation: "Unable to validate extent (%{ext}): %{msg}" 
        no_header: No header (field codes) row found; are you using the correct template?
        no_data: No processible data rows found!
        excel: "Error(s) parsing Excel File %{errs}"
