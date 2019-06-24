@@ -274,7 +274,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     ao.restrictions_apply = @row_hash['restrictions_flag']
     ao.parent = {'ref' => parent_uri} unless parent_uri.blank?
     begin
-      ao.extents = create_extent unless @row_hash['number'].blank? && @row_hash['extent_type'].blank? && @row_hash['portion'].blank?
+      ao.extents = create_extents
     rescue Exception => e
       @report.add_errors(e.message)
     end
@@ -358,22 +358,35 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     #[d]
   end
 
-  def create_extent
+  def create_extent(substr)
+    ext_str = "Extent: #{@row_hash["portion#{substr}"] || 'whole'} #{@row_hash["number#{substr}"]} #{@row_hash["extent_type#{substr}"]} #{@row_hash["container_summary#{substr}"]} #{@row_hash["physical_details#{substr}"]} #{@row_hash["dimensions#{substr}"]}"
     begin
-      extent = {'portion' => @extent_portions.value(@row_hash['portion'] || 'whole'),
-        'extent_type' => @extent_types.value((@row_hash['extent_type']))}
+      extent = {'portion' => @extent_portions.value(@row_hash["portion#{substr}"] || 'whole'),
+        'extent_type' => @extent_types.value((@row_hash["extent_type#{substr}"]))}
       %w(number container_summary physical_details dimensions).each do |w|
-        extent[w] = @row_hash[w] || nil
+        extent[w] = @row_hash["#{w}#{substr}"] || nil
       end
       ex = JSONModel(:extent).new(extent)
       if UpdatesUtils.test_exceptions(ex, "Extent")
-        return [ex]
+        return ex
       end
     rescue Exception => e
-      raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.extent_validation', :msg => e.message))
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.extent_validation', :msg => e.message, :ext => ext_str))
+      return nil
     end
   end
-
+  def create_extents
+    extents = []
+    cntr = 1
+    substr = ''
+    until @row_hash["number#{substr}"].blank? && @row_hash["extent_type#{substr}"].blank?
+      extent = create_extent(substr)
+      extents << extent if extent
+      cntr +=1
+      substr = "_#{cntr}"
+    end
+    return extents
+  end
   def create_top_container_instance
     instance = nil
     unless @row_hash['cont_instance_type'].blank? && @row_hash['type_1'].blank?
