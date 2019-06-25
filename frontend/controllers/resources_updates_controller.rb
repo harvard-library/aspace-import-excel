@@ -288,8 +288,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       msg = I18n.t('plugins.aspace-import-excel.error.initial_save_error', :title =>ao.title, :msg => e.message)
       raise ExcelImportException.new(msg)
     end
-    instance = create_top_container_instance
-    ao.instances = [instance] if instance
+    ao.instances = create_top_container_instances 
     if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
       ao.instances ||= []
       ao.instances << dig_instance
@@ -387,18 +386,22 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     end
     return extents
   end
-  def create_top_container_instance
-    instance = nil
-    unless @row_hash['cont_instance_type'].blank? && @row_hash['type_1'].blank?
+  def create_top_container_instances
+	  instances = []
+	  cntr = 1
+	  substr = ''
+    until @row_hash["cont_instance_type#{substr}"].blank? && @row_hash["type_1#{substr}"].blank? && @row_hash["barcode#{substr}"].blank?
       begin
-        instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
-      rescue ExcelImportException => ee
-        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why =>ee.message))
+	      instance = ContainerInstanceHandler.create_container_instance(@row_hash, substr, @resource['uri'], @report)
       rescue Exception => e
-        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
+        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :num=> cntr,:why=>e.message))
+        instance = nil
       end
+      cntr +=1
+      substr = "_#{cntr}"
+      instances << instance if instance
     end
-    instance
+    return instances
   end
 
   def fetch_archival_object(ref_id)
