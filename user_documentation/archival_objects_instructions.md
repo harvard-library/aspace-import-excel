@@ -9,11 +9,13 @@ The new functionality consists of support for:
 * Individually setting the publish/unpublish flags for <a href="#note">Notes</a>.
 * Ability to add <a href="#agent">Agents</a>  as Source and Subject, not just Creator.
 * Expanded the number of <a href="#agent">Agents</a>  for each type, including <a href="#increase_agent">directions</a> for adding even more agents.
-* Support for more than one <a href="#dates">Date</a>, with the ability to <a href="#increase_dates">add more dates</a>.
+
+* Support for more than one <a href="#extent">Extent</a>, with the ability to <a href="#increase_extents">add more extents</a>.
+* Support for more than one <a href="#contain">Container Instance</a>, with the ability to <a href="#increase_containers">add more container instances</a>.
 
 The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
 
-Once you've opened the tempate, use **Save as**  *(your new filename}*.xlsx to begin filling in your spreadsheet.
+Once you've opened your chosen template, use **Save as**  *(your new filename}*.xlsx to begin filling in your spreadsheet.
 
 
 The template is designed to be flexible enough to accommodate different workflows.  The *first row* is the place where you can put identifying information, such as "Foo Collection".
@@ -79,14 +81,16 @@ Date Certainty |String | | from the *Date Certainty* controlled value list
 
 <span style="color:rebeccapurple">New in version 3.0:</span> 
 The plugin supports your adding more than the two dates supplied on the spreadsheet.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the set of columns for the second date, inserting them into the template, and editing the labels in Rows 4 and 5 to reflect the next integer number:
-  * insert 6 columns next to the second date 
-  * copy the six columns of the second date, then paste them into the blank colums
+  * insert 6 columns to the RIGHT of second date block 
+  * copy the six columns of the second date, then paste them into the blank columns
   * edit the labels in Row 4 to increment the number.  For example, for the first added date, you'd edit **dates_label_2** to **dates_label_3** . **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
-  * While not necessary for proper processing, it's recommended that you also update the numbers in Row 5 to avoid confusion.  For example, edit **Date (2) Label** to  **Date (3) Label**. 
+  * While not necessary for proper processing, it's recommended that you also update the numbers in the copied columns in Row 5 to avoid confusion.  For example, edit **Date (2) Label** to  **Date (3) Label**. 
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="extent">Extent Information</a>
+
+<span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one extent.  The spreadsheet provides for two extents; you can add more by following the <a href="#increase_extents">instructions</a> for adding additional extents.
 
 Extent information is not required, but if you are defining an extent, please note the required fields.
 
@@ -99,15 +103,26 @@ Container Summary|String||
 Physical details |String||
 Dimensions| String ||
 
+### <a name="increase_extents">Adding more extents to the spreadsheet</a>
+
+<span style="color:rebeccapurple">New in version 3.0:</span> 
+The plugin supports your adding more than the two extents supplied on the spreadsheet.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the set of columns for the second extent, inserting them into the template, and editing the labels in Rows 4 and 5 to reflect the next integer number:
+  * insert 6 columns to the RIGHT of second extent block 
+  * copy the six columns of the second extent, then paste them into the blank columns
+  * edit the labels in Row 4 to increment the number.  For example, for the first added extent, you'd edit **portion_2** to **portion_3** . **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
+  * While not necessary for proper processing, it's recommended that you also update the numbers in the copied columns in Row 5 to avoid confusion.  For example, edit **Extent Portion(2)** to  **Extent Portion(3)**. * 
+
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="contain">Container Information  - Creating a Container Instance</a>
+
+<span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one container instance.  The spreadsheet provides for two container instances; you can add more by following the <a href="#increase_containers">instructions</a> for adding additional instances.
 
 A Container instance associates the Archival Object with a Top Container, with additional information on Child and Grandchild sub-containers if present.
 
 The ingester will try to find an already-created Top Container in the database.
 + If you have defined a barcode:
-   + If there's a match for that repository, that Top Container will be used without further checking.
+   + If there's a match for the barcode for that resource, that Top Container will be used without further checking.
    + Otherwise, a new Top Container will be created.
 + If you have not defined a barcode:
    + The type and indicator will be used to search the database for a Top Container that is already associated with the resource;
@@ -122,12 +137,23 @@ If you are specifying container information, note that both **type** and **indic
 Column | Value | Default | Comment
 -------|-------|---------|---------
 Container Instance type| String | | **REQUIRED** if you are defining a Container Instance. Value from the *Instance Instance Type* controlled value list
-Top Container type | String | Box| from the *Container Type* controlled value list
 Top Container indicator|String | Unknown || **REQUIRED**
+Barcode|String|||
 Child type | String||from the *Container Type* controlled value list
 Child indicator|String |Unknown   || *only used if a Child type is specified*
 Grandchild type | String||from the *Container Type* controlled value list
 Grandchild indicator|String | Unknown  || *only used if a Grandchild type is specified*
+
+### <a name="increase_containers">Adding more container instances to the spreadsheet</a>
+
+<span style="color:rebeccapurple">New in version 3.0:</span> 
+The plugin supports your adding more than the two container instances supplied on the spreadsheet.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the set of columns for the second extent, inserting them into the template, and editing the labels in Rows 4 and 5 to reflect the next integer number:
+  * insert 8 columns to the LEFT of second container block 
+  * copy the 8 columns of the second container block, then paste them into the blank columns
+  * edit the labels in Row 4 to increment the number.  For example, for the first added container instance, you'd edit **cont_instance_type_2** to **cont_instance_type_3** . 
+  For container instances, there are some Row 4 values with double numbers, such as **type_2_2**, which would be edited to **type_2_3**.  Sorry for the confusion!
+  **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
+  * While not necessary for proper processing, it's recommended that you also edit the numbers in the copied columns in Row 5 to avoid confusion.  For example, edit **Container Instance Type(2)** to  **Container Instance Type(3)**. 
 
 <a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
