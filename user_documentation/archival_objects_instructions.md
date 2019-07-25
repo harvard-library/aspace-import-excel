@@ -70,9 +70,9 @@ A Date must have **a valid label** and **at least** either a *begin date* or a *
 
 Column | Value | Default | Comment
 -------|-------|---------|---------
-Dates Label | String | | from the *Date Label* controlled value list. **Note**: If the value given is *not* on the controlled value list, this date will not be processed.
+Dates Label | String | *creation* | from the *Date Label* controlled value list. **Note**: If the value given is *not* on the controlled value list, this date will not be processed.
 Date Begin | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
-Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**
+Date End | a Date string || in one of the following: **YYYY, YYYY-MM, or YYYY-MM-DD**  **Note**: If you choose a Date Type of *'single'*, any value in this column will be ignored.
 Date Type | String| *inclusive*| from the *Date Type* controlled value list. **Note**: If the given value is *not* on the controlled value list, it will be overridden with the value 'inclusive'.
 Date Expression |String||
 Date Certainty |String | | from the *Date Certainty* controlled value list
