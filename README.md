@@ -5,21 +5,27 @@ Also supports the inport of spreadsheets that will allow for the creation of Dig
 
 ## Current Version
 
-  For versions of ArchivesSpace **before** v2.2.2:  [v1.7.8](https://github.com/harvard-library/aspace-import-excel/releases/tag/v1.7.8) 
+  For versions of ArchivesSpace **before** v2.2.2:  [v1.7.8](releases/tag/v1.7.8) 
   
-    NOTE: This version does *not* support the creation of Digital Objects to be associated with already-created Archival Objects.
+   **NOTE**: v1.7.8 does *not* support the creation of Digital Objects to be associated with already-created Archival Objects.
 
-  For ArchivesSpace **v2.2.2 and higher**: [v2.1.19](https://github.com/harvard-library/aspace-import-excel/releases/tag/v2.1.19)
+  For ArchivesSpace **v2.2.2 and higher**:  [v3.0.0](releases/tag/v3.0.0)
 
+  
 ## Development
 
-The initial version supports interactive selection of an archival object (or resource) as the starting point of the bulk upload.  
+This plugin supports interactive selection of an archival object (or resource) as the starting point of the bulk upload.  
+
+Version 3.0 incorporates new functionality for uploading archival objects (described in the [user documentation](user_documentation/archival_objects_instructions.md)), which supports the use of an [expansion](templates/extended_aspace_import_excel_template.xlsx) to the [original](templates/aspace_import_excel_template.xlsx) Excel template.  Version 3.0 is, however, backward compatible, so that users whose workflow is satisfied with the original template can continue to use it.
 
 ### Bulk upload/creation of Archival Objects
 
-The Excel template will be found in the templates/ folder as [**aspace_import_excel_template.xlsx**](/templates/aspace_import_excel_template.xlsx).  
+The Excel templates will be found in the templates/ folder as  
+ *  *New in V3.0*: [**extended_aspace_import_excel_template**](templates/extended_aspace_import_excel_template.xlsx)
+ 
+ * [**aspace_import_excel_template.xlsx**](templates/aspace_import_excel_template.xlsx).  
 
-The intention is not to completely reproduce a Finding Aid as presented in an EAD XML, or to allow for every permutation of Archival Object creation within ArchivesSpace.  We are aiming for the "80% rule"; that is, at least 80% of the work that would be done interactively can be replaced by an excel spreadsheet; additional refinements to individual archival objects (such as addition of agents-as-subjects, assignment of locations to top-level containers, etc.) would take place interactively.
+The intention is not to completely reproduce a Finding Aid as presented in an EAD XML, or to allow for every permutation of Archival Object creation within ArchivesSpace.  We are aiming for the "80% rule"; that is, at least 80% of the work that would be done interactively can be replaced by an excel spreadsheet; additional refinements to individual archival objects (such as assignment of locations to top-level containers) would take place interactively.
 
 See the [user documentation](user_documentation/USER_DOCUMENTATION.md) for more information. 
 
@@ -27,7 +33,7 @@ See the [user documentation](user_documentation/USER_DOCUMENTATION.md) for more 
 
 **This functionality is turned on by default** See the <a href="#installation">Installation</a> instructions for turning it off.
 
-The Excel template will be found in the templates/ folder as [**aspace_import_excel_DO_template.xlsx**](/templates/aspace_import_excel_DO_template.xlsx). 
+The Excel template will be found in the templates/ folder as [**aspace_import_excel_DO_template.xlsx**](templates/aspace_import_excel_DO_template.xlsx). 
 
 As with the original development, we are not completely reproducing all the functionality of ArchivesSpace: only one Digital Object, which can have either or both of one:
   + File with an *Xlink Actuate Attribute* of **onLoad** and an *Xlink Show Attribute* of **embed**
@@ -54,9 +60,11 @@ to
 ```bash 
     AppConfig[:hide_do_load] = true
 ```
-3. **IF** you are running ArchivesSpace on Windows:
+3. **IF** you are running, on Windows, a version of ArchivesSpace that is *lower* than version **2.6.0**:
      
-     There currently is a problem with Bundler versioning.  Until a new version of ArchivesSpace is released that contains a fix to the *initialize-plugin.bat* script, copy 
+     There was a problem with Bundler versioning. 
+     
+Copy 
 ```
 archivesspace\aspace-import-excel\extras\modified_initialize-plugin.bat 
 ```
@@ -65,15 +73,23 @@ to
 archivesspace\scripts
 ```
 
+  **UPDATE**: You no longer need to use this modified .bat script **if** you are running ArchivesSpace 2.6.0 or higher.
+
+
 4. Run the initializer script:
    * for Linux, that's 
    ```bash
    scripts/initialize-plugin.sh aspace-import-excel
    ```
-   * for Windows, that's 
+   * for Windows, running an ArchivesSpace version **lower than 2.6.0** ,that's 
    ```
    scripts\modified_initialize-plugin.bat aspace-import-excel
    ```
+   Otherwise, for Windows running ArchivesSpace version **2.6.0** and higher:
+   ```
+   scripts\initialize-plugin.bat aspace-import-excel
+   ```
+
 
 5. In the **common/config/config.rb** file, add 'aspace-import-excel' to the `AppConfig[:plugins]` array.
 6. Stop and restart ArchivesSpace
@@ -96,8 +112,10 @@ User documentation is [available](user_documentation/USER_DOCUMENTATION.md)
 
 ## Contributors
 
-* Bobbi Fox: https://github.com/bobbi-SMR (maintainer)
-* Robin Wendler: https://github.com/rwendler
-* Julie Wetherill: https://github.com/juliewetherill
-* h/t to Chintan Desai: https://github.com/cdesai-qi for catching inconsistencies
+* Bobbi Fox: [@bobbi-SMR](https://github.com/bobbi-SMR) (maintainer)
+* Robin Wendler: [@rwendler](https://github.com/rwendler)
+* Julie Wetherill: [@juliewetherill](https://github.com/juliewetherill)
+* Adrienne Pruitt: [@adriennepruitt2](https://github.com/adriennepruitt2)
+* Dave Mayo: [@pobocks](https://github.com/pobocks)
+* h/t to Chintan Desai: [@cdesai-qi](https://github.com/cdesai-qi) for catching inconsistencies
 

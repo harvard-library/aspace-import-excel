@@ -84,6 +84,11 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         if (row[0] && (row[0].value.to_s =~ @start_marker) || row[2] &&  row[2].value == 'ead') #FIXME: TEMP FIX
 
           @headers = row_values(row)
+          begin
+            check_for_code_dups
+          rescue Exception => e
+            raise StopExcelImportException.new(e.message)
+          end
         # Skip the human readable header too
           rows.next
           @counter += 1 # for the skipping
@@ -235,6 +240,22 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     err_arr.join('; ')
   end
 
+  def check_for_code_dups
+    test = {}
+    dups = ""
+    @headers.each do |head|
+      if test[head]
+        dups = "#{dups} #{head},"
+      else
+        test[head] = true
+      end
+    end
+    if !dups.blank?
+      raise Exception.new( I18n.t('plugins.aspace-import-excel.error.duplicates', :codes => dups))
+    end
+    return (dups.blank?)
+  end
+
   # create an archival_object
   def create_archival_object(parent_uri)
     ao = JSONModel(:archival_object).new._always_valid!
@@ -253,7 +274,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     ao.restrictions_apply = @row_hash['restrictions_flag']
     ao.parent = {'ref' => parent_uri} unless parent_uri.blank?
     begin
-      ao.extents = create_extent unless @row_hash['number'].blank? && @row_hash['extent_type'].blank? && @row_hash['portion'].blank?
+      ao.extents = create_extents
     rescue Exception => e
       @report.add_errors(e.message)
     end
@@ -267,8 +288,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       msg = I18n.t('plugins.aspace-import-excel.error.initial_save_error', :title =>ao.title, :msg => e.message)
       raise ExcelImportException.new(msg)
     end
-    instance = create_top_container_instance
-    ao.instances = [instance] if instance
+    ao.instances = create_top_container_instances 
     if (dig_instance = DigitalObjectHandler.create(@row_hash, ao, @report))
       ao.instances ||= []
       ao.instances << dig_instance
@@ -330,38 +350,58 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => err_msg,:date_str => date_str))
       return nil
     end
+    if date_type == "single" && !date["end"].blank?
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.warn.single_date_end', :date_str => date_str))
+    end
     d = JSONModel(:date).new(date)
     #[d]
   end
 
-  def create_extent
+  def create_extent(substr)
+    ext_str = "Extent: #{@row_hash["portion#{substr}"] || 'whole'} #{@row_hash["number#{substr}"]} #{@row_hash["extent_type#{substr}"]} #{@row_hash["container_summary#{substr}"]} #{@row_hash["physical_details#{substr}"]} #{@row_hash["dimensions#{substr}"]}"
     begin
-      extent = {'portion' => @extent_portions.value(@row_hash['portion'] || 'whole'),
-        'extent_type' => @extent_types.value((@row_hash['extent_type']))}
+      extent = {'portion' => @extent_portions.value(@row_hash["portion#{substr}"] || 'whole'),
+        'extent_type' => @extent_types.value((@row_hash["extent_type#{substr}"]))}
       %w(number container_summary physical_details dimensions).each do |w|
-        extent[w] = @row_hash[w] || nil
+        extent[w] = @row_hash["#{w}#{substr}"] || nil
       end
       ex = JSONModel(:extent).new(extent)
       if UpdatesUtils.test_exceptions(ex, "Extent")
-        return [ex]
+        return ex
       end
     rescue Exception => e
-      raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.extent_validation', :msg => e.message))
+      @report.add_errors(I18n.t('plugins.aspace-import-excel.error.extent_validation', :msg => e.message, :ext => ext_str))
+      return nil
     end
   end
-
-  def create_top_container_instance
-    instance = nil
-    unless @row_hash['cont_instance_type'].blank? && @row_hash['type_1'].blank?
-      begin
-        instance = ContainerInstanceHandler.create_container_instance(@row_hash, @resource['uri'], @report)
-      rescue ExcelImportException => ee
-        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_container_instance', :why =>ee.message))
-      rescue Exception => e
-        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :why => e.message))
-      end
+  def create_extents
+    extents = []
+    cntr = 1
+    substr = ''
+    until @row_hash["number#{substr}"].blank? && @row_hash["extent_type#{substr}"].blank?
+      extent = create_extent(substr)
+      extents << extent if extent
+      cntr +=1
+      substr = "_#{cntr}"
     end
-    instance
+    return extents
+  end
+  def create_top_container_instances
+	  instances = []
+	  cntr = 1
+	  substr = ''
+    until @row_hash["cont_instance_type#{substr}"].blank? && @row_hash["type_1#{substr}"].blank? && @row_hash["barcode#{substr}"].blank?
+      begin
+	      instance = ContainerInstanceHandler.create_container_instance(@row_hash, substr, @resource['uri'], @report)
+      rescue Exception => e
+        @report.add_errors(I18n.t('plugins.aspace-import-excel.error.no_tc', :num=> cntr,:why=>e.message))
+        instance = nil
+      end
+      cntr +=1
+      substr = "_#{cntr}"
+      instances << instance if instance
+    end
+    return instances
   end
 
   def fetch_archival_object(ref_id)
