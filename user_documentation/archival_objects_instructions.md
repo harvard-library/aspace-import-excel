@@ -192,7 +192,6 @@ If you enter a Record ID and **not** the header string, and that ID is not found
 
 If you **only** enter the header string, and a record isn't found in the database, a new Agent will be created, with its Linked Agent Role of **Creator**.
 
-If you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it. In this case, the new Agent would be marked publish=false. When you correct the record, change publish to true if appropriate.
 
 
 
@@ -255,7 +254,7 @@ As with <a href="#agent">Agents</a>, you may associate Subjects with the Archiva
 
 If you enter the subject header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two subjects with identical headers, but different sources):
 
-  * The ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a subject with a header of 'Black Lives Matter', a new subject  would be created with the header  'Black Lives Matter DISAMBIGUATE ME!'.  
+  * The ingester will create a **new** subject (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a subject with a header of 'Black Lives Matter', a new subject  would be created with the header  'Black Lives Matter DISAMBIGUATE ME!'.  
   * After ingest, you can  use the *merge* functionality to resolve the ambiguities.
 
 Column | Value | Default | Comment
