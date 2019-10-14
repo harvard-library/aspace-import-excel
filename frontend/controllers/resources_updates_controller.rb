@@ -19,7 +19,7 @@ DO_START_MARKER = /ArchivesSpace digital object import field codes/
     rid = params[:rid]
     id = params[:id]
   end
-  
+
   # create the file form for the spreadsheet
   def get_file
     rid = params[:rid]
@@ -30,7 +30,7 @@ DO_START_MARKER = /ArchivesSpace digital object import field codes/
     position = params[:position] || '1'
     @resource = Resource.find(params[:rid])
     repo_id = @resource['repository']['ref'].split('/').last
-    return render_aspace_partial :partial => "resources/bulk_file_form",  :locals => {:rid => rid, :aoid => aoid, :type => type, :ref_id => ref_id, :resource => resource, :position => position, :repo_id => repo_id} 
+    return render_aspace_partial :partial => "resources/bulk_file_form",  :locals => {:rid => rid, :aoid => aoid, :type => type, :ref_id => ref_id, :resource => resource, :position => position, :repo_id => repo_id}
   end
 
   # load the digital objects
@@ -39,7 +39,7 @@ DO_START_MARKER = /ArchivesSpace digital object import field codes/
 #Rails.logger.info "\t**** LOAD DOS ***"
     ao = fetch_archival_object(params)
 Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
-    if !ao['instances'].blank? 
+    if !ao['instances'].blank?
       digs = []
       ao['instances'].each {|instance| digs.append(ao) if instance.dig("digital_object") != nil }
       unless digs.blank?
@@ -91,7 +91,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       end
       begin
         while (row = rows.next)
-          @counter += 1 
+          @counter += 1
           values = row_values(row)
           next if values.reject(&:blank?).empty?
           @row_hash = Hash[@headers.zip(values)]
@@ -143,7 +143,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     :do_load => @digital_load}
   end
 
-  private  
+  private
 
   # save the archival object, then revive it
   def ao_save(ao)
@@ -160,7 +160,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       raise e
     end
     revived
-  end  
+  end
 
   # required fields for a digital object row: ead match, ao_ref_id and at least one of digital_object_link, thumbnail
   def check_do_row
@@ -184,7 +184,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     begin
       # we'll check hierarchical level first, in case there was a parent that didn't get created
       hier = @row_hash['hierarchy']
-      if !hier 
+      if !hier
         err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_miss')
       else
         hier = hier.to_i
@@ -200,7 +200,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
           end
         end
         @hier = hier
-      end 
+      end
       missing_title = @row_hash['title'].blank?
       #date stuff: if already missing the title, we have to make sure the date label is valid
       missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].reject(&:blank?).empty?
@@ -241,7 +241,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     ao.title = @row_hash['title'] if  @row_hash['title']
     unless  [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].reject(&:blank?).empty?
       begin
-        ao.dates = create_date 
+        ao.dates = create_date
       rescue Exception => e
         @report.add_errors(I18n.t('plugins.aspace-import-excel.error.invalid_date', :what => e.message))
       end
@@ -284,7 +284,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     ao.linked_agents = links
     ao
   end
-  
+
   def create_date
     date_type = 'inclusive'
     begin
@@ -352,7 +352,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
 #    Rails.logger.info("response: #{response} for ref_id: #{ref_id}")
     unless response.blank? || response["archival_objects"].blank?
        aos = []
-      response["archival_objects"].each { |ao| 
+      response["archival_objects"].each { |ao|
         Rails.logger.info "aodig: #{ao.dig('_resolved','resource','ref')}"
         aos.append(ao["ref"]) if ao.dig('_resolved','resource','ref') == @resource_ref
       }
@@ -369,7 +369,7 @@ Rails.logger.info {ao.pretty_inspect}
         end
       end
     end
-    ao 
+    ao
   end
 
   def handle_notes(ao)
@@ -384,7 +384,7 @@ Rails.logger.info {ao.pretty_inspect}
         note = JSONModel(note_type[:target]).new
         note.publish = publish
         note.type = note_type[:value]
-        begin 
+        begin
           wellformed(content)
 # if the target is multipart, then the data goes in a JSONMODEL(:note_text).content;, which is pushed to the note.subnote array; otherwise it's just pushed to the note.content array
           if note_type[:target] == :note_multipart
@@ -411,7 +411,7 @@ Rails.logger.info {ao.pretty_inspect}
     SubjectHandler.renew
     AgentHandler.renew
   end
-  
+
   # set up all the @ variables (except for @header)
   def initialize_info(params)
     dispatched_file = params[:file]
@@ -426,7 +426,7 @@ Rails.logger.info {ao.pretty_inspect}
       @note_types =  note_types_for(:archival_object)
       tree = JSONModel(:resource_tree).find(nil, :resource_id => params[:rid]).to_hash
       @ao = nil
-      aoid = params[:aoid] 
+      aoid = params[:aoid]
       @resource_level = aoid.blank?
       @first_one = false  # to determine whether we need to worry about positioning
       if @resource_level
@@ -435,7 +435,7 @@ Rails.logger.info {ao.pretty_inspect}
       else
         @ao = JSONModel(:archival_object).find(aoid, find_opts )
         @start_position = @ao.position
-        parent = @ao.parent # we need this for sibling/child disabiguation later on 
+        parent = @ao.parent # we need this for sibling/child disabiguation later on
         @parents.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
         @parents.set_uri(1, @ao.uri)
         @first_one = true
@@ -514,7 +514,7 @@ Rails.logger.info {ao.pretty_inspect}
         end
       end
     end
-    
+
   end
 
   def process_row
@@ -543,7 +543,7 @@ Rails.logger.info {ao.pretty_inspect}
     @parents.set_uri(@hier, ao.uri)
     @created_ao_refs.push ao.uri
     if @hier == 1
-      @first_level_aos.push ao.uri 
+      @first_level_aos.push ao.uri
       if @first_one && @start_position
         @need_to_move = (ao.position - @start_position) > 1
         @first_one = false
@@ -590,13 +590,12 @@ Rails.logger.info {ao.pretty_inspect}
   # use nokogiri if there seems to be an XML element (or element closure); allow exceptions to bubble up
   def wellformed(note)
     if note.match("</?[a-zA-Z]+>")
-      frag = Nokogiri::XML("<root>#{note}</root>") {|config| config.strict}
+      frag = Nokogiri::XML("<root xmlns:xlink='https://www.w3.org/1999/xlink'>#{note}</root>") {|config| config.strict}
     end
   end
 
- 
+
   def row_values(row)
     (1...row.size).map {|i| (row[i] && row[i].value) ? row[i].value.to_s.strip : nil}
   end
 end
-
