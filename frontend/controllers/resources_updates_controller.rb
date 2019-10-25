@@ -655,7 +655,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
   # use nokogiri if there seems to be an XML element (or element closure); allow exceptions to bubble up
   def wellformed(note)
     if note.match("</?[a-zA-Z]+>")
-      frag = Nokogiri::XML("<root>#{note}</root>") {|config| config.strict}
+      frag = Nokogiri::XML("<root xmlns:xlink='https://www.w3.org/1999/xlink'>#{note}</root>") {|config| config.strict}
     end
   end
 
