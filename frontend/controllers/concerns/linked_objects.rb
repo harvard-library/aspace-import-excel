@@ -15,6 +15,7 @@ module LinkedObjects
     AGENT_TYPES = { 'families' => 'family', 'corporate_entities' => 'corporate_entity', 'people' => 'person'}
     def self.renew
       clear(@@agent_relators)
+      @@agents = {}
     end
     def self.key_for(agent)
       key = "#{agent[:type]} #{agent[:name]}"
@@ -42,19 +43,28 @@ module LinkedObjects
            agent_obj = JSONModel("agent_#{agent[:type]}".to_sym).find(agent[:id])
          rescue Exception => e
            if e.message != 'RecordNotFound'
-#             Pry::ColorPrinter.pp e
              raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
            end
          end
        end
        begin
-       unless agent_obj || (agent_obj = get_db_agent(agent, resource_uri, num))
-         agent_obj = create_agent(agent, num)
-         report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.agent')}[#{agent[:name]}]", :id => agent_obj.uri))
-       end
+          if !agent_obj
+            begin
+              agent_obj = get_db_agent(agent, resource_uri, num)
+            rescue Exception => e
+              if e.message == 'More than one match found in the database'
+                agent[:name] = agent[:name] + DISAMB_STR
+                report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => agent[:name]))
+              else
+                raise e
+              end
+            end
+          end
+          if !agent_obj
+            agent_obj = create_agent(agent, num)
+            report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.agent')}[#{agent[:name]}]", :id => agent_obj.uri))
+          end
        rescue Exception => e
-#         Pry::ColorPrinter.pp e.message
-#         Pry::ColorPrinter.pp e.backtrace
          raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num =>  num,  :why => e.message))
        end
      end
@@ -84,7 +94,7 @@ module LinkedObjects
     begin
       ret_agent = JSONModel("agent_#{agent[:type]}".to_sym).new._always_valid!
       ret_agent.names = [name_obj(agent)]
-      ret_agent.publish = !agent[:id_but_no_name]
+      ret_agent.publish = !(agent[:id_but_no_name] || agent[:name].ends_with?(DISAMB_STR))
       ret_agent.save
     rescue Exception => e
        raise Exception.new(I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
@@ -99,8 +109,6 @@ module LinkedObjects
         ret_ag = JSONModel("agent_#{agent[:type]}".to_sym).find(agent[:id])
       rescue Exception => e
         if e.message != 'RecordNotFound' 
-#          Pry::ColorPrinter.pp e.message
-#          Pry::ColorPrinter.pp e.backtrace
           raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_agent', :num => num, :why => e.message))
         end
       end
@@ -108,7 +116,7 @@ module LinkedObjects
     if !ret_ag
       a_params = {"q" => "title:\"#{agent[:name]}\" AND primary_type:agent_#{agent[:type]}"}
       repo = resource_uri.split('/')[2]
-      ret_ag = search(repo, a_params, "agent_#{agent[:type]}".to_sym)
+      ret_ag = search(repo, a_params, "agent_#{agent[:type]}".to_sym,'', "title:#{agent[:name]}")
     end
     ret_ag
   end
@@ -244,7 +252,7 @@ module LinkedObjects
         tc_params = {}
         tc_params["type[]"] = 'top_container'
         tc_params["q"] = "display_string:\"#{tc_str}\" AND collection_uri_u_sstr:\"#{resource_uri}\""
-        ret_tc = search(repo_id,tc_params, :top_container)
+        ret_tc = search(repo_id,tc_params, :top_container,'', "display_string:#{tc_str}")
       end
       ret_tc
     end
@@ -254,7 +262,7 @@ module LinkedObjects
       if barcode
         tc_params = {}
         tc_params["type[]"] = 'top_container'
-        tc_params["q"] = "barcode_u_sstr:#{barcode}"
+        tc_params["q"] = "barcode_u_sstr:\"#{barcode}\""
         ret_tc = search(repo_id,tc_params, :top_container)
       end
       ret_tc
@@ -325,6 +333,7 @@ module LinkedObjects
     def self.renew
       clear(@@subject_term_types)
       clear(@@subject_sources)
+      @@subjects = {}
     end
 
     def self.key_for(subject)
@@ -357,11 +366,24 @@ module LinkedObjects
           end
         end
         begin
-          unless subj || (subj = get_db_subj(subject))
+          if !subj
+            begin
+              subj = get_db_subj(subject)
+            rescue Exception => e
+              if e.message == 'More than one match found in the database'
+                subject[:term] = subject[:term] + DISAMB_STR
+                report.add_info(I18n.t('plugins.aspace-import-excel.warn.disam', :name => subject[:term]))
+              else
+                raise e
+              end
+            end
+          end
+          if !subj
             subj = create_subj(subject, num)
             report.add_info(I18n.t('plugins.aspace-import-excel.created', :what =>"#{I18n.t('plugins.aspace-import-excel.subj')}[#{subject[:term]}]", :id => subj.uri))
           end
         rescue Exception => e
+          Rails.logger.error(e.backtrace)
           raise ExcelImportException.new( I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
         end
         if subj
@@ -386,6 +408,7 @@ module LinkedObjects
         subj.terms.push term
         subj.source = subject[:source]
         subj.vocabulary = '/vocabularies/1'  # we're making a gross assumption here
+        subj.publish = !(subject[:id_but_no_term] || subject[:term].ends_with?(DISAMB_STR))
         subj.save
       rescue Exception => e
         raise ExcelImportException.new(I18n.t('plugins.aspace-import-excel.error.no_subject',:num => num, :why => e.message))
@@ -397,7 +420,7 @@ module LinkedObjects
       s_params = {}
       s_params["q"] = "title:\"#{subject[:term]}\" AND first_term_type:#{subject[:type]}"
 
-      ret_subj = search(nil, s_params, :subject, 'subjects')
+      ret_subj = search(nil, s_params, :subject, 'subjects',"title:#{subject[:term]}" )
     end
   end
 end
