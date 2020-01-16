@@ -5,11 +5,11 @@ Also supports the import of spreadsheets that will allow for the creation of Dig
 
 ## Current Version
 
-  For versions of ArchivesSpace **before** v2.2.2:  [v1.7.8](https://github.com/tufts-digital-collections-archives/aspace-import-excel/releases/tag/v1.7.8)
+  For versions of ArchivesSpace **before** v2.2.2:  [v1.7.8](https://github.com/harvard-library/aspace-import-excel/releases/tag/v1.7.8)
 
    **NOTE**: v1.7.8 does *not* support the creation of Digital Objects to be associated with already-created Archival Objects.
 
-  For ArchivesSpace **v2.2.2 and higher**:  [v3.0.2](https://github.com/tufts-digital-collections-archives/aspace-import-excel/releases/tag/v3.0.2)
+  For ArchivesSpace **v2.2.2 and higher**:  [v3.0.2](https://github.com/harvard-library/aspace-import-excel/releases/tag/v3.0.3)
 
 ## Development
 
