@@ -9,9 +9,9 @@ The new functionality consists of support for:
 * Individually setting the publish/unpublish flags for <a href="#note">Notes</a>.
 * Ability to add <a href="#agent">Agents</a>  as Source and Subject, not just Creator.
 * Expanded the number of <a href="#agent">Agents</a>  for each type, including <a href="#increase_agent">directions</a> for adding even more agents.
-
 * Support for more than one <a href="#extent">Extent</a>, with the ability to <a href="#increase_extents">add more extents</a>.
 * Support for more than one <a href="#contain">Container Instance</a>, with the ability to <a href="#increase_containers">add more container instances</a>.
+* <a href="#lang">Language</a> support, in ArchivesSpace *v2.7 and higher*.
 
 The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
 
@@ -24,7 +24,7 @@ As long as you **don't edit** the **row** marked *"ArchivesSpace field code"*, y
 
 **Note**  that some columns already have in-column drop down data validation defined.  You may of course add more of these, or edit the ones that are already defined. See [The Excel help page](https://support.office.com/en-us/article/Apply-data-validation-to-cells-29FECBCC-D1B9-42C1-9D76-EFF3CE5F7249) to learn how to create these. 
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="required">Required Columns</a>
 
@@ -58,11 +58,42 @@ Publish?| in column drop-down | **False** | This is applied to any information (
 Restrictions Apply? | in column drop-down | **False** | 
 Processing Note | String | | No markup allowed
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+
+### <a name="lang">Language</a>
+
+New in version 3.0.4: The extended spreadsheet provides support for the new handling of Languages  ***if*** you are using ArchivesSpace **v2.7 or higher**. The extended spreadsheet provides for two language blocks; you can add more by following the <a href="increase_lang">instructions</a> for adding more language blocks.
+
+If you are using a lower version of ArchivesSpace, you can still add **one** *Language of Materials Note* by filling in the  *first* **Language Note** and **Publish Language Note?** columns on the extended spreadsheet template .
+
+**Note:** If you are using ArchivesSpace v2.7 or higher, and want to continue using the original spreadsheet template, you may do so by filling in the  *Language of Materials Note* with just a controlled value from the Language ISO 639-2 controlled value list.
+
+| Column                 | Value               | Default | Comment                                                      |
+| ---------------------- | ------------------- | ------- | ------------------------------------------------------------ |
+| Language               | String              | none    | From the *Language ISO 639-2* controlled value list          |
+| Language Script        | String              | none    | From the *Language Script ISO 15924* controlled value list   |
+| Language Note          | String              | none    | You may use Mixed Content (EAD/XML markup).                  |
+| Publish Language Note? | in column drop-down | none    | If the field is left blank, use the value of the Publish field for that Archival Object Otherwise, set to True or False as specified. |
+
+<a name="increase_lang">Adding more language blocks to the spreadsheet</a>
+
+<span style="color:rebeccapurple">New in version 3.0.4:</span> 
+The plugin supports your adding more than the two language blocks supplied on the spreadsheet.  To do this, you may edit, locally, the [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx) by copying the set of columns for the second date, inserting them into the template, and editing the labels in Rows 4 and 5 to reflect the next integer number:
+
+  * insert 4 columns to the RIGHT of second language block 
+  * copy the 4 columns of the second block, then paste them into the blank columns
+  * edit the labels in Row 4 to increment the number.  For example, for the first added block, you'd edit **n_lang_2** to **n_lang_3** . **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
+  * While not necessary for proper processing, it's recommended that you also update the numbers in the copied columns in Row 5 to avoid confusion.  For example, edit **Language (2)** to  **Language (3)**.
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="dates">Dates</a>
 
-<span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one Date.  The spreadsheet provides for two dates; you can add more by following the <a href="#increase_dates">instructions</a> for adding additional dates.
+<span style="color:rebeccapurple">New in version 3.0:</span> Support for more than one Date.  The extended spreadsheet provides for two dates; you can add more by following the <a href="#increase_dates">instructions</a> for adding additional dates.
 
 A Date must have **a valid label** and **at least** either a *begin date* or a *date expression.*
 
@@ -86,7 +117,9 @@ The plugin supports your adding more than the two dates supplied on the spreadsh
   * edit the labels in Row 4 to increment the number.  For example, for the first added date, you'd edit **dates_label_2** to **dates_label_3** . **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
   * While not necessary for proper processing, it's recommended that you also update the numbers in the copied columns in Row 5 to avoid confusion.  For example, edit **Date (2) Label** to  **Date (3) Label**. 
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="extent">Extent Information</a>
 
@@ -112,7 +145,9 @@ The plugin supports your adding more than the two extents supplied on the spread
   * edit the labels in Row 4 to increment the number.  For example, for the first added extent, you'd edit **portion_2** to **portion_3** . **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
   * While not necessary for proper processing, it's recommended that you also update the numbers in the copied columns in Row 5 to avoid confusion.  For example, edit **Extent Portion(2)** to  **Extent Portion(3)**. * 
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="contain">Container Information  - Creating a Container Instance</a>
 
@@ -151,11 +186,13 @@ The plugin supports your adding more than the two container instances supplied o
   * insert 8 columns to the LEFT of second container block 
   * copy the 8 columns of the second container block, then paste them into the blank columns
   * edit the labels in Row 4 to increment the number.  For example, for the first added container instance, you'd edit **cont_instance_type_2** to **cont_instance_type_3** . 
-  For container instances, there are some Row 4 values with double numbers, such as **type_2_2**, which would be edited to **type_2_3**.  Sorry for the confusion!
-  **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
+    For container instances, there are some Row 4 values with double numbers, such as **type_2_2**, which would be edited to **type_2_3**.  Sorry for the confusion!
+    **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
   * While not necessary for proper processing, it's recommended that you also edit the numbers in the copied columns in Row 5 to avoid confusion.  For example, edit **Container Instance Type(2)** to  **Container Instance Type(3)**. 
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="digital">Digital Objects</a>
 
@@ -167,12 +204,14 @@ Digital Object Title| String || If no Digital Object Title is provided, the disp
 URL of Linked-out digital object| URL String ||  this becomes the File Version with the **actuate_attribute** set to "onRequest" and the **show_attribute** set to "new"
 URL of thumbnail| URL String ||  if defined, this becomes the File version with the **actuate_attribute** set to "onLoad", the **show_attribute** set to "embed", and the "is representative" flag is set to TRUE.
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 
 ### <a name="agent">Agent Objects</a>
 
-The ingester allows you to link Agents to Archival objects.  The [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx), as provided, allows for up to **5** Person Agents, up to **2** Family Agents, and up to **3** Corporate Agents per Archival object.  If you need more of any of these types, you can follow the <a href="#increase_agent">directions</a> for adding more agents.
+The Ingester allows you to link Agents to Archival objects.  The [extended_aspace_import_excel_template.xlsx](../templates/extended_aspace_import_excel_template.xlsx), as provided, allows for up to **5** Person Agents, up to **2** Family Agents, and up to **3** Corporate Agents per Archival object.  If you need more of any of these types, you can follow the <a href="#increase_agent">directions</a> for adding more agents.
 
 If you have previously defined the Agent(s) you are using, you may use the Record ID number (e.g.:  for the Agent URI /agents */agent_person/1249*, you would use **1249**) OR the full header string, with all capitalization and punctuation.
 
@@ -181,9 +220,9 @@ Either the Record ID *or* the header string is **required**.
 If you include both, or only the header, and the record isn't found, a new Agent record will be created.  The header string will be used as the **family_name** if it's a Family Agent, and the **primary_name**  
 otherwise.
 
-If you enter the header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two agents with identical headers, but different sources):
+If you enter the header string *without* the ID, the Ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two agents with identical headers, but different sources):
 
-  * The ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a person agent with a header of 'George Washington', a new person agent would be created with a primary name of 'George Washington DISAMBIGUATE ME!'.  
+  * The Ingester will create a **new** agent (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a person agent with a header of 'George Washington', a new person agent would be created with a primary name of 'George Washington DISAMBIGUATE ME!'.  
   * After ingest, you can  use the *merge* functionality to resolve the ambiguities.
 
 If you enter a Record ID and **not** the header string, and that ID is not found, a new Agent record will be created with the name "PLACEHOLDER FOR *{agent type}* ID *{ id number}* NOT FOUND", so that you may easily find that record later and edit/merge it. In this case, the new Agent would be marked publish=false. When you correct the record, change publish to true if appropriate.
@@ -246,15 +285,17 @@ For example, if you were to want *3* Family Agents, you would:
  **Note:** The plugin stops at the first set of columns that are blank.  This means that, if you've filled in the columns for Person Agent 1, and Person Agent 3, leaving Person Agent 2 blank, the plugin *will not*
  process Person Agent 3.
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="subject">Subjects</a>
 
 As with <a href="#agent">Agents</a>, you may associate Subjects with the Archival Object.  You may associate up to two Subject records.  If you know the Record ID, you may use that instead of the **term**, **type**, and **source** in a manner similar to the way that Agent specifications are made, with the same database lookup and handling done there.  Again, if you want the ingest to look up the **term** in the database, you must use the entire Subject header, including any punctuation or capitalization.
 
-If you enter the subject header string *without* the ID, the ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two subjects with identical headers, but different sources):
+If you enter the subject header string *without* the ID, the Ingester will try to do an **exact match** against the header; if it finds more than one match (for example, if the database contains two subjects with identical headers, but different sources):
 
-  * The ingester will create a **new** subject (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a subject with a header of 'Black Lives Matter', a new subject  would be created with the header  'Black Lives Matter DISAMBIGUATE ME!'.  
+  * The Ingester will create a **new** subject (with publish=false) containing the header with ' DISAMBIGUATE ME!' appended to it.  For example, given a subject with a header of 'Black Lives Matter', a new subject  would be created with the header  'Black Lives Matter DISAMBIGUATE ME!'.  
   * After ingest, you can  use the *merge* functionality to resolve the ambiguities.
 
 Column | Value | Default | Comment
@@ -268,7 +309,9 @@ Subject (2) Term |String ||
 Subject (2) Type | String| topical|   from the *Subject Term Type*  controlled value list 
 Subject (2) Source | String| ingest| from the *Subject Source* controlled value list 
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 
 ### <a name="note">Notes fields</a>
@@ -283,7 +326,7 @@ Each Note column is accompanied by a "Publish" column, which has in-column drop 
 * Otherwise, set to True or False as specified.
 
 
-As does ArchivesSpace, you may used Mixed Content (EAD/XML markup).  The Ingester will check to make sure that the entry is "well formed" -- that is, that the opening and closing elements match -- but will **not** validate the text to make sure you're using the proper markup.
+As you may in ArchivesSpace, you may use Mixed Content (EAD/XML markup).  The Ingester will check to make sure that the entry is "well formed" -- that is, that the opening and closing elements match -- but will **not** validate the text to make sure you're using the proper markup.
 
 The following Notes fields are supported:
 
@@ -295,7 +338,6 @@ The following Notes fields are supported:
 + Custodial History
 + Dimensions
 + General	
-+ Language of Materials
 + Physical Description
 + Physical Facet
 + Physical Location
@@ -306,4 +348,6 @@ The following Notes fields are supported:
 + Separated Materials
 + Use Restrictions
 
-<a href="#defs">Column Definitions</a> \| <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+
+
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
