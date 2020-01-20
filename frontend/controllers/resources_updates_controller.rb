@@ -19,7 +19,7 @@ DO_START_MARKER = /ArchivesSpace digital object import field codes/
     rid = params[:rid]
     id = params[:id]
   end
-
+  
   # create the file form for the spreadsheet
   def get_file
     rid = params[:rid]
@@ -30,7 +30,7 @@ DO_START_MARKER = /ArchivesSpace digital object import field codes/
     position = params[:position] || '1'
     @resource = Resource.find(params[:rid])
     repo_id = @resource['repository']['ref'].split('/').last
-    return render_aspace_partial :partial => "resources/bulk_file_form",  :locals => {:rid => rid, :aoid => aoid, :type => type, :ref_id => ref_id, :resource => resource, :position => position, :repo_id => repo_id}
+    return render_aspace_partial :partial => "resources/bulk_file_form",  :locals => {:rid => rid, :aoid => aoid, :type => type, :ref_id => ref_id, :resource => resource, :position => position, :repo_id => repo_id} 
   end
 
   # load the digital objects
@@ -39,7 +39,7 @@ DO_START_MARKER = /ArchivesSpace digital object import field codes/
 #Rails.logger.info "\t**** LOAD DOS ***"
     ao = fetch_archival_object(params)
 Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
-    if !ao['instances'].blank?
+    if !ao['instances'].blank? 
       digs = []
       ao['instances'].each {|instance| digs.append(ao) if instance.dig("digital_object") != nil }
       unless digs.blank?
@@ -96,7 +96,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       end
       begin
         while (row = rows.next)
-          @counter += 1
+          @counter += 1 
           values = row_values(row)
           next if values.reject(&:blank?).empty?
           @row_hash = Hash[@headers.zip(values)]
@@ -148,7 +148,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     :do_load => @digital_load}
   end
 
-  private
+  private  
 
   # save the archival object, then revive it
   def ao_save(ao)
@@ -165,7 +165,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       raise e
     end
     revived
-  end
+  end  
 
   # required fields for a digital object row: ead match, ao_ref_id and at least one of digital_object_link, thumbnail
   def check_do_row
@@ -189,7 +189,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     begin
       # we'll check hierarchical level first, in case there was a parent that didn't get created
       hier = @row_hash['hierarchy']
-      if !hier
+      if !hier 
         err_arr.push I18n.t('plugins.aspace-import-excel.error.hier_miss')
       else
         hier = hier.to_i
@@ -205,7 +205,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
           end
         end
         @hier = hier
-      end
+      end 
       missing_title = @row_hash['title'].blank?
       #date stuff: if already missing the title, we have to make sure the date label is valid
       missing_date = [@row_hash['begin'],@row_hash['end'],@row_hash['expression']].reject(&:blank?).empty?
@@ -273,6 +273,11 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     ao.publish = @row_hash['publish']
     ao.restrictions_apply = @row_hash['restrictions_flag']
     ao.parent = {'ref' => parent_uri} unless parent_uri.blank?
+     # handle language issues
+    if LangHandler.ead3
+      langs = create_langs(ao.publish)
+      ao.lang_materials = langs if !langs.empty?
+    end
     begin
       ao.extents = create_extents
     rescue Exception => e
@@ -312,7 +317,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     end
     return dates
   end
-
+  
   def create_date(substr)
     date_str = "(Date: type:#{@row_hash["date_type#{substr}"]}, label: #{@row_hash["dates_label#{substr}"]}, begin: #{@row_hash["begin#{substr}"]}, end: #{@row_hash["end#{substr}"]}, expression: #{@row_hash["expression#{substr}"]})"
     date_type = 'inclusive'
@@ -386,6 +391,19 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     end
     return extents
   end
+  def create_langs(publish)
+    langs = []    
+	  cntr = 1
+	  substr = ''
+    until @row_hash["l_lang#{substr}"].blank? && @row_hash["l_langscript#{substr}"].blank? && @row_hash["n_langmaterial#{substr}"].blank?
+      lang = LangHandler.create_language(@row_hash, substr,publish, @report)
+      langs.concat(lang) if !lang.empty?
+      @row_hash["n_langmaterial#{substr}"] = ""
+      cntr +=1
+      substr = "_#{cntr}"
+    end
+    return langs
+  end
   def create_top_container_instances
 	  instances = []
 	  cntr = 1
@@ -410,7 +428,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
 #    Rails.logger.info("response: #{response} for ref_id: #{ref_id}")
     unless response.blank? || response["archival_objects"].blank?
        aos = []
-      response["archival_objects"].each { |ao|
+      response["archival_objects"].each { |ao| 
         Rails.logger.info "aodig: #{ao.dig('_resolved','resource','ref')}"
         aos.append(ao["ref"]) if ao.dig('_resolved','resource','ref') == @resource_ref
       }
@@ -427,42 +445,41 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         end
       end
     end
-    ao
+    ao 
   end
 
   def handle_notes(ao)
     publish = ao.publish
     errs = []
     notes_keys = @row_hash.keys.grep(/^n_/)
+    notes_keys.reject!{|key| @row_hash[key].blank? }
     notes_keys.each do |key|
-      unless @row_hash[key].blank?
-        content = @row_hash[key]
-        type = key.match(/n_(.+)$/)[1]
-        note_type = @note_types[type]
-        note = JSONModel(note_type[:target]).new
-        pubnote = @row_hash["p_#{type}"]
-        if pubnote.blank?
-          pubnote = publish
-        else
-          pubnote = (pubnote == '1')
-        end
-        note.publish = pubnote
-        note.type = note_type[:value]
-        begin
-          wellformed(content)
+      content = @row_hash[key]
+      type = key.match(/n_(.+)$/)[1]
+      note_type = @note_types[type]
+      note = JSONModel(note_type[:target]).new
+      pubnote = @row_hash["p_#{type}"]
+      if pubnote.blank?
+        pubnote = publish
+      else
+        pubnote = (pubnote == '1')
+      end
+      note.publish = pubnote
+      note.type = note_type[:value]
+      begin 
+        wellformed(content)
 # if the target is multipart, then the data goes in a JSONMODEL(:note_text).content;, which is pushed to the note.subnote array; otherwise it's just pushed to the note.content array
-          if note_type[:target] == :note_multipart
-            inner_note = JSONModel(:note_text).new
-            inner_note.content = content
-            inner_note.publish = pubnote
-            note.subnotes.push inner_note
-          else
-            note.content.push content
-          end
-          ao.notes.push note
-        rescue Exception => e
-          errs.push(I18n.t('plugins.aspace-import-excel.error.bad_note', :type => note_type[:value] , :msg => CGI::escapeHTML( e.message)))
+        if note_type[:target] == :note_multipart
+          inner_note = JSONModel(:note_text).new
+          inner_note.content = content
+          inner_note.publish = pubnote
+          note.subnotes.push inner_note
+        else
+          note.content.push content
         end
+        ao.notes.push note
+      rescue Exception => e
+        errs.push(I18n.t('plugins.aspace-import-excel.error.bad_note', :type => note_type[:value] , :msg => CGI::escapeHTML( e.message)))
       end
     end
     errs
@@ -474,8 +491,9 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     DigitalObjectHandler.renew
     SubjectHandler.renew
     AgentHandler.renew
+    LangHandler.renew
   end
-
+  
   # set up all the @ variables (except for @header)
   def initialize_info(params)
     dispatched_file = params[:file]
@@ -490,7 +508,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       @note_types =  note_types_for(:archival_object)
       tree = JSONModel(:resource_tree).find(nil, :resource_id => params[:rid]).to_hash
       @ao = nil
-      aoid = params[:aoid]
+      aoid = params[:aoid] 
       @resource_level = aoid.blank?
       @first_one = false  # to determine whether we need to worry about positioning
       if @resource_level
@@ -499,7 +517,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
       else
         @ao = JSONModel(:archival_object).find(aoid, find_opts )
         @start_position = @ao.position
-        parent = @ao.parent # we need this for sibling/child disabiguation later on
+        parent = @ao.parent # we need this for sibling/child disabiguation later on 
         @parents.set_uri(0, (parent ? ASUtils.jsonmodels_to_hashes(parent)['ref'] : nil))
         @parents.set_uri(1, @ao.uri)
         @first_one = true
@@ -579,7 +597,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
         end
       end
     end
-
+    
   end
 
   def process_row
@@ -608,7 +626,7 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     @parents.set_uri(@hier, ao.uri)
     @created_ao_refs.push ao.uri
     if @hier == 1
-      @first_level_aos.push ao.uri
+      @first_level_aos.push ao.uri 
       if @first_one && @start_position
         @need_to_move = (ao.position - @start_position) > 1
         @first_one = false
@@ -659,8 +677,9 @@ Rails.logger.info "ao instances? #{!ao["instances"].blank?}" if ao
     end
   end
 
-
+ 
   def row_values(row)
     (1...row.size).map {|i| (row[i] && row[i].value) ? row[i].value.to_s.strip : nil}
   end
 end
+
