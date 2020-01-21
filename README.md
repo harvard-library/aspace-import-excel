@@ -9,7 +9,7 @@ Also supports the import of spreadsheets that will allow for the creation of Dig
 
    **NOTE**: v1.7.8 does *not* support the creation of Digital Objects to be associated with already-created Archival Objects.
 
-  For ArchivesSpace **v2.2.2 and higher**:  [v3.0.2](https://github.com/harvard-library/aspace-import-excel/releases/tag/v3.0.3)
+  For ArchivesSpace **v2.2.2 and higher**:  [v3.0.4](https://github.com/harvard-library/aspace-import-excel/releases/tag/v3.0.4)
 
 ## Development
 
@@ -17,7 +17,7 @@ This plugin supports interactive selection of an archival object (or resource) a
 
 Version 3.0 incorporates new functionality for uploading archival objects (described in the [user documentation](user_documentation/archival_objects_instructions.md)), which supports the use of an [expansion](templates/extended_aspace_import_excel_template.xlsx) to the [original](templates/aspace_import_excel_template.xlsx) Excel template.  Version 3.0 is, however, backward compatible, so that users whose workflow is satisfied with the original template can continue to use it.
 
-### Bulk upload/creation of Archival Objects
+**Note:** If you have upgraded to ArchivesSpace v2.7 or higher, please be aware that information about the Language of Materials is handled differently. The changes are described in detail in the [user documentation](user_documentation/archival_objects_instructions.md) under **Language**.
 
 The Excel templates will be found in the templates/ folder as
  *  *New in V3.0*: [**extended_aspace_import_excel_template**](templates/extended_aspace_import_excel_template.xlsx)
