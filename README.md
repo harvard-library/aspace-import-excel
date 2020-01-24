@@ -17,7 +17,7 @@ This plugin supports interactive selection of an archival object (or resource) a
 
 Version 3.0 incorporates new functionality for uploading archival objects (described in the [user documentation](user_documentation/archival_objects_instructions.md)), which supports the use of an [expansion](templates/extended_aspace_import_excel_template.xlsx) to the [original](templates/aspace_import_excel_template.xlsx) Excel template.  Version 3.0 is, however, backward compatible, so that users whose workflow is satisfied with the original template can continue to use it.
 
-**Note:** If you have upgraded to ArchivesSpace v2.7 or higher, please be aware that information about the Language of Materials is handled differently. The changes are described in detail in the [user documentation](user_documentation/archival_objects_instructions.md) under **Language**.
+**Note:** If you have upgraded to ArchivesSpace v2.7 or higher, please be aware that information about the Language of Materials is handled differently. The changes are described in detail in the [user documentation](user_documentation/archival_objects_instructions.md) under **Languages**.
 
 The Excel templates will be found in the templates/ folder as
  *  *New in V3.0*: [**extended_aspace_import_excel_template**](templates/extended_aspace_import_excel_template.xlsx)
