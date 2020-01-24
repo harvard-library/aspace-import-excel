@@ -11,7 +11,7 @@ The new functionality consists of support for:
 * Expanded the number of <a href="#agent">Agents</a>  for each type, including <a href="#increase_agent">directions</a> for adding even more agents.
 * Support for more than one <a href="#extent">Extent</a>, with the ability to <a href="#increase_extents">add more extents</a>.
 * Support for more than one <a href="#contain">Container Instance</a>, with the ability to <a href="#increase_containers">add more container instances</a>.
-* <a href="#lang">Language</a> support, in ArchivesSpace *v2.7 and higher*.
+* <a href="#lang">Languages</a> support, in ArchivesSpace *v2.7 and higher*.
 
 The code is backward-compatible with the the original [Excel Spreadsheet template](../templates/aspace_import_excel_template.xlsx) so you may continue using the original if it meets your needs.
 
@@ -24,7 +24,7 @@ As long as you **don't edit** the **row** marked *"ArchivesSpace field code"*, y
 
 **Note**  that some columns already have in-column drop down data validation defined.  You may of course add more of these, or edit the ones that are already defined. See [The Excel help page](https://support.office.com/en-us/article/Apply-data-validation-to-cells-29FECBCC-D1B9-42C1-9D76-EFF3CE5F7249) to learn how to create these. 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="required">Required Columns</a>
 
@@ -60,23 +60,23 @@ Processing Note | String | | No markup allowed
 
 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a> |  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 
 
-### <a name="lang">Language</a>
+### <a name="lang">Languages</a>
 
 New in version 3.0.4: The extended spreadsheet provides support for the new handling of Languages  ***if*** you are using ArchivesSpace **v2.7 or higher**. The extended spreadsheet provides for two language blocks; you can add more by following the <a href="increase_lang">instructions</a> for adding more language blocks.
 
 If you are using a lower version of ArchivesSpace, you can still add **one** *Language of Materials Note* by filling in the  *first* **Language Note** and **Publish Language Note?** columns on the extended spreadsheet template .
 
-**Note:** If you are using ArchivesSpace v2.7 or higher, and want to continue using the original spreadsheet template, you may do so by filling in the  *Language of Materials Note* with just a controlled value from the Language ISO 639-2 controlled value list.
+**Note:** If you are using ArchivesSpace v2.7 or higher, and want to continue using the original spreadsheet template, you may do so.  Special handling of the  *Language of Materials Note* is noted in the comment below.
 
 | Column                 | Value               | Default | Comment                                                      |
 | ---------------------- | ------------------- | ------- | ------------------------------------------------------------ |
 | Language               | String              | none    | From the *Language ISO 639-2* controlled value list          |
 | Language Script        | String              | none    | From the *Language Script ISO 15924* controlled value list   |
-| Language Note          | String              | none    | You may use Mixed Content (EAD/XML markup).                  |
+| Language Note          | String              | none    | You may use Mixed Content (EAD/XML markup). If you do not fill in the **Language** field, and this field contains only a controlled value for language, this value will be assigned as the **Language**, rather than as a **Language of Materials Note** |
 | Publish Language Note? | in column drop-down | none    | If the field is left blank, use the value of the Publish field for that Archival Object Otherwise, set to True or False as specified. |
 
 <a name="increase_lang">Adding more language blocks to the spreadsheet</a>
@@ -89,7 +89,7 @@ The plugin supports your adding more than the two language blocks supplied on th
   * edit the labels in Row 4 to increment the number.  For example, for the first added block, you'd edit **n_lang_2** to **n_lang_3** . **NOTE**: it is *extremely important* that you ensure that the labels in Row 4 are edited; otherwise, you may not get the results you're expecting.
   * While not necessary for proper processing, it's recommended that you also update the numbers in the copied columns in Row 5 to avoid confusion.  For example, edit **Language (2)** to  **Language (3)**.
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="dates">Dates</a>
 
@@ -119,7 +119,7 @@ The plugin supports your adding more than the two dates supplied on the spreadsh
 
 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="extent">Extent Information</a>
 
@@ -147,7 +147,7 @@ The plugin supports your adding more than the two extents supplied on the spread
 
 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="contain">Container Information  - Creating a Container Instance</a>
 
@@ -192,7 +192,7 @@ The plugin supports your adding more than the two container instances supplied o
 
 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="digital">Digital Objects</a>
 
@@ -206,7 +206,7 @@ URL of thumbnail| URL String ||  if defined, this becomes the File version with 
 
 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 
 ### <a name="agent">Agent Objects</a>
@@ -287,7 +287,7 @@ For example, if you were to want *3* Family Agents, you would:
 
 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 ### <a name="subject">Subjects</a>
 
@@ -311,7 +311,7 @@ Subject (2) Source | String| ingest| from the *Subject Source* controlled value 
 
 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
 
 
 ### <a name="note">Notes fields</a>
@@ -350,4 +350,4 @@ The following Notes fields are supported:
 
 
 
-<a href="#defs">Column Definitions</a> \| <a href="#lang">Language</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
+<a href="#defs">Column Definitions</a> \| <a href="#lang">Languages</a>\|  <a href="#dates">Dates</a> \| <a href="#extent">Extent</a> \| <a href="#contain">Container</a> \| <a href="#digital">Digital Objects</a> \| <a href="#agent">Agents</a> \| <a href="#subject">Subjects</a> \| <a href="#note">Notes</a>
