@@ -66,7 +66,7 @@ Processing Note | String | | No markup allowed
 
 ### <a name="lang">Languages</a>
 
-New in version 3.0.4: The extended spreadsheet provides support for the new handling of Languages  ***if*** you are using ArchivesSpace **v2.7 or higher**. The extended spreadsheet provides for two language blocks; you can add more by following the <a href="increase_lang">instructions</a> for adding more language blocks.
+New in version 3.0.4: The extended spreadsheet provides support for the new handling of Languages  ***if*** you are using ArchivesSpace **v2.7 or higher**. The extended spreadsheet provides for two language blocks; you can add more by following the <a href="#increase_lang">instructions</a> for adding more language blocks.
 
 If you are using a lower version of ArchivesSpace, you can still add **one** *Language of Materials Note* by filling in the  *first* **Language Note** and **Publish Language Note?** columns on the extended spreadsheet template .
 
